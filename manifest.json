@@ -1,0 +1,12 @@
+{
+  "short_name": "재고관리",
+  "name": "상품 재고 및 편성 관리 시스템",
+  "icons": [
+    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#4361ee",
+  "background_color": "#ffffff"
+}
