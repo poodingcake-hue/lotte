@@ -40,7 +40,7 @@
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
       .nav-btn span { font-size: 14px; font-weight: 700; }
 
-      /* 모달 스타일 */
+      /* 모달 UI */
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; }
       .modal-img-wrap { width: 100%; background: #fff; border-bottom: 1px solid #eee; position: relative; cursor: pointer; }
@@ -48,27 +48,19 @@
       
       .m-product-info-top { font-size: 12px; color: #888; margin: 15px 20px 4px; line-height: 1.2; }
       .m-product-info-top b { color: #222; font-weight: 800; }
-      
-      /* 상품명 한 줄 강제 고정 */
-      .m-product-title { 
-        font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; 
-        white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; display: block !important; width: calc(100% - 40px); 
-      }
+      .m-product-title { font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: calc(100% - 40px); }
       
       .modal-main-padding { padding: 0 20px; }
       .loc-input-group { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
       .loc-input-group label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
-      .loc-input-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; outline: none; }
+      .loc-input-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; outline: none; background: white; }
 
-      /* 재고표 스타일 수정 (마진 0, 10px 폰트, 19vw) */
+      /* 재고표 스타일 (19vw 색상너비 고정) */
       .table-full-container { margin: 0; padding: 0; width: 100%; overflow-x: auto; }
-      .st-table { 
-        font-size: 10px !important; width: 100% !important; margin: 0 !important; 
-        border-collapse: collapse; table-layout: fixed; border: none !important;
-      }
-      .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; overflow: hidden;}
-      .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc;}
-      .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0;}
+      .st-table { font-size: 10px !important; width: 100% !important; margin: 0 !important; border-collapse: collapse; table-layout: fixed; border: none !important; }
+      .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; overflow: hidden; }
+      .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
+      .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0; }
       .st-table th { background: #f8f9fa; font-weight: 700; color: #666; }
 
       #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
@@ -124,16 +116,19 @@
             if (action == "getInitialData") onDataLoad(data);
             else if (action == "getExistingStock") renderStock(data);
             else if (action == "saveInventoryData") {
+              // [최종 수정] 저장 완료 후 알림 및 현재 화면 데이터 초기화
               alert(data); 
-              // 저장 후 초기화
-              document.getElementById("in-location").value = "";
-              document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = "");
-              btn.disabled = false; btn.innerText = "저장";
-              modalObj.hide(); 
-              fetchData("getInitialData"); 
+              document.getElementById("in-location").value = ""; // 위치 비우기
+              document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); // 숫자 비우기
+              btn.disabled = false; 
+              btn.innerText = "저장";
+              // '재고 현황' 탭 미리 업데이트 (데이터 동기화)
+              fetchData("getExistingStock", `&code=${curItem.code}`);
             }
           })
-          .catch(err => { btn.disabled = false; btn.innerText = "저장"; });
+          .catch(err => { 
+            btn.disabled = false; btn.innerText = "저장"; 
+          });
       }
 
       function onDataLoad(data) {
@@ -199,9 +194,9 @@
           });
         }
         if(matrix.length === 0) return alert("수량을 입력하세요.");
-        const btn = document.getElementById("btn-save");
-        btn.disabled = true; btn.innerText = "저장 중...";
-        const payload = { code: curItem.code, combinedName: curItem.brand + " " + curItem.name, name: curItem.name, matrix: matrix, location: loc };
+        const btn = document.getElementById("btn-save"); btn.disabled = true; btn.innerText = "저장 중...";
+        const combined = curItem.brand + " " + curItem.name;
+        const payload = { code: curItem.code, combinedName: combined, name: curItem.name, matrix: matrix, location: loc };
         fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
       }
 
@@ -255,5 +250,6 @@
     </script>
   </body>
 </html>
+
 
 
