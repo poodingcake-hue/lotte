@@ -11,7 +11,7 @@
       :root { --primary: #4361ee; --bg: #f8f9fa; --text: #212529; }
       body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 55px; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
       
-      /* 날짜 스크롤러 */
+      /* 날짜 스크롤러 (편성표 상단) */
       .date-scroller { display: flex; overflow-x: auto; padding: 12px 10px; gap: 10px; background: white; border-bottom: 1px solid #eee; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 1000; }
       .date-scroller::-webkit-scrollbar { display: none; }
       .date-btn { min-width: 50px; height: 60px; background: #f1f3f5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: none; }
@@ -19,11 +19,11 @@
       .date-btn .dow { font-size: 10px; opacity: 0.8; }
       .date-btn .day { font-size: 16px; font-weight: 700; }
 
-      /* 필터 바 */
-      .filter-bar { background: white; padding: 8px 15px; display: flex; gap: 8px; border-bottom: 1px solid #eee; position: sticky; top: 85px; z-index: 999; }
-      .filter-bar select { border-radius: 8px; font-size: 13px; border: 1px solid #ddd; height: 34px; }
+      /* [수정] 필터 바 (재고관리 상단) - 위치를 0으로 수정하여 상단 밀착 */
+      .filter-bar { background: white; padding: 10px 15px; display: flex; gap: 8px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+      .filter-bar select { border-radius: 8px; font-size: 13px; border: 1px solid #ddd; height: 36px; flex: 1; }
 
-      /* 그리드 레이아웃 */
+      /* 상품 그리드 */
       .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px; }
       .p-card { background: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative; }
       .p-img-box { position: relative; width: 100%; aspect-ratio: 1/1; background: #fff; display: flex; align-items: center; justify-content: center; }
@@ -33,6 +33,7 @@
       .p-name { font-size: 13px; font-weight: 600; line-height: 1.35; color: #333; min-height: 35px; max-height: 35px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 10px; }
       .p-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #f1f1f1; }
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
+      .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
       /* 하단 네비게이션 */
       .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 50px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1001; }
@@ -40,14 +41,14 @@
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
       .nav-btn span { font-size: 14px; font-weight: 700; }
 
-      /* 모달 UI */
+      /* 모달 스타일 */
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; }
       .modal-img-wrap { width: 100%; background: #fff; border-bottom: 1px solid #eee; position: relative; cursor: pointer; }
       #m-img { width: 100%; height: auto; max-height: 45vh; object-fit: contain; }
-      
       .m-product-info-top { font-size: 12px; color: #888; margin: 15px 20px 4px; line-height: 1.2; }
       .m-product-info-top b { color: #222; font-weight: 800; }
+      /* 상품명 한 줄 강제 고정 */
       .m-product-title { font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: calc(100% - 40px); }
       
       .modal-main-padding { padding: 0 20px; }
@@ -55,7 +56,7 @@
       .loc-input-group label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
       .loc-input-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; outline: none; background: white; }
 
-      /* 재고표 스타일 (19vw 색상너비 고정) */
+      /* 재고표 스타일 (여백 제거, 19vw) */
       .table-full-container { margin: 0; padding: 0; width: 100%; overflow-x: auto; }
       .st-table { font-size: 10px !important; width: 100% !important; margin: 0 !important; border-collapse: collapse; table-layout: fixed; border: none !important; }
       .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; overflow: hidden; }
@@ -71,23 +72,33 @@
     </style>
   </head>
   <body>
-    <div id="loading-overlay"><div class="spinner"></div><div class="small">데이터 로딩 중...</div></div>
-    <div id="page-schedule"><div class="date-scroller" id="dateScroller"></div><div id="scheduleContainer"></div></div>
-    <div id="page-inventory" style="display:none;"><div class="filter-bar"><select id="brandSel" class="form-select form-select-sm" onchange="filterInventory()"></select><select id="cateSel" class="form-select form-select-sm" onchange="filterInventory()"></select></div><div id="inventoryContainer" class="product-grid"></div></div>
-    <nav class="bottom-nav"><button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')"><span>편성표</span></button><button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')"><span>재고관리</span></button></nav>
+    <div id="loading-overlay"><div class="spinner"></div><div class="small">데이터 연결 중...</div></div>
+    
+    <!-- 편성표 화면 전용 날짜 선택 바 -->
+    <div id="page-schedule">
+      <div class="date-scroller" id="dateScroller"></div>
+      <div id="scheduleContainer"></div>
+    </div>
+
+    <!-- 재고관리 화면 전용 필터 바 -->
+    <div id="page-inventory" style="display:none;">
+      <div class="filter-bar">
+        <select id="brandSel" class="form-select form-select-sm" onchange="filterInventory()"></select>
+        <select id="cateSel" class="form-select form-select-sm" onchange="filterInventory()"></select>
+      </div>
+      <div id="inventoryContainer" class="product-grid"></div>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')"><span>편성표</span></button>
+      <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')"><span>재고관리</span></button>
+    </nav>
     
     <div class="modal fade" id="itemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-body">
       <div class="modal-img-wrap mb-2" onclick="openLotteMall()"><img id="m-img" src=""><button type="button" class="btn-close" data-bs-dismiss="modal" style="position:absolute; top:15px; right:15px; background:white; border-radius:50%; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button></div>
       <div class="m-product-info-top" id="m-info-top"></div>
       <div class="m-product-title" id="m-title"></div>
-      
-      <div class="modal-main-padding">
-        <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-pill">
-          <li class="nav-item"><button class="nav-link active rounded-pill py-2 small" id="t-view" onclick="toggleModalView('view')">재고 현황</button></li>
-          <li class="nav-item"><button class="nav-link rounded-pill py-2 small" id="t-add" onclick="toggleModalView('add')">입고 등록</button></li>
-        </ul>
-      </div>
-
+      <div class="modal-main-padding"><ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-pill"><li class="nav-item"><button class="nav-link active rounded-pill py-2 small" id="t-view" onclick="toggleModalView('view')">재고 현황</button></li><li class="nav-item"><button class="nav-link rounded-pill py-2 small" id="t-add" onclick="toggleModalView('add')">입고 등록</button></li></ul></div>
       <div id="v-view" class="table-full-container"></div>
       <div id="v-add" style="display:none;">
          <div class="modal-main-padding"><div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div></div>
@@ -116,19 +127,14 @@
             if (action == "getInitialData") onDataLoad(data);
             else if (action == "getExistingStock") renderStock(data);
             else if (action == "saveInventoryData") {
-              // [최종 수정] 저장 완료 후 알림 및 현재 화면 데이터 초기화
               alert(data); 
-              document.getElementById("in-location").value = ""; // 위치 비우기
-              document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); // 숫자 비우기
-              btn.disabled = false; 
-              btn.innerText = "저장";
-              // '재고 현황' 탭 미리 업데이트 (데이터 동기화)
+              document.getElementById("in-location").value = ""; 
+              document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
+              btn.disabled = false; btn.innerText = "저장";
               fetchData("getExistingStock", `&code=${curItem.code}`);
             }
           })
-          .catch(err => { 
-            btn.disabled = false; btn.innerText = "저장"; 
-          });
+          .catch(err => { btn.disabled = false; btn.innerText = "저장"; });
       }
 
       function onDataLoad(data) {
@@ -250,6 +256,3 @@
     </script>
   </body>
 </html>
-
-
-
