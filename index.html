@@ -33,7 +33,6 @@
       .p-name { font-size: 13px; font-weight: 600; line-height: 1.35; color: #333; min-height: 35px; max-height: 35px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 10px; }
       .p-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #f1f1f1; }
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
-      .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
       /* 하단 네비게이션 */
       .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 50px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1001; }
@@ -41,7 +40,7 @@
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
       .nav-btn span { font-size: 14px; font-weight: 700; }
 
-      /* 모달 UI */
+      /* 모달 스타일 */
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; }
       .modal-img-wrap { width: 100%; background: #fff; border-bottom: 1px solid #eee; position: relative; cursor: pointer; }
@@ -49,42 +48,29 @@
       
       .m-product-info-top { font-size: 12px; color: #888; margin: 15px 20px 4px; line-height: 1.2; }
       .m-product-info-top b { color: #222; font-weight: 800; }
+      
       /* 상품명 한 줄 강제 고정 */
-      .m-product-title { font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: calc(100% - 40px); }
+      .m-product-title { 
+        font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; 
+        white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; display: block !important; width: calc(100% - 40px); 
+      }
       
       .modal-main-padding { padding: 0 20px; }
       .loc-input-group { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
       .loc-input-group label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
       .loc-input-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; outline: none; }
 
-      /* [수정] 재고표 여백 제거 및 색상 너비 19vw 고정 */
+      /* 재고표 스타일 수정 (마진 0, 10px 폰트, 19vw) */
       .table-full-container { margin: 0; padding: 0; width: 100%; overflow-x: auto; }
       .st-table { 
-        font-size: 10px !important; 
-        width: 100% !important; 
-        margin: 0 !important; 
-        border-collapse: collapse; 
-        table-layout: fixed; 
-        border: none !important;
+        font-size: 10px !important; width: 100% !important; margin: 0 !important; 
+        border-collapse: collapse; table-layout: fixed; border: none !important;
       }
-      .st-table th, .st-table td { 
-        border: 1px solid #eee; 
-        padding: 10px 2px; 
-        text-align: center; 
-        vertical-align: middle;
-        overflow: hidden;
-      }
-      .col-color { 
-        width: 19vw !important; /* 요청하신 19vw로 조정 */
-        white-space: nowrap !important; 
-        font-size: 9px !important; 
-        font-weight: 600;
-        background-color: #fcfcfc;
-      }
-      .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0; }
+      .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; overflow: hidden;}
+      .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc;}
+      .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0;}
       .st-table th { background: #f8f9fa; font-weight: 700; color: #666; }
 
-      /* 로딩 및 기타 */
       #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
       .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -111,48 +97,43 @@
       </div>
 
       <div id="v-view" class="table-full-container"></div>
-
       <div id="v-add" style="display:none;">
-         <div class="modal-main-padding">
-           <div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div>
-         </div>
+         <div class="modal-main-padding"><div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div></div>
          <div id="add-table-container" class="table-full-container"></div>
-         <div class="modal-main-padding">
-           <div class="d-flex gap-2 mt-3 mb-4"><button class="btn btn-sm btn-outline-secondary w-100 py-2" onclick="addRow()">+ 색상</button><button class="btn btn-sm btn-outline-secondary w-100 py-2" onclick="addCol()">+ 사이즈</button></div>
-         </div>
+         <div class="modal-main-padding"><div class="d-flex gap-2 mt-3 mb-4"><button class="btn btn-sm btn-outline-secondary w-100 py-2" onclick="addRow()">+ 색상</button><button class="btn btn-sm btn-outline-secondary w-100 py-2" onclick="addCol()">+ 사이즈</button></div></div>
       </div>
     </div><div class="modal-footer border-0"><button type="button" class="btn btn-primary w-100 py-2" id="btn-save" style="display:none;" onclick="saveData()">저장</button></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // ⚠️ 제공해주신 웹 앱 주소가 삽입되었습니다.
       const API_URL = "https://script.google.com/macros/s/AKfycbzpAjxDWvpV8BLsMiezsBSTINg6tIe18OyJkz4pDuChnToiVajjt5BmZWAuVrnl7Eh1/exec";
-      
       let curItem = null, allItems = [], selDate = null, modalObj = null;
 
-      // 브라우저 뒤로가기 제어
-      window.onpopstate = function(e) {
-        if (document.getElementById('itemModal').classList.contains('show')) {
-          modalObj.hide();
-        } else if (document.getElementById('page-inventory').style.display !== 'none') {
-          switchTabUI('schedule');
-        }
+      window.onpopstate = function() {
+        if (document.getElementById('itemModal').classList.contains('show')) { modalObj.hide(); }
+        else if (document.getElementById('page-inventory').style.display !== 'none') { switchTabUI('schedule'); }
       };
 
-      window.onload = function() {
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-        fetchData("getInitialData");
-      };
+      window.onload = function() { fetchData("getInitialData"); };
 
       function fetchData(action, params = "") {
-        fetch(`${API_URL}?action=${action}${params}`)
+        const btn = document.getElementById("btn-save");
+        fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
           .then(res => res.json())
           .then(data => {
             if (action == "getInitialData") onDataLoad(data);
             else if (action == "getExistingStock") renderStock(data);
-            else if (action == "saveInventoryData") { alert(data); modalObj.hide(); fetchData("getInitialData"); }
+            else if (action == "saveInventoryData") {
+              alert(data); 
+              // 저장 후 초기화
+              document.getElementById("in-location").value = "";
+              document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = "");
+              btn.disabled = false; btn.innerText = "저장";
+              modalObj.hide(); 
+              fetchData("getInitialData"); 
+            }
           })
-          .catch(err => alert("연결 오류: " + err));
+          .catch(err => { btn.disabled = false; btn.innerText = "저장"; });
       }
 
       function onDataLoad(data) {
@@ -189,12 +170,10 @@
         toggleModalView('view');
         document.getElementById("v-view").innerHTML = "<div class='text-center py-4 small'>조회 중...</div>";
         fetchData("getExistingStock", `&code=${item.code}`);
-        
         const colors = (item.colors || "기본").split(","), sizes = (item.sizes || "Free").split(",");
         let ah = `<table class="st-table" id="add-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th><input type="text" value="${s.trim()}" style="font-weight:bold;"></th>`).join("")}</tr></thead><tbody>`;
         colors.forEach(c => { ah += `<tr><td class="col-color">${c.trim()}</td>` + sizes.map(()=>`<td><input type="number"></td>`).join("") + "</tr>"; });
         document.getElementById("add-table-container").innerHTML = ah + "</tbody></table>";
-        
         window.history.pushState({page: 'modal'}, '');
         modalObj.show();
       }
@@ -220,6 +199,8 @@
           });
         }
         if(matrix.length === 0) return alert("수량을 입력하세요.");
+        const btn = document.getElementById("btn-save");
+        btn.disabled = true; btn.innerText = "저장 중...";
         const payload = { code: curItem.code, combinedName: curItem.brand + " " + curItem.name, name: curItem.name, matrix: matrix, location: loc };
         fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
       }
@@ -274,4 +255,5 @@
     </script>
   </body>
 </html>
+
 
