@@ -289,7 +289,17 @@
         } else if (action == "processRental") {
             alert(data.message);
             cart = []; renderCart(); 
-            fetchData("getInitialData");
+            document.getElementById("renter-name").value = ""; // 이름 입력창 초기화
+    
+    // [수정] 버튼 다시 활성화
+    const btn = document.querySelector("#mode-rent .full-btn");
+    if(btn) {
+        btn.disabled = false;
+        btn.innerText = "대여 처리 완료";
+    }
+    
+    fetchData("getInitialData");
+}
         } else if (action == "processReturn") {
             alert(data.message);
             document.getElementById('return-list').innerHTML = ''; 
@@ -537,13 +547,26 @@
         let html = ''; cart.forEach((item, idx) => { html += `<div class="cart-item"><div class="cart-info"><div>${item.name}</div><small>${item.color} / ${item.size}</small></div><div class="cart-actions"><span style="font-size:12px; font-weight:bold;">${item.qty}개</span><button class="btn-del" onclick="removeFromCart(${idx})">✕</button></div></div>`; }); list.innerHTML = html;
       }
       function removeFromCart(idx) { cart.splice(idx, 1); renderCart(); }
-      function submitRental() {
-        if(cart.length === 0) return alert("카트에 상품 없음");
-        const name = document.getElementById("renter-name").value.trim();
-        if(!name) return alert("이름 입력");
-        if(!confirm("대여 처리하시겠습니까?")) return;
-        const payload = { items: cart, renter: name }; fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
-      }
+      // 기존 submitRental 함수를 아래 코드로 교체하세요.
+function submitRental() {
+  if(cart.length === 0) return alert("카트에 상품 없음");
+  const name = document.getElementById("renter-name").value.trim();
+  if(!name) return alert("이름 입력");
+  if(!confirm("대여 처리하시겠습니까?")) return;
+  
+  // [수정] 중복 클릭 방지: 버튼 비활성화 및 텍스트 변경
+  const btn = document.querySelector("#mode-rent .full-btn");
+  if(btn) {
+      btn.disabled = true;
+      btn.innerText = "처리 중...";
+  }
+
+  const payload = { items: cart, renter: name };
+  // fetchData 내부에서 완료 후 처리를 위해 callback 등이 필요하지만, 
+  // 현재 구조상 handleResponse에서 alert 후 카트를 비우므로,
+  // handleResponse에서 버튼을 다시 활성화하도록 수정해야 합니다.
+  fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+}
       function searchReturns() {
         const q = document.getElementById("return-search").value.trim(); const list = document.getElementById("return-list");
         if(!q) return alert("검색어 입력");
@@ -634,4 +657,5 @@
     </script>
   </body>
 </html>
+
 
