@@ -101,7 +101,7 @@
       
       .section-header { font-size: 13px; font-weight: 700; color: #333; margin: 25px 20px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 
-      /* [신규] 핸들링 정보 카드 스타일 */
+      /* 핸들링 정보 카드 스타일 */
       .handling-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 20px; }
       .h-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
       .h-img-wrap { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -202,21 +202,22 @@
          </div>
          <div id="v-stock-table" class="table-full-container"></div>
          
-         <div class="section-header">현재 대여 현황</div>
-         <div id="rental-container"></div>
+         <!-- [수정] 대여 현황 섹션 (Wrapper 추가) -->
+         <div id="rental-wrapper" style="display:none;">
+             <div class="section-header">현재 대여 현황</div>
+             <div id="rental-container"></div>
+         </div>
 
          <div class="section-header">
              핸들링 정보 
              <button class="btn-mini" onclick="toggleHandlingForm()">+ 등록</button>
          </div>
          
-         <!-- 등록 폼 (숨김) -->
          <div id="handling-form" class="handling-form-box">
              <label>이미지 등록 (JPG)</label>
              <div class="d-flex align-items-center gap-2 mb-2">
                  <input type="file" id="h-file-input" accept="image/jpeg, image/jpg" class="form-control form-control-sm" onchange="previewImage(this)">
              </div>
-             <!-- 미리보기 영역 -->
              <img id="h-img-preview" src="" style="display:none; width:100px; height:100px; object-fit:cover; border-radius:6px; margin-bottom:8px;">
              
              <label>설명 내용</label>
@@ -224,7 +225,6 @@
              <button class="btn btn-sm btn-secondary w-100" id="btn-h-save" onclick="saveHandling()">저장</button>
          </div>
 
-         <!-- 카드 그리드 -->
          <div id="handling-container" class="handling-grid"></div>
       </div>
 
@@ -318,7 +318,7 @@
                 if (!allHandlings[curItem.code]) allHandlings[curItem.code] = [];
                 allHandlings[curItem.code].push({ img: data.newUrl, desc: document.getElementById("h-desc-input").value });
                 renderHandling(curItem.code);
-                toggleHandlingForm(); // 폼 닫기
+                toggleHandlingForm(); 
                 document.getElementById("h-file-input").value = "";
                 document.getElementById("h-desc-input").value = "";
                 document.getElementById("h-img-preview").style.display = "none";
@@ -381,7 +381,6 @@
         modalObj.show();
       }
 
-      // [신규] 이미지 미리보기
       function previewImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -394,13 +393,11 @@
         }
       }
 
-      // [신규] 핸들링 폼 토글
       function toggleHandlingForm() {
         const form = document.getElementById("handling-form");
         form.style.display = form.style.display === "block" ? "none" : "block";
       }
 
-      // [신규] 핸들링 정보 카드 렌더링
       function renderHandling(code) {
         const list = allHandlings[code];
         const container = document.getElementById("handling-container");
@@ -467,7 +464,29 @@
         }
       }
 
-      // (기존 함수들 생략 없이 모두 포함)
+      // [수정] 대여 현황 렌더링 (없으면 섹션 전체 숨김)
+      function renderCurrentRentals(code) {
+        const wrapper = document.getElementById("rental-wrapper");
+        const container = document.getElementById("rental-container");
+        const list = allRentals.filter(r => r.code == code);
+
+        if (list.length === 0) {
+            wrapper.style.display = 'none'; // 전체 숨김
+            return;
+        }
+
+        wrapper.style.display = 'block'; // 보임
+        let html = '';
+        list.forEach(r => {
+            html += `
+            <div class="rental-history-item">
+                <span class="rh-name">${r.renter}</span>
+                <span class="rh-info">${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</span>
+            </div>`;
+        });
+        container.innerHTML = html;
+      }
+
       function addToCart(code, name, color, size, currentQty) {
         if(currentQty <= 0) return showToast("재고가 없습니다.");
         const exist = cart.find(i => i.code === code && i.color === color && i.size === size);
@@ -536,11 +555,6 @@
         if (payload.length === 0) return alert("입력 필요");
         fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
         names.forEach(i => i.value = ""); sizes.forEach(i => i.value = "");
-      }
-      function renderCurrentRentals(code) {
-        const container = document.getElementById("rental-container"); const list = allRentals.filter(r => r.code == code);
-        if (list.length === 0) { container.innerHTML = '<div class="text-muted small text-center p-3">현재 대여중인 건이 없습니다.</div>'; return; }
-        let html = ''; list.forEach(r => { html += `<div class="rental-history-item"><span class="rh-name">${r.renter}</span><span class="rh-info">${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</span></div>`; }); container.innerHTML = html;
       }
       function renderStock(stock) {
         const container = document.getElementById("v-stock-table");
