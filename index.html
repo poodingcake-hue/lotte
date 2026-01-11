@@ -11,7 +11,6 @@
       :root { --primary: #4361ee; --bg: #f8f9fa; --text: #212529; }
       body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 55px; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
       
-      /* 날짜 스크롤러 (편성표 상단) */
       .date-scroller { display: flex; overflow-x: auto; padding: 12px 10px; gap: 10px; background: white; border-bottom: 1px solid #eee; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 1000; }
       .date-scroller::-webkit-scrollbar { display: none; }
       .date-btn { min-width: 50px; height: 60px; background: #f1f3f5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: none; }
@@ -19,11 +18,9 @@
       .date-btn .dow { font-size: 10px; opacity: 0.8; }
       .date-btn .day { font-size: 16px; font-weight: 700; }
 
-      /* [수정] 필터 바 (재고관리 상단) - 위치를 0으로 수정하여 상단 밀착 */
       .filter-bar { background: white; padding: 10px 15px; display: flex; gap: 8px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
       .filter-bar select { border-radius: 8px; font-size: 13px; border: 1px solid #ddd; height: 36px; flex: 1; }
 
-      /* 상품 그리드 */
       .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px; }
       .p-card { background: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative; }
       .p-img-box { position: relative; width: 100%; aspect-ratio: 1/1; background: #fff; display: flex; align-items: center; justify-content: center; }
@@ -35,20 +32,17 @@
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
       .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
-      /* 하단 네비게이션 */
       .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 50px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1001; }
       .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; align-items: center; justify-content: center; outline: none; transition: 0.2s; }
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
       .nav-btn span { font-size: 14px; font-weight: 700; }
 
-      /* 모달 스타일 */
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; }
       .modal-img-wrap { width: 100%; background: #fff; border-bottom: 1px solid #eee; position: relative; cursor: pointer; }
       #m-img { width: 100%; height: auto; max-height: 45vh; object-fit: contain; }
       .m-product-info-top { font-size: 12px; color: #888; margin: 15px 20px 4px; line-height: 1.2; }
       .m-product-info-top b { color: #222; font-weight: 800; }
-      /* 상품명 한 줄 강제 고정 */
       .m-product-title { font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: calc(100% - 40px); }
       
       .modal-main-padding { padding: 0 20px; }
@@ -56,7 +50,6 @@
       .loc-input-group label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
       .loc-input-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; outline: none; background: white; }
 
-      /* 재고표 스타일 (여백 제거, 19vw) */
       .table-full-container { margin: 0; padding: 0; width: 100%; overflow-x: auto; }
       .st-table { font-size: 10px !important; width: 100% !important; margin: 0 !important; border-collapse: collapse; table-layout: fixed; border: none !important; }
       .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; overflow: hidden; }
@@ -69,24 +62,25 @@
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       .time-label { font-size: 16px; font-weight: 800; margin: 5px 12px 10px; display: flex; align-items: center; gap: 8px; }
       .time-label::after { content: ""; flex-grow: 1; height: 1px; background: #ddd; }
+      
+      .load-more-btn { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #eee; background: white; border-radius: 8px; font-size: 13px; font-weight: 700; color: #555; }
     </style>
   </head>
   <body>
-    <div id="loading-overlay"><div class="spinner"></div><div class="small">데이터 연결 중...</div></div>
+    <div id="loading-overlay"><div class="spinner"></div><div class="small">데이터 가져오는 중...</div></div>
     
-    <!-- 편성표 화면 전용 날짜 선택 바 -->
     <div id="page-schedule">
       <div class="date-scroller" id="dateScroller"></div>
       <div id="scheduleContainer"></div>
     </div>
 
-    <!-- 재고관리 화면 전용 필터 바 -->
     <div id="page-inventory" style="display:none;">
       <div class="filter-bar">
-        <select id="brandSel" class="form-select form-select-sm" onchange="filterInventory()"></select>
-        <select id="cateSel" class="form-select form-select-sm" onchange="filterInventory()"></select>
+        <select id="brandSel" class="form-select form-select-sm" onchange="resetFilter()"></select>
+        <select id="cateSel" class="form-select form-select-sm" onchange="resetFilter()"></select>
       </div>
       <div id="inventoryContainer" class="product-grid"></div>
+      <div id="loadMoreContainer" style="padding: 0 12px 20px;"></div>
     </div>
 
     <nav class="bottom-nav">
@@ -111,6 +105,10 @@
     <script>
       const API_URL = "https://script.google.com/macros/s/AKfycbzpAjxDWvpV8BLsMiezsBSTINg6tIe18OyJkz4pDuChnToiVajjt5BmZWAuVrnl7Eh1/exec";
       let curItem = null, allItems = [], selDate = null, modalObj = null;
+      let allStockMap = {}; // [NEW] 전체 재고 데이터를 저장할 변수
+      
+      let invLimit = 30;
+      let filteredItems = [];
 
       window.onpopstate = function() {
         if (document.getElementById('itemModal').classList.contains('show')) { modalObj.hide(); }
@@ -125,20 +123,30 @@
           .then(res => res.json())
           .then(data => {
             if (action == "getInitialData") onDataLoad(data);
-            else if (action == "getExistingStock") renderStock(data);
             else if (action == "saveInventoryData") {
               alert(data); 
+              // [수정] 저장 후 로컬 재고 업데이트 (서버 통신 없이 즉시 반영)
+              updateLocalStock(curItem.code, document.getElementById("in-location").value, params);
+              
               document.getElementById("in-location").value = ""; 
               document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
               btn.disabled = false; btn.innerText = "저장";
-              fetchData("getExistingStock", `&code=${curItem.code}`);
+              
+              // 저장 후 재고표 다시 그리기 (즉시 반영됨)
+              const stock = allStockMap[curItem.code] || [];
+              renderStock(stock);
+              toggleModalView('view'); // 재고 현황 탭으로 이동
             }
           })
-          .catch(err => { btn.disabled = false; btn.innerText = "저장"; });
+          .catch(err => { 
+            if(btn) { btn.disabled = false; btn.innerText = "저장"; }
+          });
       }
 
       function onDataLoad(data) {
         allItems = data.items || [];
+        allStockMap = data.stockMap || {}; // [핵심] 서버에서 받은 전체 재고 저장
+        
         modalObj = new bootstrap.Modal(document.getElementById('itemModal'));
         const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
         b.innerHTML = '<option value="All">전체 브랜드</option>';
@@ -157,7 +165,7 @@
             scroller.appendChild(btn);
           });
         }
-        renderSchedule(); filterInventory();
+        renderSchedule(); 
         document.getElementById('loading-overlay').style.display = 'none';
         window.history.pushState({page: 'main'}, '');
       }
@@ -168,23 +176,36 @@
         document.getElementById("m-title").innerText = item.name.replace(/(\r\n|\n|\r)/gm, " ");
         document.getElementById("m-img").src = item.image;
         document.getElementById("in-location").value = (item.location === "-" ? "" : item.location);
+        
         toggleModalView('view');
-        document.getElementById("v-view").innerHTML = "<div class='text-center py-4 small'>조회 중...</div>";
-        fetchData("getExistingStock", `&code=${item.code}`);
+        
+        // [핵심] 이제 fetch 하지 않고 바로 그립니다!
+        const stock = allStockMap[item.code] || [];
+        renderStock(stock);
+
         const colors = (item.colors || "기본").split(","), sizes = (item.sizes || "Free").split(",");
         let ah = `<table class="st-table" id="add-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th><input type="text" value="${s.trim()}" style="font-weight:bold;"></th>`).join("")}</tr></thead><tbody>`;
         colors.forEach(c => { ah += `<tr><td class="col-color">${c.trim()}</td>` + sizes.map(()=>`<td><input type="number"></td>`).join("") + "</tr>"; });
         document.getElementById("add-table-container").innerHTML = ah + "</tbody></table>";
+        
         window.history.pushState({page: 'modal'}, '');
         modalObj.show();
       }
 
       function renderStock(stock) {
         const container = document.getElementById("v-view");
-        if(!stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
-        const sizes = [...new Set(stock.map(s => s.size))], colors = [...new Set(stock.map(s => s.color))];
+        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
+        
+        const sizes = [...new Set(stock.map(s => s.size))].sort();
+        const colors = [...new Set(stock.map(s => s.color))].sort();
+        
         let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
-        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); return `<td>${q || 0}</td>`; }).join("") + "</tr>"; });
+        colors.forEach(c => { 
+          h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { 
+            const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); 
+            return `<td>${q || 0}</td>`; 
+          }).join("") + "</tr>"; 
+        });
         container.innerHTML = h + "</tbody></table>";
       }
 
@@ -205,21 +226,69 @@
         const payload = { code: curItem.code, combinedName: combined, name: curItem.name, matrix: matrix, location: loc };
         fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
       }
+      
+      // [신규] 로컬 재고 데이터 업데이트 함수 (저장 누르면 바로 반영되게)
+      function updateLocalStock(code, newLoc, paramsString) {
+        // paramsString에서 payload 추출 (약간의 파싱 필요)
+        try {
+            const urlParams = new URLSearchParams(paramsString);
+            const payload = JSON.parse(urlParams.get("payload"));
+            
+            if(!allStockMap[code]) allStockMap[code] = [];
+            
+            // 입력한 매트릭스를 로컬 재고에 추가
+            payload.matrix.forEach(m => {
+                allStockMap[code].push({ size: m.size, color: m.color, qty: m.qty });
+            });
+            
+            // 위치 업데이트
+            if(newLoc) {
+                curItem.location = newLoc;
+                document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b> | ${curItem.code} | <b>${newLoc}</b>`;
+            }
+        } catch(e) { console.error(e); }
+      }
 
       function switchTab(t) { window.history.pushState({page: t}, ''); switchTabUI(t); }
+      
       function switchTabUI(t) {
         document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
         document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
         document.getElementById('nav-sch').classList.toggle('active', t === 'schedule');
         document.getElementById('nav-inv').classList.toggle('active', t === 'inventory');
+        if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") {
+            resetFilter();
+        }
       }
-      function filterInventory() {
+
+      function resetFilter() {
+        invLimit = 30;
+        document.getElementById("inventoryContainer").innerHTML = "";
         const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value;
-        const filtered = allItems.filter(i => (b==='All' || i.brand === b) && (c==='All' || i.category === c));
-        const container = document.getElementById("inventoryContainer");
-        container.innerHTML = filtered.length ? "" : '<div class="text-center py-5 small w-100">상품 없음</div>';
-        filtered.forEach(i => container.appendChild(createCard(i)));
+        filteredItems = allItems.filter(i => (b==='All' || i.brand === b) && (c==='All' || i.category === c));
+        renderInventoryChunk();
       }
+
+      function renderInventoryChunk() {
+        const container = document.getElementById("inventoryContainer");
+        const btnContainer = document.getElementById("loadMoreContainer");
+        if (filteredItems.length === 0) {
+            container.innerHTML = '<div class="text-center py-5 small w-100">상품 없음</div>';
+            btnContainer.innerHTML = "";
+            return;
+        }
+        const currentCount = container.children.length;
+        const nextBatch = filteredItems.slice(currentCount, invLimit);
+        nextBatch.forEach(i => container.appendChild(createCard(i)));
+        if (filteredItems.length > invLimit) {
+            btnContainer.innerHTML = `<button class="load-more-btn" onclick="loadMore()">더 보기 (${filteredItems.length - invLimit}개 남음)</button>`;
+        } else {
+            btnContainer.innerHTML = "";
+        }
+      }
+
+      function loadMore() { invLimit += 30; renderInventoryChunk(); }
+
       function renderSchedule() {
         const container = document.getElementById("scheduleContainer"); container.innerHTML = "";
         const filtered = allItems.filter(i => i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date));
