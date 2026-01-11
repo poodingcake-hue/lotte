@@ -32,12 +32,12 @@
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
       .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
-      /* [수정] 하단 탭 스타일 변경 (아이콘 제거, 텍스트 중심) */
-      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 50px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
-      .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
-      .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); font-weight: 800; }
-      .nav-btn span { font-size: 14px; }
-      .badge-cnt { position: absolute; top: 8px; right: 20%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
+      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 55px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
+      .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
+      .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
+      .nav-btn span { font-size: 11px; font-weight: 700; margin-top: 2px; }
+      .nav-icon { font-size: 20px !important; }
+      .badge-cnt { position: absolute; top: 5px; right: 25%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
 
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; padding-bottom: 20px; }
@@ -58,8 +58,6 @@
       .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
       .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0; }
       .st-table th { background: #f8f9fa; font-weight: 700; color: #666; }
-      
-      /* [수정] 재고 셀 스타일 변경 (파란색/밑줄 제거 -> 일반 검정색) */
       .cell-clickable { color: #333; font-weight: 400; cursor: pointer; text-decoration: none; }
       .cell-clickable:active { background: #eef2ff; font-weight: 700; }
 
@@ -104,10 +102,11 @@
       .section-header { font-size: 13px; font-weight: 700; color: #333; margin: 25px 20px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 
       .handling-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 20px; }
-      .h-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+      .h-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
       .h-img-wrap { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
       .h-img { width: 100%; height: 100%; object-fit: contain; }
       .h-desc { padding: 10px; font-size: 12px; color: #444; line-height: 1.4; word-break: break-all; min-height: 40px; }
+      .h-del-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: #666; cursor: pointer; z-index: 5; }
       
       .handling-form-box { background: #f1f3f5; padding: 15px; margin: 10px 20px; border-radius: 12px; display: none; }
       .handling-form-box label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
@@ -166,18 +165,10 @@
       </div>
     </div>
 
-    <!-- [수정] 하단 탭 (아이콘 제거, 텍스트만 유지) -->
     <nav class="bottom-nav">
-      <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')">
-          <span>편성표</span>
-      </button>
-      <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')">
-          <span>재고관리</span>
-      </button>
-      <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')">
-          <span>대여/반납</span>
-          <span id="global-badge" class="badge-cnt">0</span>
-      </button>
+      <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')"><span>편성표</span></button>
+      <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')"><span>재고관리</span></button>
+      <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')"><span>대여/반납</span><span id="global-badge" class="badge-cnt">0</span></button>
     </nav>
     
     <div class="modal fade" id="itemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-body">
@@ -193,9 +184,7 @@
           </ul>
       </div>
 
-      <!-- 1. 재고 현황 뷰 -->
       <div id="v-view" style="display:block;">
-         <!-- [수정] 안내 메시지 박스 제거됨 -->
          <div id="v-stock-table" class="table-full-container"></div>
          
          <div id="rental-wrapper" style="display:none;">
@@ -208,6 +197,7 @@
              <button class="btn-mini" onclick="toggleHandlingForm()">+ 등록</button>
          </div>
          
+         <!-- 핸들링 등록 폼 -->
          <div id="handling-form" class="handling-form-box">
              <label>이미지 등록 (JPG)</label>
              <div class="d-flex align-items-center gap-2 mb-2">
@@ -217,13 +207,17 @@
              
              <label>설명 내용</label>
              <textarea id="h-desc-input" placeholder="설명 입력"></textarea>
-             <button class="btn btn-sm btn-secondary w-100" id="btn-h-save" onclick="saveHandling()">저장</button>
+             
+             <div class="d-flex gap-2">
+                 <!-- [신규] 취소 버튼 -->
+                 <button class="btn btn-sm btn-secondary flex-grow-1" style="background:#adb5bd; border:none;" onclick="resetHandlingForm()">취소</button>
+                 <button class="btn btn-sm btn-secondary flex-grow-1" id="btn-h-save" onclick="saveHandling()">저장</button>
+             </div>
          </div>
 
          <div id="handling-container" class="handling-grid"></div>
       </div>
 
-      <!-- 2. 착장 내역 뷰 -->
       <div id="v-outfit" style="display:none;">
           <div id="outfit-container" class="outfit-grid"></div>
           <div class="d-grid px-3 mt-3">
@@ -237,7 +231,6 @@
           </div>
       </div>
 
-      <!-- 3. 입고 등록 뷰 -->
       <div id="v-add" style="display:none;">
          <div class="modal-main-padding"><div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div></div>
          <div id="add-table-container" class="table-full-container"></div>
@@ -313,10 +306,19 @@
                 if (!allHandlings[curItem.code]) allHandlings[curItem.code] = [];
                 allHandlings[curItem.code].push({ img: data.newUrl, desc: document.getElementById("h-desc-input").value });
                 renderHandling(curItem.code);
-                toggleHandlingForm(); 
-                document.getElementById("h-file-input").value = "";
-                document.getElementById("h-desc-input").value = "";
-                document.getElementById("h-img-preview").style.display = "none";
+                resetHandlingForm(); 
+                toggleHandlingForm(); // 폼 닫기
+            }
+        } else if (action == "deleteHandlingInfo") {
+            // [신규] 삭제 후 처리
+            alert(data.message);
+            if (data.success) {
+                // 로컬 데이터에서도 삭제 (새로고침 없이 반영)
+                // 삭제할 대상(img, desc)을 찾아서 제거
+                // param으로 넘겼던 payload는 여기 접근 불가하므로, 
+                // 전체 데이터를 다시 불러오거나(안전), 로컬 배열에서 제거(빠름).
+                // 여기서는 안전하게 전체 데이터 갱신 요청
+                fetchData("getInitialData");
             }
         }
       }
@@ -349,15 +351,33 @@
           });
         }
         renderSchedule(); 
+        
+        // 데이터 로드 후 모달이 열려있다면 핸들링 정보 등 갱신
+        if(curItem && document.getElementById('itemModal').classList.contains('show')) {
+            renderHandling(curItem.code);
+        }
+        
         document.getElementById('loading-overlay').style.display = 'none';
         window.history.pushState({page: 'main'}, '');
+      }
+
+      // [신규] 이미지 URL 생성기 (롯데아이몰 규칙)
+      function generateLotteImage(code) {
+        let s = String(code);
+        if (s.length < 8) return ""; 
+        let p1 = s.substring(6, 8); // 7,8번째
+        let p2 = s.substring(4, 6); // 5,6번째
+        let p3 = s.substring(2, 4); // 3,4번째
+        return `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${s}_L.jpg`;
       }
 
       function openModal(item) {
         curItem = item;
         document.getElementById("m-info-top").innerHTML = `<b>${item.brand}</b> | ${item.code} | <b>${item.location || '-'}</b>`;
         document.getElementById("m-title").innerText = item.name.replace(/(\r\n|\n|\r)/gm, " ");
-        document.getElementById("m-img").src = item.image;
+        
+        // [수정] 이미지가 없으면 생성된 URL 사용
+        document.getElementById("m-img").src = item.image ? item.image : generateLotteImage(item.code);
         document.getElementById("in-location").value = (item.location === "-" ? "" : item.location);
         toggleModalView('view');
         
@@ -392,6 +412,21 @@
         const form = document.getElementById("handling-form");
         form.style.display = form.style.display === "block" ? "none" : "block";
       }
+      
+      // [신규] 핸들링 폼 초기화
+      function resetHandlingForm() {
+        document.getElementById("h-file-input").value = "";
+        document.getElementById("h-desc-input").value = "";
+        document.getElementById("h-img-preview").src = "";
+        document.getElementById("h-img-preview").style.display = "none";
+      }
+
+      // [신규] 핸들링 정보 삭제 요청
+      function deleteHandling(img, desc) {
+        if (!confirm("정말 삭제하시겠습니까?")) return;
+        const payload = { code: curItem.code, img: img, desc: desc };
+        fetchPost("deleteHandlingInfo", payload);
+      }
 
       function renderHandling(code) {
         const list = allHandlings[code];
@@ -404,8 +439,15 @@
 
         let html = '';
         list.forEach(item => {
+            // [수정] 삭제 버튼 추가, 작은따옴표 이스케이프 주의
+            // desc 안의 줄바꿈이나 따옴표가 문제를 일으킬 수 있으므로 인코딩하거나 조심해야 함.
+            // 여기서는 간단히 값 전달
+            const safeDesc = (item.desc || "").replace(/"/g, "&quot;").replace(/'/g, "\\'");
+            const safeImg = (item.img || "").replace(/"/g, "&quot;").replace(/'/g, "\\'");
+            
             html += `
             <div class="h-card">
+                <div class="h-del-btn" onclick="deleteHandling('${safeImg}', '${safeDesc}')">✕</div>
                 ${item.img ? `<div class="h-img-wrap"><img src="${item.img}" class="h-img" loading="lazy"></div>` : ''}
                 <div class="h-desc">${item.desc || ''}</div>
             </div>`;
@@ -575,7 +617,14 @@
       function renderInventoryChunk() { const container = document.getElementById("inventoryContainer"); const btnContainer = document.getElementById("loadMoreContainer"); if (filteredItems.length === 0) { container.innerHTML = '<div class="text-center py-5 small w-100">상품 없음</div>'; btnContainer.innerHTML = ""; return; } const currentCount = container.children.length; const nextBatch = filteredItems.slice(currentCount, invLimit); nextBatch.forEach(i => container.appendChild(createCard(i))); if (filteredItems.length > invLimit) { btnContainer.innerHTML = `<button class="load-more-btn" onclick="loadMore()">더 보기 (${filteredItems.length - invLimit}개 남음)</button>`; } else { btnContainer.innerHTML = ""; } }
       function loadMore() { invLimit += 30; renderInventoryChunk(); }
       function renderSchedule() { const container = document.getElementById("scheduleContainer"); container.innerHTML = ""; const filtered = allItems.filter(i => i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date)); if (!filtered.length) { container.innerHTML = '<div class="text-center py-5 small">편성 없음</div>'; return; } const groups = {}; filtered.forEach(i => { const t = i.date && i.date.match(/\d{1,2}:\d{1,2}/) ? i.date.match(/\d{1,2}:\d{1,2}/)[0] : "시간미정"; if(!groups[t]) groups[t] = []; groups[t].push(i); }); Object.keys(groups).forEach(t => { const g = document.createElement("div"); g.innerHTML = `<div class="time-label">${t}</div>`; const grid = document.createElement("div"); grid.className = "product-grid"; groups[t].forEach(item => grid.appendChild(createCard(item))); g.appendChild(grid); container.appendChild(g); }); }
-      function createCard(item) { const div = document.createElement("div"); div.className = "p-card"; div.onclick = () => openModal(item); const timeMatch = item.date && item.date.match(/\d{1,2}:\d{1,2}/); div.innerHTML = `<div class="p-img-box">${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}<img src="${item.image}" class="p-img" loading="lazy"></div><div class="p-info"><div class="p-brand">${item.brand || ""}</div><div class="p-name">${item.name || ""}</div><div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div></div>`; return div; }
+      // [수정] 카드 이미지에도 fallback 적용
+      function createCard(item) { 
+        const div = document.createElement("div"); div.className = "p-card"; div.onclick = () => openModal(item); 
+        const timeMatch = item.date && item.date.match(/\d{1,2}:\d{1,2}/); 
+        const imgSrc = item.image ? item.image : generateLotteImage(item.code);
+        div.innerHTML = `<div class="p-img-box">${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}<img src="${imgSrc}" class="p-img" loading="lazy"></div><div class="p-info"><div class="p-brand">${item.brand || ""}</div><div class="p-name">${item.name || ""}</div><div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div></div>`; 
+        return div; 
+      }
       function toggleModalView(v) { document.getElementById('v-view').style.display = v === 'view' ? 'block' : 'none'; document.getElementById('v-outfit').style.display = v === 'outfit' ? 'block' : 'none'; document.getElementById('v-add').style.display = v === 'add' ? 'block' : 'none'; document.getElementById('btn-save').style.display = v === 'add' ? 'block' : 'none'; document.getElementById('t-view').classList.toggle('active', v === 'view'); document.getElementById('t-outfit').classList.toggle('active', v === 'outfit'); document.getElementById('t-add').classList.toggle('active', v === 'add'); }
       function openLotteMall() { if(!curItem || !curItem.code) return; window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=" + curItem.code, '_blank'); }
       function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); if(!m) return 9999; let h = parseInt(m[1]), min = parseInt(m[2]); if(s.includes("오후") && h < 12) h += 12; if(s.includes("오전") && h === 12) h = 0; return h * 60 + min; }
@@ -585,3 +634,4 @@
     </script>
   </body>
 </html>
+
