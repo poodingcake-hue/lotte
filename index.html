@@ -9,8 +9,9 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
       :root { --primary: #4361ee; --bg: #f8f9fa; --text: #212529; }
-      body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 55px; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+      body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 70px; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
       
+      /* 날짜 스크롤러 */
       .date-scroller { display: flex; overflow-x: auto; padding: 12px 10px; gap: 10px; background: white; border-bottom: 1px solid #eee; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 1000; }
       .date-scroller::-webkit-scrollbar { display: none; }
       .date-btn { min-width: 50px; height: 60px; background: #f1f3f5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: none; }
@@ -18,9 +19,11 @@
       .date-btn .dow { font-size: 10px; opacity: 0.8; }
       .date-btn .day { font-size: 16px; font-weight: 700; }
 
+      /* 필터 바 */
       .filter-bar { background: white; padding: 10px 15px; display: flex; gap: 8px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
       .filter-bar select { border-radius: 8px; font-size: 13px; border: 1px solid #ddd; height: 36px; flex: 1; }
 
+      /* 상품 그리드 */
       .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px; }
       .p-card { background: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative; }
       .p-img-box { position: relative; width: 100%; aspect-ratio: 1/1; background: #fff; display: flex; align-items: center; justify-content: center; }
@@ -32,13 +35,17 @@
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
       .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
-      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 50px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1001; }
-      .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; align-items: center; justify-content: center; outline: none; transition: 0.2s; }
+      /* 하단 네비게이션 - z-index 2000 */
+      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 55px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
+      .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
-      .nav-btn span { font-size: 14px; font-weight: 700; }
+      .nav-btn span { font-size: 11px; font-weight: 700; margin-top: 2px; }
+      .nav-icon { font-size: 20px !important; }
+      .badge-cnt { position: absolute; top: 5px; right: 25%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
 
+      /* 모달 스타일 */
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
-      .modal-body { padding: 0; }
+      .modal-body { padding: 0; padding-bottom: 20px; }
       .modal-img-wrap { width: 100%; background: #fff; border-bottom: 1px solid #eee; position: relative; cursor: pointer; }
       #m-img { width: 100%; height: auto; max-height: 45vh; object-fit: contain; }
       .m-product-info-top { font-size: 12px; color: #888; margin: 15px 20px 4px; line-height: 1.2; }
@@ -50,12 +57,34 @@
       .loc-input-group label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
       .loc-input-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; outline: none; background: white; }
 
+      /* 재고표 스타일 */
       .table-full-container { margin: 0; padding: 0; width: 100%; overflow-x: auto; }
       .st-table { font-size: 10px !important; width: 100% !important; margin: 0 !important; border-collapse: collapse; table-layout: fixed; border: none !important; }
       .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; overflow: hidden; }
       .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
       .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0; }
       .st-table th { background: #f8f9fa; font-weight: 700; color: #666; }
+      
+      .cell-clickable { color: var(--primary); font-weight: 800; cursor: pointer; text-decoration: underline; }
+      .cell-clickable:active { background: #eef2ff; }
+
+      /* [신규] 착장 & 대여현황 스타일 */
+      .section-header { font-size: 13px; font-weight: 700; color: #333; margin: 25px 20px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+      
+      .outfit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 20px; }
+      .outfit-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 6px; padding: 8px 4px; text-align: center; }
+      .outfit-host { font-size: 11px; color: #888; margin-bottom: 2px; }
+      .outfit-size { font-size: 12px; font-weight: 700; color: #333; }
+
+      .rental-history-item { padding: 8px 20px; border-bottom: 1px solid #f8f9fa; display: flex; justify-content: space-between; font-size: 12px; color: #555; }
+      .rh-name { font-weight: 600; color: #333; }
+      .rh-info { color: #888; font-size: 11px; }
+
+      .btn-mini { font-size: 11px; padding: 2px 8px; background: #4361ee; color: white; border: none; border-radius: 4px; }
+      
+      /* 입력 폼 (모달 내) */
+      .input-form-box { background: #f1f3f5; padding: 10px; margin: 10px 20px; border-radius: 8px; display: none; }
+      .input-form-box input { width: 100%; margin-bottom: 5px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
 
       #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
       .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
@@ -64,6 +93,23 @@
       .time-label::after { content: ""; flex-grow: 1; height: 1px; background: #ddd; }
       
       .load-more-btn { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #eee; background: white; border-radius: 8px; font-size: 13px; font-weight: 700; color: #555; }
+
+      /* 대여/반납 전용 스타일 */
+      .rental-tabs { display: flex; padding: 10px 15px; gap: 10px; background: white; border-bottom: 1px solid #eee; }
+      .rental-tab-btn { flex: 1; padding: 8px; border: 1px solid #eee; background: #f8f9fa; border-radius: 8px; font-size: 13px; font-weight: 600; color: #666; }
+      .rental-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+      
+      .cart-item { background: white; border-radius: 10px; padding: 12px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #f1f1f1; }
+      .cart-info div { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 2px; }
+      .cart-info small { font-size: 11px; color: #888; }
+      .cart-actions { display: flex; align-items: center; gap: 8px; }
+      .btn-del { width: 24px; height: 24px; border-radius: 50%; background: #fee2e2; color: #ef4444; border: none; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+      .full-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; margin-top: 10px; }
+      .search-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; margin-bottom: 10px; outline: none; }
+      
+      .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; z-index: 3000; opacity: 0; transition: 0.3s; pointer-events: none; }
+      .toast.show { opacity: 1; }
     </style>
   </head>
   <body>
@@ -83,17 +129,84 @@
       <div id="loadMoreContainer" style="padding: 0 12px 20px;"></div>
     </div>
 
+    <div id="page-rental" style="display:none; padding: 0 0 15px 0;">
+      <div class="rental-tabs" style="position:sticky; top:0; z-index:100; background:white;">
+        <button class="rental-tab-btn active" onclick="switchRentalMode('rent')" id="rt-rent">대여하기</button>
+        <button class="rental-tab-btn" onclick="switchRentalMode('return')" id="rt-return">반납하기</button>
+      </div>
+
+      <div id="mode-rent" style="padding: 0 15px;">
+        <h6 style="margin: 15px 0 10px; font-weight: 700; font-size: 14px;">대여 카트 <span id="cart-cnt" style="color:var(--primary)">0</span></h6>
+        <div id="cart-list" style="min-height: 100px; max-height: 50vh; overflow-y: auto;">
+            <div class="text-center py-4 small text-muted">재고관리 탭에서 수량을 클릭하여<br>카트에 담아주세요.</div>
+        </div>
+        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+            <label style="font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block;">대여자 이름</label>
+            <input type="text" id="renter-name" class="search-input" placeholder="이름을 입력하세요">
+            <button class="full-btn" onclick="submitRental()">대여 처리 완료</button>
+        </div>
+      </div>
+
+      <div id="mode-return" style="display:none; padding: 0 15px;">
+        <div style="margin-top: 15px;">
+            <input type="text" id="return-search" class="search-input" placeholder="대여자 이름 또는 상품명 검색" onkeydown="if(event.key==='Enter') searchReturns()">
+            <button class="btn btn-sm btn-secondary w-100 mb-3" onclick="searchReturns()">조회</button>
+        </div>
+        <div id="return-list" style="max-height: 50vh; overflow-y: auto;">
+            <div class="text-center py-4 small text-muted">반납할 대여 건을 검색하세요.</div>
+        </div>
+        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+             <label style="font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block;">반납 처리자</label>
+             <input type="text" id="returner-name" class="search-input" placeholder="확인자 이름">
+             <button class="full-btn" onclick="submitReturn()">반납 처리 완료</button>
+        </div>
+      </div>
+    </div>
+
     <nav class="bottom-nav">
-      <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')"><span>편성표</span></button>
-      <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')"><span>재고관리</span></button>
+      <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')">
+          <span class="material-icons-round nav-icon">calendar_today</span>
+          <span>편성표</span>
+      </button>
+      <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')">
+          <span class="material-icons-round nav-icon">inventory_2</span>
+          <span>재고관리</span>
+      </button>
+      <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')">
+          <span class="material-icons-round nav-icon">shopping_bag</span>
+          <span>대여/반납</span>
+          <span id="global-badge" class="badge-cnt">0</span>
+      </button>
     </nav>
     
     <div class="modal fade" id="itemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-body">
       <div class="modal-img-wrap mb-2" onclick="openLotteMall()"><img id="m-img" src=""><button type="button" class="btn-close" data-bs-dismiss="modal" style="position:absolute; top:15px; right:15px; background:white; border-radius:50%; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button></div>
       <div class="m-product-info-top" id="m-info-top"></div>
       <div class="m-product-title" id="m-title"></div>
+      <div class="alert alert-primary py-1 px-2 mx-3 small d-flex align-items-center mb-2" style="font-size:11px;">
+        <span class="material-icons-round me-1" style="font-size:14px">info</span>
+        표의 <b>&nbsp;숫자를 클릭</b>하면 대여 카트에 담깁니다.
+      </div>
       <div class="modal-main-padding"><ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-pill"><li class="nav-item"><button class="nav-link active rounded-pill py-2 small" id="t-view" onclick="toggleModalView('view')">재고 현황</button></li><li class="nav-item"><button class="nav-link rounded-pill py-2 small" id="t-add" onclick="toggleModalView('add')">입고 등록</button></li></ul></div>
       <div id="v-view" class="table-full-container"></div>
+      
+      <!-- [신규] 착장 정보 섹션 -->
+      <div id="v-outfits" style="display:block;">
+        <div class="section-header">착장 정보 <button class="btn-mini" onclick="toggleOutfitForm()">+ 등록</button></div>
+        <div id="outfit-form" class="input-form-box">
+            <input type="text" id="of-host" placeholder="진행자/게스트 이름">
+            <input type="text" id="of-size" placeholder="사이즈 (예: 55, M)">
+            <button class="btn btn-sm btn-primary w-100" onclick="saveOutfit()">저장</button>
+        </div>
+        <div class="outfit-grid" id="outfit-container"></div>
+      </div>
+
+      <!-- [신규] 대여 현황 섹션 -->
+      <div id="v-rentals" style="display:block;">
+        <div class="section-header">현재 대여 현황</div>
+        <div id="rental-container"></div>
+      </div>
+
       <div id="v-add" style="display:none;">
          <div class="modal-main-padding"><div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div></div>
          <div id="add-table-container" class="table-full-container"></div>
@@ -105,10 +218,12 @@
     <script>
       const API_URL = "https://script.google.com/macros/s/AKfycbzpAjxDWvpV8BLsMiezsBSTINg6tIe18OyJkz4pDuChnToiVajjt5BmZWAuVrnl7Eh1/exec";
       let curItem = null, allItems = [], selDate = null, modalObj = null;
-      let allStockMap = {}; // [NEW] 전체 재고 데이터를 저장할 변수
-      
+      let allStockMap = {}; 
+      let allRentals = [];
+      let allOutfits = []; // [신규] 착장 정보
       let invLimit = 30;
       let filteredItems = [];
+      let cart = []; 
 
       window.onpopstate = function() {
         if (document.getElementById('itemModal').classList.contains('show')) { modalObj.hide(); }
@@ -125,27 +240,46 @@
             if (action == "getInitialData") onDataLoad(data);
             else if (action == "saveInventoryData") {
               alert(data); 
-              // [수정] 저장 후 로컬 재고 업데이트 (서버 통신 없이 즉시 반영)
               updateLocalStock(curItem.code, document.getElementById("in-location").value, params);
-              
               document.getElementById("in-location").value = ""; 
               document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
               btn.disabled = false; btn.innerText = "저장";
-              
-              // 저장 후 재고표 다시 그리기 (즉시 반영됨)
               const stock = allStockMap[curItem.code] || [];
               renderStock(stock);
-              toggleModalView('view'); // 재고 현황 탭으로 이동
+              toggleModalView('view');
+            } else if (action == "processRental") {
+                alert(data.message);
+                cart = []; renderCart(); 
+                fetchData("getInitialData");
+            } else if (action == "processReturn") {
+                alert(data.message);
+                document.getElementById('return-list').innerHTML = ''; 
+                document.getElementById('return-search').value = '';
+                fetchData("getInitialData");
+            } else if (action == "saveOutfitsBulk") {
+                alert(data.message);
+                // 로컬 데이터 갱신
+                const newOutfit = JSON.parse(decodeURIComponent(params.split("payload=")[1]));
+                newOutfit.forEach(o => {
+                    // 기존 중복 제거
+                    allOutfits = allOutfits.filter(exist => !(exist.code == o.code && exist.host == o.host));
+                    allOutfits.push(o);
+                });
+                renderOutfits(newOutfit[0].code);
+                toggleOutfitForm();
             }
           })
           .catch(err => { 
             if(btn) { btn.disabled = false; btn.innerText = "저장"; }
+            console.error(err);
           });
       }
 
       function onDataLoad(data) {
         allItems = data.items || [];
-        allStockMap = data.stockMap || {}; // [핵심] 서버에서 받은 전체 재고 저장
+        allStockMap = data.stockMap || {}; 
+        allRentals = data.rentals || []; 
+        allOutfits = data.outfits || []; // [신규]
         
         modalObj = new bootstrap.Modal(document.getElementById('itemModal'));
         const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
@@ -170,6 +304,149 @@
         window.history.pushState({page: 'main'}, '');
       }
 
+      function addToCart(code, name, color, size, currentQty) {
+        if(currentQty <= 0) return showToast("재고가 없습니다.");
+        const exist = cart.find(i => i.code === code && i.color === color && i.size === size);
+        if(exist) {
+            if(exist.qty < currentQty) { exist.qty++; showToast("카트 수량 추가됨"); }
+            else showToast("재고 수량 초과");
+        } else {
+            cart.push({code, name, color, size, qty: 1, max: currentQty});
+            showToast("대여 카트에 담김");
+        }
+        renderCart();
+      }
+
+      function renderCart() {
+        const list = document.getElementById("cart-list");
+        const cnt = document.getElementById("cart-cnt");
+        const badge = document.getElementById("global-badge");
+        
+        const total = cart.reduce((a,b) => a+b.qty, 0);
+        cnt.innerText = total;
+        badge.innerText = total;
+        badge.style.display = total > 0 ? "block" : "none";
+
+        if(cart.length === 0) {
+            list.innerHTML = '<div class="text-center py-4 small text-muted">카트가 비어있습니다.</div>';
+            return;
+        }
+
+        let html = '';
+        cart.forEach((item, idx) => {
+            html += `
+            <div class="cart-item">
+                <div class="cart-info">
+                    <div>${item.name}</div>
+                    <small>${item.color} / ${item.size}</small>
+                </div>
+                <div class="cart-actions">
+                    <span style="font-size:12px; font-weight:bold;">${item.qty}개</span>
+                    <button class="btn-del" onclick="removeFromCart(${idx})">✕</button>
+                </div>
+            </div>`;
+        });
+        list.innerHTML = html;
+      }
+
+      function removeFromCart(idx) {
+        cart.splice(idx, 1);
+        renderCart();
+      }
+
+      function submitRental() {
+        if(cart.length === 0) return alert("카트에 담긴 상품이 없습니다.");
+        const name = document.getElementById("renter-name").value.trim();
+        if(!name) return alert("대여자 이름을 입력해주세요.");
+        
+        if(!confirm(`${name}님에게 ${cart.length}종의 상품을 대여 처리하시겠습니까?`)) return;
+        
+        const payload = { items: cart, renter: name };
+        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+      }
+
+      function searchReturns() {
+        const q = document.getElementById("return-search").value.trim();
+        const list = document.getElementById("return-list");
+        if(!q) return alert("검색어를 입력하세요.");
+        
+        const res = allRentals.filter(r => r.renter.includes(q) || r.name.includes(q));
+        if(res.length === 0) { list.innerHTML = '<div class="text-center py-4 small text-muted">검색 결과가 없습니다.</div>'; return; }
+
+        let html = '';
+        res.forEach((r, idx) => {
+            html += `
+            <div class="cart-item">
+                <div class="d-flex align-items-center gap-2">
+                    <input type="checkbox" class="return-chk" data-idx="${idx}" style="width:20px; height:20px;">
+                    <div class="cart-info">
+                        <div>${r.name}</div>
+                        <small>${r.renter} | ${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</small>
+                    </div>
+                </div>
+            </div>`;
+        });
+        list.innerHTML = html;
+        list.dataset.searchResults = JSON.stringify(res);
+      }
+
+      function submitReturn() {
+        const list = document.getElementById("return-list");
+        const checkboxes = list.querySelectorAll(".return-chk:checked");
+        if(checkboxes.length === 0) return alert("반납할 항목을 선택해주세요.");
+        
+        const name = document.getElementById("returner-name").value.trim();
+        if(!name) return alert("반납 처리자 이름을 입력해주세요.");
+
+        const searchResults = JSON.parse(list.dataset.searchResults || "[]");
+        const itemsToReturn = [];
+        
+        checkboxes.forEach(chk => {
+            const idx = parseInt(chk.dataset.idx);
+            itemsToReturn.push(searchResults[idx]);
+        });
+
+        if(!confirm(`${itemsToReturn.length}건을 반납 처리하시겠습니까?`)) return;
+
+        const payload = { items: itemsToReturn, returner: name };
+        fetchData("processReturn", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+      }
+
+      function switchTab(t) { 
+        const modalEl = document.getElementById('itemModal');
+        if (modalEl.classList.contains('show') && modalObj) {
+            modalObj.hide();
+        }
+        window.history.pushState({page: t}, ''); 
+        switchTabUI(t); 
+      }
+
+      function switchTabUI(t) {
+        document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
+        document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
+        document.getElementById('page-rental').style.display = t === 'rental' ? 'block' : 'none';
+        
+        document.getElementById('nav-sch').classList.toggle('active', t === 'schedule');
+        document.getElementById('nav-inv').classList.toggle('active', t === 'inventory');
+        document.getElementById('nav-rent').classList.toggle('active', t === 'rental');
+
+        if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") { resetFilter(); }
+        
+        if (t === 'rental') {
+            if (cart.length > 0) {
+                switchRentalMode('rent');
+            }
+            renderCart();
+        }
+      }
+
+      function switchRentalMode(mode) {
+        document.getElementById('mode-rent').style.display = mode === 'rent' ? 'block' : 'none';
+        document.getElementById('mode-return').style.display = mode === 'return' ? 'block' : 'none';
+        document.getElementById('rt-rent').classList.toggle('active', mode === 'rent');
+        document.getElementById('rt-return').classList.toggle('active', mode === 'return');
+      }
+
       function openModal(item) {
         curItem = item;
         document.getElementById("m-info-top").innerHTML = `<b>${item.brand}</b> | ${item.code} | <b>${item.location || '-'}</b>`;
@@ -179,9 +456,13 @@
         
         toggleModalView('view');
         
-        // [핵심] 이제 fetch 하지 않고 바로 그립니다!
         const stock = allStockMap[item.code] || [];
         renderStock(stock);
+
+        // [신규] 착장 정보 렌더링
+        renderOutfits(item.code);
+        // [신규] 대여 현황 렌더링
+        renderCurrentRentals(item.code);
 
         const colors = (item.colors || "기본").split(","), sizes = (item.sizes || "Free").split(",");
         let ah = `<table class="st-table" id="add-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th><input type="text" value="${s.trim()}" style="font-weight:bold;"></th>`).join("")}</tr></thead><tbody>`;
@@ -190,6 +471,62 @@
         
         window.history.pushState({page: 'modal'}, '');
         modalObj.show();
+      }
+
+      // [신규] 착장 정보 관련 함수
+      function toggleOutfitForm() {
+        const form = document.getElementById("outfit-form");
+        form.style.display = form.style.display === "block" ? "none" : "block";
+      }
+
+      function renderOutfits(code) {
+        const container = document.getElementById("outfit-container");
+        const list = allOutfits.filter(o => o.code == code);
+        
+        if (list.length === 0) {
+            container.innerHTML = '<div class="text-muted small text-center w-100" style="grid-column: span 4;">등록된 정보가 없습니다.</div>';
+            return;
+        }
+
+        let html = '';
+        list.forEach(o => {
+            html += `<div class="outfit-box"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`;
+        });
+        container.innerHTML = html;
+      }
+
+      function saveOutfit() {
+        const host = document.getElementById("of-host").value.trim();
+        const size = document.getElementById("of-size").value.trim();
+        if (!host || !size) return alert("이름과 사이즈를 입력하세요.");
+
+        const payload = [{ code: curItem.code, host: host, size: size }];
+        fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+        
+        // 입력창 초기화
+        document.getElementById("of-host").value = "";
+        document.getElementById("of-size").value = "";
+      }
+
+      // [신규] 현재 대여 현황 렌더링
+      function renderCurrentRentals(code) {
+        const container = document.getElementById("rental-container");
+        const list = allRentals.filter(r => r.code == code);
+
+        if (list.length === 0) {
+            container.innerHTML = '<div class="text-muted small text-center p-3">현재 대여중인 건이 없습니다.</div>';
+            return;
+        }
+
+        let html = '';
+        list.forEach(r => {
+            html += `
+            <div class="rental-history-item">
+                <span class="rh-name">${r.renter}</span>
+                <span class="rh-info">${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</span>
+            </div>`;
+        });
+        container.innerHTML = html;
       }
 
       function renderStock(stock) {
@@ -203,7 +540,8 @@
         colors.forEach(c => { 
           h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { 
             const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); 
-            return `<td>${q || 0}</td>`; 
+            const clickAttr = q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : '';
+            return `<td ${clickAttr}>${q || 0}</td>`; 
           }).join("") + "</tr>"; 
         });
         container.innerHTML = h + "</tbody></table>";
@@ -227,38 +565,14 @@
         fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
       }
       
-      // [신규] 로컬 재고 데이터 업데이트 함수 (저장 누르면 바로 반영되게)
       function updateLocalStock(code, newLoc, paramsString) {
-        // paramsString에서 payload 추출 (약간의 파싱 필요)
         try {
             const urlParams = new URLSearchParams(paramsString);
             const payload = JSON.parse(urlParams.get("payload"));
-            
             if(!allStockMap[code]) allStockMap[code] = [];
-            
-            // 입력한 매트릭스를 로컬 재고에 추가
-            payload.matrix.forEach(m => {
-                allStockMap[code].push({ size: m.size, color: m.color, qty: m.qty });
-            });
-            
-            // 위치 업데이트
-            if(newLoc) {
-                curItem.location = newLoc;
-                document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b> | ${curItem.code} | <b>${newLoc}</b>`;
-            }
+            payload.matrix.forEach(m => { allStockMap[code].push({ size: m.size, color: m.color, qty: m.qty }); });
+            if(newLoc) { curItem.location = newLoc; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b> | ${curItem.code} | <b>${newLoc}</b>`; }
         } catch(e) { console.error(e); }
-      }
-
-      function switchTab(t) { window.history.pushState({page: t}, ''); switchTabUI(t); }
-      
-      function switchTabUI(t) {
-        document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
-        document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
-        document.getElementById('nav-sch').classList.toggle('active', t === 'schedule');
-        document.getElementById('nav-inv').classList.toggle('active', t === 'inventory');
-        if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") {
-            resetFilter();
-        }
       }
 
       function resetFilter() {
@@ -288,7 +602,7 @@
       }
 
       function loadMore() { invLimit += 30; renderInventoryChunk(); }
-
+      
       function renderSchedule() {
         const container = document.getElementById("scheduleContainer"); container.innerHTML = "";
         const filtered = allItems.filter(i => i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date));
@@ -314,6 +628,9 @@
       function toggleModalView(v) {
         document.getElementById('v-view').style.display = v === 'view' ? 'block' : 'none';
         document.getElementById('v-add').style.display = v === 'add' ? 'block' : 'none';
+        document.getElementById('v-outfits').style.display = v === 'view' ? 'block' : 'none';
+        document.getElementById('v-rentals').style.display = v === 'view' ? 'block' : 'none';
+        
         document.getElementById('btn-save').style.display = v === 'add' ? 'block' : 'none';
         document.getElementById('t-view').classList.toggle('active', v === 'view');
         document.getElementById('t-add').classList.toggle('active', v === 'add');
@@ -322,7 +639,12 @@
       function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); if(!m) return 9999; let h = parseInt(m[1]), min = parseInt(m[2]); if(s.includes("오후") && h < 12) h += 12; if(s.includes("오전") && h === 12) h = 0; return h * 60 + min; }
       function addRow() { const table = document.getElementById("add-table"), row = table.insertRow(); row.innerHTML = `<td class="col-color"><input type="text" placeholder="색상"></td>` + `<td><input type="number"></td>`.repeat(table.rows[0].cells.length - 1); }
       function addCol() { const table = document.getElementById("add-table"), th = document.createElement("th"); th.innerHTML = `<input type="text" placeholder="사이즈">`; table.rows[0].appendChild(th); for(let i=1; i<table.rows.length; i++) { table.rows[i].insertCell().innerHTML = `<input type="number">`; } }
+      function showToast(msg) {
+        const t = document.createElement('div'); t.className = 'toast show'; t.innerText = msg;
+        document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
+      }
     </script>
   </body>
 </html>
+
 
