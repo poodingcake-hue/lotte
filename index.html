@@ -11,7 +11,6 @@
       :root { --primary: #4361ee; --bg: #f8f9fa; --text: #212529; }
       body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 70px; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
       
-      /* 날짜 스크롤러 */
       .date-scroller { display: flex; overflow-x: auto; padding: 12px 10px; gap: 10px; background: white; border-bottom: 1px solid #eee; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 1000; }
       .date-scroller::-webkit-scrollbar { display: none; }
       .date-btn { min-width: 50px; height: 60px; background: #f1f3f5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: none; }
@@ -19,11 +18,9 @@
       .date-btn .dow { font-size: 10px; opacity: 0.8; }
       .date-btn .day { font-size: 16px; font-weight: 700; }
 
-      /* 필터 바 */
       .filter-bar { background: white; padding: 10px 15px; display: flex; gap: 8px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
       .filter-bar select { border-radius: 8px; font-size: 13px; border: 1px solid #ddd; height: 36px; flex: 1; }
 
-      /* 상품 그리드 */
       .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px; }
       .p-card { background: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative; }
       .p-img-box { position: relative; width: 100%; aspect-ratio: 1/1; background: #fff; display: flex; align-items: center; justify-content: center; }
@@ -35,7 +32,6 @@
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
       .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
-      /* 하단 네비게이션 - z-index 2000 */
       .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 55px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
       .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
@@ -43,7 +39,6 @@
       .nav-icon { font-size: 20px !important; }
       .badge-cnt { position: absolute; top: 5px; right: 25%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
 
-      /* 모달 스타일 */
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; padding-bottom: 20px; }
       .modal-img-wrap { width: 100%; background: #fff; border-bottom: 1px solid #eee; position: relative; cursor: pointer; }
@@ -57,34 +52,28 @@
       .loc-input-group label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
       .loc-input-group input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; outline: none; background: white; }
 
-      /* 재고표 스타일 */
       .table-full-container { margin: 0; padding: 0; width: 100%; overflow-x: auto; }
       .st-table { font-size: 10px !important; width: 100% !important; margin: 0 !important; border-collapse: collapse; table-layout: fixed; border: none !important; }
       .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; overflow: hidden; }
       .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
       .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0; }
       .st-table th { background: #f8f9fa; font-weight: 700; color: #666; }
-      
       .cell-clickable { color: var(--primary); font-weight: 800; cursor: pointer; text-decoration: underline; }
       .cell-clickable:active { background: #eef2ff; }
 
-      /* [신규] 착장 & 대여현황 스타일 */
-      .section-header { font-size: 13px; font-weight: 700; color: #333; margin: 25px 20px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-      
-      .outfit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 20px; }
+      .outfit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 20px; }
       .outfit-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 6px; padding: 8px 4px; text-align: center; }
       .outfit-host { font-size: 11px; color: #888; margin-bottom: 2px; }
       .outfit-size { font-size: 12px; font-weight: 700; color: #333; }
-
+      
       .rental-history-item { padding: 8px 20px; border-bottom: 1px solid #f8f9fa; display: flex; justify-content: space-between; font-size: 12px; color: #555; }
       .rh-name { font-weight: 600; color: #333; }
       .rh-info { color: #888; font-size: 11px; }
 
-      .btn-mini { font-size: 11px; padding: 2px 8px; background: #4361ee; color: white; border: none; border-radius: 4px; }
-      
-      /* 입력 폼 (모달 내) */
-      .input-form-box { background: #f1f3f5; padding: 10px; margin: 10px 20px; border-radius: 8px; display: none; }
-      .input-form-box input { width: 100%; margin-bottom: 5px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
+      .input-form-box { background: #f1f3f5; padding: 15px; margin: 10px 20px; border-radius: 12px; display: none; }
+      .form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+      .form-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; }
+      .form-label { font-size: 11px; color: #666; font-weight: 600; margin-bottom: 8px; display: block; }
 
       #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
       .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
@@ -94,7 +83,6 @@
       
       .load-more-btn { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #eee; background: white; border-radius: 8px; font-size: 13px; font-weight: 700; color: #555; }
 
-      /* 대여/반납 전용 스타일 */
       .rental-tabs { display: flex; padding: 10px 15px; gap: 10px; background: white; border-bottom: 1px solid #eee; }
       .rental-tab-btn { flex: 1; padding: 8px; border: 1px solid #eee; background: #f8f9fa; border-radius: 8px; font-size: 13px; font-weight: 600; color: #666; }
       .rental-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -110,6 +98,20 @@
       
       .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; z-index: 3000; opacity: 0; transition: 0.3s; pointer-events: none; }
       .toast.show { opacity: 1; }
+      
+      .section-header { font-size: 13px; font-weight: 700; color: #333; margin: 25px 20px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+      /* [신규] 핸들링 정보 카드 스타일 */
+      .handling-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 20px; }
+      .h-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+      .h-img-wrap { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+      .h-img { width: 100%; height: 100%; object-fit: contain; }
+      .h-desc { padding: 10px; font-size: 12px; color: #444; line-height: 1.4; word-break: break-all; min-height: 40px; }
+      
+      .handling-form-box { background: #f1f3f5; padding: 15px; margin: 10px 20px; border-radius: 12px; display: none; }
+      .handling-form-box label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
+      .handling-form-box textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 13px; height: 60px; margin-bottom: 8px; }
+      .btn-mini { font-size: 11px; padding: 2px 8px; background: #4361ee; color: white; border: none; border-radius: 4px; cursor: pointer; }
     </style>
   </head>
   <body>
@@ -183,47 +185,78 @@
       <div class="modal-img-wrap mb-2" onclick="openLotteMall()"><img id="m-img" src=""><button type="button" class="btn-close" data-bs-dismiss="modal" style="position:absolute; top:15px; right:15px; background:white; border-radius:50%; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button></div>
       <div class="m-product-info-top" id="m-info-top"></div>
       <div class="m-product-title" id="m-title"></div>
-      <div class="alert alert-primary py-1 px-2 mx-3 small d-flex align-items-center mb-2" style="font-size:11px;">
-        <span class="material-icons-round me-1" style="font-size:14px">info</span>
-        표의 <b>&nbsp;숫자를 클릭</b>하면 대여 카트에 담깁니다.
-      </div>
-      <div class="modal-main-padding"><ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-pill"><li class="nav-item"><button class="nav-link active rounded-pill py-2 small" id="t-view" onclick="toggleModalView('view')">재고 현황</button></li><li class="nav-item"><button class="nav-link rounded-pill py-2 small" id="t-add" onclick="toggleModalView('add')">입고 등록</button></li></ul></div>
-      <div id="v-view" class="table-full-container"></div>
       
-      <!-- [신규] 착장 정보 섹션 -->
-      <div id="v-outfits" style="display:block;">
-        <div class="section-header">착장 정보 <button class="btn-mini" onclick="toggleOutfitForm()">+ 등록</button></div>
-        <div id="outfit-form" class="input-form-box">
-            <input type="text" id="of-host" placeholder="진행자/게스트 이름">
-            <input type="text" id="of-size" placeholder="사이즈 (예: 55, M)">
-            <button class="btn btn-sm btn-primary w-100" onclick="saveOutfit()">저장</button>
-        </div>
-        <div class="outfit-grid" id="outfit-container"></div>
+      <div class="modal-main-padding">
+          <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-pill">
+              <li class="nav-item"><button class="nav-link active rounded-pill py-2 small" id="t-view" onclick="toggleModalView('view')">재고 현황</button></li>
+              <li class="nav-item"><button class="nav-link rounded-pill py-2 small" id="t-outfit" onclick="toggleModalView('outfit')">착장 내역</button></li>
+              <li class="nav-item"><button class="nav-link rounded-pill py-2 small" id="t-add" onclick="toggleModalView('add')">입고 등록</button></li>
+          </ul>
       </div>
 
-      <!-- [신규] 대여 현황 섹션 -->
-      <div id="v-rentals" style="display:block;">
-        <div class="section-header">현재 대여 현황</div>
-        <div id="rental-container"></div>
+      <!-- 1. 재고 현황 뷰 -->
+      <div id="v-view" style="display:block;">
+         <div class="alert alert-primary py-1 px-2 mx-3 small d-flex align-items-center mb-2" style="font-size:11px;">
+            <span class="material-icons-round me-1" style="font-size:14px">info</span>
+            표의 <b>&nbsp;숫자를 클릭</b>하면 대여 카트에 담깁니다.
+         </div>
+         <div id="v-stock-table" class="table-full-container"></div>
+         
+         <div class="section-header">현재 대여 현황</div>
+         <div id="rental-container"></div>
+
+         <div class="section-header">
+             핸들링 정보 
+             <button class="btn-mini" onclick="toggleHandlingForm()">+ 등록</button>
+         </div>
+         
+         <!-- 등록 폼 (숨김) -->
+         <div id="handling-form" class="handling-form-box">
+             <label>이미지 등록 (JPG)</label>
+             <div class="d-flex align-items-center gap-2 mb-2">
+                 <input type="file" id="h-file-input" accept="image/jpeg, image/jpg" class="form-control form-control-sm" onchange="previewImage(this)">
+             </div>
+             <!-- 미리보기 영역 -->
+             <img id="h-img-preview" src="" style="display:none; width:100px; height:100px; object-fit:cover; border-radius:6px; margin-bottom:8px;">
+             
+             <label>설명 내용</label>
+             <textarea id="h-desc-input" placeholder="설명 입력"></textarea>
+             <button class="btn btn-sm btn-secondary w-100" id="btn-h-save" onclick="saveHandling()">저장</button>
+         </div>
+
+         <!-- 카드 그리드 -->
+         <div id="handling-container" class="handling-grid"></div>
       </div>
 
+      <!-- 2. 착장 내역 뷰 -->
+      <div id="v-outfit" style="display:none;">
+          <div id="outfit-container" class="outfit-grid"></div>
+          <div class="d-grid px-3 mt-3">
+              <button class="btn btn-outline-primary btn-sm" onclick="toggleOutfitForm()">+ 착장내역 등록</button>
+          </div>
+          <div id="outfit-form" class="input-form-box">
+              <span class="form-label">진행자 / 게스트 등록 (최대 2명)</span>
+              <div class="form-row"><input type="text" class="of-name" placeholder="이름"><input type="text" class="of-size" placeholder="사이즈"></div>
+              <div class="form-row"><input type="text" class="of-name" placeholder="이름"><input type="text" class="of-size" placeholder="사이즈"></div>
+              <button class="btn btn-sm btn-primary w-100 mt-2" onclick="saveOutfit()">저장</button>
+          </div>
+      </div>
+
+      <!-- 3. 입고 등록 뷰 -->
       <div id="v-add" style="display:none;">
          <div class="modal-main-padding"><div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div></div>
          <div id="add-table-container" class="table-full-container"></div>
          <div class="modal-main-padding"><div class="d-flex gap-2 mt-3 mb-4"><button class="btn btn-sm btn-outline-secondary w-100 py-2" onclick="addRow()">+ 색상</button><button class="btn btn-sm btn-outline-secondary w-100 py-2" onclick="addCol()">+ 사이즈</button></div></div>
       </div>
+      
     </div><div class="modal-footer border-0"><button type="button" class="btn btn-primary w-100 py-2" id="btn-save" style="display:none;" onclick="saveData()">저장</button></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       const API_URL = "https://script.google.com/macros/s/AKfycbzpAjxDWvpV8BLsMiezsBSTINg6tIe18OyJkz4pDuChnToiVajjt5BmZWAuVrnl7Eh1/exec";
       let curItem = null, allItems = [], selDate = null, modalObj = null;
-      let allStockMap = {}; 
-      let allRentals = [];
-      let allOutfits = []; // [신규] 착장 정보
-      let invLimit = 30;
-      let filteredItems = [];
-      let cart = []; 
+      let allStockMap = {}, allRentals = [], allOutfits = [], allHandlings = {};
+      let invLimit = 30, filteredItems = [], cart = []; 
 
       window.onpopstate = function() {
         if (document.getElementById('itemModal').classList.contains('show')) { modalObj.hide(); }
@@ -236,63 +269,84 @@
         const btn = document.getElementById("btn-save");
         fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
           .then(res => res.json())
-          .then(data => {
-            if (action == "getInitialData") onDataLoad(data);
-            else if (action == "saveInventoryData") {
-              alert(data); 
-              updateLocalStock(curItem.code, document.getElementById("in-location").value, params);
-              document.getElementById("in-location").value = ""; 
-              document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
-              btn.disabled = false; btn.innerText = "저장";
-              const stock = allStockMap[curItem.code] || [];
-              renderStock(stock);
-              toggleModalView('view');
-            } else if (action == "processRental") {
-                alert(data.message);
-                cart = []; renderCart(); 
-                fetchData("getInitialData");
-            } else if (action == "processReturn") {
-                alert(data.message);
-                document.getElementById('return-list').innerHTML = ''; 
-                document.getElementById('return-search').value = '';
-                fetchData("getInitialData");
-            } else if (action == "saveOutfitsBulk") {
-                alert(data.message);
-                // 로컬 데이터 갱신
-                const newOutfit = JSON.parse(decodeURIComponent(params.split("payload=")[1]));
-                newOutfit.forEach(o => {
-                    // 기존 중복 제거
-                    allOutfits = allOutfits.filter(exist => !(exist.code == o.code && exist.host == o.host));
-                    allOutfits.push(o);
-                });
-                renderOutfits(newOutfit[0].code);
-                toggleOutfitForm();
+          .then(data => handleResponse(data, action))
+          .catch(err => handleError(err));
+      }
+
+      function fetchPost(action, payload) {
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: action, payload: payload }),
+            headers: { "Content-Type": "text/plain;charset=utf-8" }
+        })
+        .then(res => res.json())
+        .then(data => handleResponse(data, action))
+        .catch(err => handleError(err));
+      }
+
+      function handleResponse(data, action) {
+        const btn = document.getElementById("btn-save");
+        const btnH = document.getElementById("btn-h-save");
+
+        if (action == "getInitialData") onDataLoad(data);
+        else if (action == "saveInventoryData") {
+            alert(data); 
+            updateLocalStock(curItem.code, document.getElementById("in-location").value, null);
+            document.getElementById("in-location").value = ""; 
+            document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
+            btn.disabled = false; btn.innerText = "저장";
+            const stock = allStockMap[curItem.code] || [];
+            renderStock(stock);
+            toggleModalView('view');
+        } else if (action == "processRental") {
+            alert(data.message);
+            cart = []; renderCart(); 
+            fetchData("getInitialData");
+        } else if (action == "processReturn") {
+            alert(data.message);
+            document.getElementById('return-list').innerHTML = ''; 
+            document.getElementById('return-search').value = '';
+            fetchData("getInitialData");
+        } else if (action == "saveOutfitsBulk") {
+            alert(data.message);
+            fetchData("getInitialData");
+            toggleOutfitForm();
+        } else if (action == "saveHandlingInfo") {
+            alert(data.message);
+            btnH.disabled = false; btnH.innerText = "저장";
+            if(data.success) {
+                if (!allHandlings[curItem.code]) allHandlings[curItem.code] = [];
+                allHandlings[curItem.code].push({ img: data.newUrl, desc: document.getElementById("h-desc-input").value });
+                renderHandling(curItem.code);
+                toggleHandlingForm(); // 폼 닫기
+                document.getElementById("h-file-input").value = "";
+                document.getElementById("h-desc-input").value = "";
+                document.getElementById("h-img-preview").style.display = "none";
             }
-          })
-          .catch(err => { 
-            if(btn) { btn.disabled = false; btn.innerText = "저장"; }
-            console.error(err);
-          });
+        }
+      }
+
+      function handleError(err) {
+        const btn = document.getElementById("btn-save");
+        const btnH = document.getElementById("btn-h-save");
+        if(btn) { btn.disabled = false; btn.innerText = "저장"; }
+        if(btnH) { btnH.disabled = false; btnH.innerText = "저장"; }
+        console.error(err);
+        alert("오류 발생: " + err);
       }
 
       function onDataLoad(data) {
-        allItems = data.items || [];
-        allStockMap = data.stockMap || {}; 
-        allRentals = data.rentals || []; 
-        allOutfits = data.outfits || []; // [신규]
+        allItems = data.items || []; allStockMap = data.stockMap || {}; allRentals = data.rentals || []; 
+        allOutfits = data.outfits || []; allHandlings = data.handlings || {};
         
         modalObj = new bootstrap.Modal(document.getElementById('itemModal'));
         const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
-        b.innerHTML = '<option value="All">전체 브랜드</option>';
-        c.innerHTML = '<option value="All">전체 카테고리</option>';
-        data.brands.forEach(v => b.add(new Option(v, v)));
-        data.categories.forEach(v => c.add(new Option(v, v)));
+        b.innerHTML = '<option value="All">전체 브랜드</option>'; c.innerHTML = '<option value="All">전체 카테고리</option>';
+        data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
         if(data.dates.length > 0) {
-          const scroller = document.getElementById("dateScroller");
-          scroller.innerHTML = ""; selDate = data.dates[0];
+          const scroller = document.getElementById("dateScroller"); scroller.innerHTML = ""; selDate = data.dates[0];
           data.dates.forEach(d => {
-            const dateObj = new Date(d);
-            const btn = document.createElement("div");
+            const dateObj = new Date(d); const btn = document.createElement("div");
             btn.className = `date-btn ${d === selDate ? 'active' : ''}`;
             btn.innerHTML = `<span class="dow">${"일월화수목금토"[dateObj.getDay()]}</span><span class="day">${dateObj.getDate()}</span>`;
             btn.onclick = () => { document.querySelectorAll('.date-btn').forEach(el => el.classList.remove('active')); btn.classList.add('active'); selDate = d; renderSchedule(); };
@@ -304,165 +358,19 @@
         window.history.pushState({page: 'main'}, '');
       }
 
-      function addToCart(code, name, color, size, currentQty) {
-        if(currentQty <= 0) return showToast("재고가 없습니다.");
-        const exist = cart.find(i => i.code === code && i.color === color && i.size === size);
-        if(exist) {
-            if(exist.qty < currentQty) { exist.qty++; showToast("카트 수량 추가됨"); }
-            else showToast("재고 수량 초과");
-        } else {
-            cart.push({code, name, color, size, qty: 1, max: currentQty});
-            showToast("대여 카트에 담김");
-        }
-        renderCart();
-      }
-
-      function renderCart() {
-        const list = document.getElementById("cart-list");
-        const cnt = document.getElementById("cart-cnt");
-        const badge = document.getElementById("global-badge");
-        
-        const total = cart.reduce((a,b) => a+b.qty, 0);
-        cnt.innerText = total;
-        badge.innerText = total;
-        badge.style.display = total > 0 ? "block" : "none";
-
-        if(cart.length === 0) {
-            list.innerHTML = '<div class="text-center py-4 small text-muted">카트가 비어있습니다.</div>';
-            return;
-        }
-
-        let html = '';
-        cart.forEach((item, idx) => {
-            html += `
-            <div class="cart-item">
-                <div class="cart-info">
-                    <div>${item.name}</div>
-                    <small>${item.color} / ${item.size}</small>
-                </div>
-                <div class="cart-actions">
-                    <span style="font-size:12px; font-weight:bold;">${item.qty}개</span>
-                    <button class="btn-del" onclick="removeFromCart(${idx})">✕</button>
-                </div>
-            </div>`;
-        });
-        list.innerHTML = html;
-      }
-
-      function removeFromCart(idx) {
-        cart.splice(idx, 1);
-        renderCart();
-      }
-
-      function submitRental() {
-        if(cart.length === 0) return alert("카트에 담긴 상품이 없습니다.");
-        const name = document.getElementById("renter-name").value.trim();
-        if(!name) return alert("대여자 이름을 입력해주세요.");
-        
-        if(!confirm(`${name}님에게 ${cart.length}종의 상품을 대여 처리하시겠습니까?`)) return;
-        
-        const payload = { items: cart, renter: name };
-        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
-      }
-
-      function searchReturns() {
-        const q = document.getElementById("return-search").value.trim();
-        const list = document.getElementById("return-list");
-        if(!q) return alert("검색어를 입력하세요.");
-        
-        const res = allRentals.filter(r => r.renter.includes(q) || r.name.includes(q));
-        if(res.length === 0) { list.innerHTML = '<div class="text-center py-4 small text-muted">검색 결과가 없습니다.</div>'; return; }
-
-        let html = '';
-        res.forEach((r, idx) => {
-            html += `
-            <div class="cart-item">
-                <div class="d-flex align-items-center gap-2">
-                    <input type="checkbox" class="return-chk" data-idx="${idx}" style="width:20px; height:20px;">
-                    <div class="cart-info">
-                        <div>${r.name}</div>
-                        <small>${r.renter} | ${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</small>
-                    </div>
-                </div>
-            </div>`;
-        });
-        list.innerHTML = html;
-        list.dataset.searchResults = JSON.stringify(res);
-      }
-
-      function submitReturn() {
-        const list = document.getElementById("return-list");
-        const checkboxes = list.querySelectorAll(".return-chk:checked");
-        if(checkboxes.length === 0) return alert("반납할 항목을 선택해주세요.");
-        
-        const name = document.getElementById("returner-name").value.trim();
-        if(!name) return alert("반납 처리자 이름을 입력해주세요.");
-
-        const searchResults = JSON.parse(list.dataset.searchResults || "[]");
-        const itemsToReturn = [];
-        
-        checkboxes.forEach(chk => {
-            const idx = parseInt(chk.dataset.idx);
-            itemsToReturn.push(searchResults[idx]);
-        });
-
-        if(!confirm(`${itemsToReturn.length}건을 반납 처리하시겠습니까?`)) return;
-
-        const payload = { items: itemsToReturn, returner: name };
-        fetchData("processReturn", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
-      }
-
-      function switchTab(t) { 
-        const modalEl = document.getElementById('itemModal');
-        if (modalEl.classList.contains('show') && modalObj) {
-            modalObj.hide();
-        }
-        window.history.pushState({page: t}, ''); 
-        switchTabUI(t); 
-      }
-
-      function switchTabUI(t) {
-        document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
-        document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
-        document.getElementById('page-rental').style.display = t === 'rental' ? 'block' : 'none';
-        
-        document.getElementById('nav-sch').classList.toggle('active', t === 'schedule');
-        document.getElementById('nav-inv').classList.toggle('active', t === 'inventory');
-        document.getElementById('nav-rent').classList.toggle('active', t === 'rental');
-
-        if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") { resetFilter(); }
-        
-        if (t === 'rental') {
-            if (cart.length > 0) {
-                switchRentalMode('rent');
-            }
-            renderCart();
-        }
-      }
-
-      function switchRentalMode(mode) {
-        document.getElementById('mode-rent').style.display = mode === 'rent' ? 'block' : 'none';
-        document.getElementById('mode-return').style.display = mode === 'return' ? 'block' : 'none';
-        document.getElementById('rt-rent').classList.toggle('active', mode === 'rent');
-        document.getElementById('rt-return').classList.toggle('active', mode === 'return');
-      }
-
       function openModal(item) {
         curItem = item;
         document.getElementById("m-info-top").innerHTML = `<b>${item.brand}</b> | ${item.code} | <b>${item.location || '-'}</b>`;
         document.getElementById("m-title").innerText = item.name.replace(/(\r\n|\n|\r)/gm, " ");
         document.getElementById("m-img").src = item.image;
         document.getElementById("in-location").value = (item.location === "-" ? "" : item.location);
-        
         toggleModalView('view');
         
         const stock = allStockMap[item.code] || [];
         renderStock(stock);
-
-        // [신규] 착장 정보 렌더링
         renderOutfits(item.code);
-        // [신규] 대여 현황 렌더링
         renderCurrentRentals(item.code);
+        renderHandling(item.code);
 
         const colors = (item.colors || "기본").split(","), sizes = (item.sizes || "Free").split(",");
         let ah = `<table class="st-table" id="add-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th><input type="text" value="${s.trim()}" style="font-weight:bold;"></th>`).join("")}</tr></thead><tbody>`;
@@ -473,178 +381,199 @@
         modalObj.show();
       }
 
-      // [신규] 착장 정보 관련 함수
-      function toggleOutfitForm() {
-        const form = document.getElementById("outfit-form");
+      // [신규] 이미지 미리보기
+      function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                const imgEl = document.getElementById('h-img-preview');
+                imgEl.src = e.target.result;
+                imgEl.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+      }
+
+      // [신규] 핸들링 폼 토글
+      function toggleHandlingForm() {
+        const form = document.getElementById("handling-form");
         form.style.display = form.style.display === "block" ? "none" : "block";
       }
 
-      function renderOutfits(code) {
-        const container = document.getElementById("outfit-container");
-        const list = allOutfits.filter(o => o.code == code);
+      // [신규] 핸들링 정보 카드 렌더링
+      function renderHandling(code) {
+        const list = allHandlings[code];
+        const container = document.getElementById("handling-container");
         
-        if (list.length === 0) {
-            container.innerHTML = '<div class="text-muted small text-center w-100" style="grid-column: span 4;">등록된 정보가 없습니다.</div>';
+        if (!list || list.length === 0) {
+            container.innerHTML = '<div class="text-muted small text-center w-100 py-3" style="grid-column:span 2;">등록된 정보가 없습니다.</div>';
             return;
         }
 
         let html = '';
-        list.forEach(o => {
-            html += `<div class="outfit-box"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`;
-        });
-        container.innerHTML = html;
-      }
-
-      function saveOutfit() {
-        const host = document.getElementById("of-host").value.trim();
-        const size = document.getElementById("of-size").value.trim();
-        if (!host || !size) return alert("이름과 사이즈를 입력하세요.");
-
-        const payload = [{ code: curItem.code, host: host, size: size }];
-        fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
-        
-        // 입력창 초기화
-        document.getElementById("of-host").value = "";
-        document.getElementById("of-size").value = "";
-      }
-
-      // [신규] 현재 대여 현황 렌더링
-      function renderCurrentRentals(code) {
-        const container = document.getElementById("rental-container");
-        const list = allRentals.filter(r => r.code == code);
-
-        if (list.length === 0) {
-            container.innerHTML = '<div class="text-muted small text-center p-3">현재 대여중인 건이 없습니다.</div>';
-            return;
-        }
-
-        let html = '';
-        list.forEach(r => {
+        list.forEach(item => {
             html += `
-            <div class="rental-history-item">
-                <span class="rh-name">${r.renter}</span>
-                <span class="rh-info">${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</span>
+            <div class="h-card">
+                ${item.img ? `<div class="h-img-wrap"><img src="${item.img}" class="h-img" loading="lazy"></div>` : ''}
+                <div class="h-desc">${item.desc || ''}</div>
             </div>`;
         });
         container.innerHTML = html;
       }
 
-      function renderStock(stock) {
-        const container = document.getElementById("v-view");
-        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
+      function saveHandling() {
+        const fileInput = document.getElementById("h-file-input");
+        const desc = document.getElementById("h-desc-input").value;
+        const file = fileInput.files[0];
         
-        const sizes = [...new Set(stock.map(s => s.size))].sort();
-        const colors = [...new Set(stock.map(s => s.color))].sort();
-        
-        let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
-        colors.forEach(c => { 
-          h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { 
-            const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); 
-            const clickAttr = q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : '';
-            return `<td ${clickAttr}>${q || 0}</td>`; 
-          }).join("") + "</tr>"; 
-        });
-        container.innerHTML = h + "</tbody></table>";
+        const btn = document.getElementById("btn-h-save");
+        btn.disabled = true; btn.innerText = "저장 중...";
+
+        const payload = { code: curItem.code, desc: desc, imageBase64: null, fileName: null, mimeType: null };
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+                    const base64 = dataUrl.split(",")[1];
+                    
+                    payload.imageBase64 = base64;
+                    payload.fileName = "resized_" + file.name;
+                    payload.mimeType = "image/jpeg";
+                    
+                    fetchPost("saveHandlingInfo", payload);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            fetchPost("saveHandlingInfo", payload);
+        }
       }
 
+      // (기존 함수들 생략 없이 모두 포함)
+      function addToCart(code, name, color, size, currentQty) {
+        if(currentQty <= 0) return showToast("재고가 없습니다.");
+        const exist = cart.find(i => i.code === code && i.color === color && i.size === size);
+        if(exist) { if(exist.qty < currentQty) { exist.qty++; showToast("카트 수량 추가됨"); } else showToast("재고 수량 초과"); } 
+        else { cart.push({code, name, color, size, qty: 1, max: currentQty}); showToast("대여 카트에 담김"); }
+        renderCart();
+      }
+      function renderCart() {
+        const list = document.getElementById("cart-list"); const cnt = document.getElementById("cart-cnt"); const badge = document.getElementById("global-badge");
+        const total = cart.reduce((a,b) => a+b.qty, 0); cnt.innerText = total; badge.innerText = total; badge.style.display = total > 0 ? "block" : "none";
+        if(cart.length === 0) { list.innerHTML = '<div class="text-center py-4 small text-muted">카트가 비어있습니다.</div>'; return; }
+        let html = ''; cart.forEach((item, idx) => { html += `<div class="cart-item"><div class="cart-info"><div>${item.name}</div><small>${item.color} / ${item.size}</small></div><div class="cart-actions"><span style="font-size:12px; font-weight:bold;">${item.qty}개</span><button class="btn-del" onclick="removeFromCart(${idx})">✕</button></div></div>`; }); list.innerHTML = html;
+      }
+      function removeFromCart(idx) { cart.splice(idx, 1); renderCart(); }
+      function submitRental() {
+        if(cart.length === 0) return alert("카트에 상품 없음");
+        const name = document.getElementById("renter-name").value.trim();
+        if(!name) return alert("이름 입력");
+        if(!confirm("대여 처리하시겠습니까?")) return;
+        const payload = { items: cart, renter: name }; fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+      }
+      function searchReturns() {
+        const q = document.getElementById("return-search").value.trim(); const list = document.getElementById("return-list");
+        if(!q) return alert("검색어 입력");
+        const res = allRentals.filter(r => r.renter.includes(q) || r.name.includes(q));
+        if(res.length === 0) { list.innerHTML = '<div class="text-center py-4 small text-muted">검색 결과 없음</div>'; return; }
+        let html = ''; res.forEach((r, idx) => { html += `<div class="cart-item"><div class="d-flex align-items-center gap-2"><input type="checkbox" class="return-chk" data-idx="${idx}" style="width:20px; height:20px;"><div class="cart-info"><div>${r.name}</div><small>${r.renter} | ${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</small></div></div></div>`; });
+        list.innerHTML = html; list.dataset.searchResults = JSON.stringify(res);
+      }
+      function submitReturn() {
+        const list = document.getElementById("return-list"); const checkboxes = list.querySelectorAll(".return-chk:checked");
+        if(checkboxes.length === 0) return alert("항목 선택");
+        const name = document.getElementById("returner-name").value.trim();
+        if(!name) return alert("이름 입력");
+        const searchResults = JSON.parse(list.dataset.searchResults || "[]"); const itemsToReturn = [];
+        checkboxes.forEach(chk => { itemsToReturn.push(searchResults[parseInt(chk.dataset.idx)]); });
+        if(!confirm("반납 처리하시겠습니까?")) return;
+        const payload = { items: itemsToReturn, returner: name }; fetchData("processReturn", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+      }
+      function switchTab(t) { const modalEl = document.getElementById('itemModal'); if (modalEl.classList.contains('show') && modalObj) { modalObj.hide(); } window.history.pushState({page: t}, ''); switchTabUI(t); }
+      function switchTabUI(t) {
+        document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
+        document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
+        document.getElementById('page-rental').style.display = t === 'rental' ? 'block' : 'none';
+        document.getElementById('nav-sch').classList.toggle('active', t === 'schedule');
+        document.getElementById('nav-inv').classList.toggle('active', t === 'inventory');
+        document.getElementById('nav-rent').classList.toggle('active', t === 'rental');
+        if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") { resetFilter(); }
+        if (t === 'rental') { if (cart.length > 0) switchRentalMode('rent'); renderCart(); }
+      }
+      function switchRentalMode(mode) {
+        document.getElementById('mode-rent').style.display = mode === 'rent' ? 'block' : 'none';
+        document.getElementById('mode-return').style.display = mode === 'return' ? 'block' : 'none';
+        document.getElementById('rt-rent').classList.toggle('active', mode === 'rent');
+        document.getElementById('rt-return').classList.toggle('active', mode === 'return');
+      }
+      function toggleOutfitForm() { const form = document.getElementById("outfit-form"); form.style.display = form.style.display === "block" ? "none" : "block"; }
+      function renderOutfits(code) {
+        const container = document.getElementById("outfit-container"); const list = allOutfits.filter(o => o.code == code);
+        if (list.length === 0) { container.innerHTML = '<div class="text-muted small text-center w-100" style="grid-column: span 4;">등록된 정보가 없습니다.</div>'; return; }
+        let html = ''; list.forEach(o => { html += `<div class="outfit-box"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`; }); container.innerHTML = html;
+      }
+      function saveOutfit() {
+        const names = document.querySelectorAll('.of-name'); const sizes = document.querySelectorAll('.of-size'); const payload = [];
+        names.forEach((nameIn, i) => { if(nameIn.value.trim() && sizes[i].value.trim()) { payload.push({ code: curItem.code, host: nameIn.value.trim(), size: sizes[i].value.trim() }); } });
+        if (payload.length === 0) return alert("입력 필요");
+        fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+        names.forEach(i => i.value = ""); sizes.forEach(i => i.value = "");
+      }
+      function renderCurrentRentals(code) {
+        const container = document.getElementById("rental-container"); const list = allRentals.filter(r => r.code == code);
+        if (list.length === 0) { container.innerHTML = '<div class="text-muted small text-center p-3">현재 대여중인 건이 없습니다.</div>'; return; }
+        let html = ''; list.forEach(r => { html += `<div class="rental-history-item"><span class="rh-name">${r.renter}</span><span class="rh-info">${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</span></div>`; }); container.innerHTML = html;
+      }
+      function renderStock(stock) {
+        const container = document.getElementById("v-stock-table");
+        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
+        const sizes = [...new Set(stock.map(s => s.size))].sort(); const colors = [...new Set(stock.map(s => s.color))].sort();
+        let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
+        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); const clickAttr = q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''; return `<td ${clickAttr}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
+      }
       function saveData() {
         const table = document.getElementById("add-table"), headers = Array.from(table.rows[0].cells).slice(1).map(c => c.querySelector("input").value.trim());
         const loc = document.getElementById("in-location").value.trim(), matrix = [];
         for(let i=1; i<table.rows.length; i++) {
-          const color = table.rows[i].cells[0].innerText.trim();
-          if(!color) continue;
-          headers.forEach((size, idx) => {
-            const qty = table.rows[i].cells[idx+1].querySelector("input").value;
-            if(qty && Number(qty) > 0) matrix.push({ color, size, qty: Number(qty) });
-          });
+          const color = table.rows[i].cells[0].innerText.trim(); if(!color) continue;
+          headers.forEach((size, idx) => { const qty = table.rows[i].cells[idx+1].querySelector("input").value; if(qty && Number(qty) > 0) matrix.push({ color, size, qty: Number(qty) }); });
         }
-        if(matrix.length === 0) return alert("수량을 입력하세요.");
+        if(matrix.length === 0) return alert("수량 입력");
         const btn = document.getElementById("btn-save"); btn.disabled = true; btn.innerText = "저장 중...";
         const combined = curItem.brand + " " + curItem.name;
         const payload = { code: curItem.code, combinedName: combined, name: curItem.name, matrix: matrix, location: loc };
         fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
       }
-      
-      function updateLocalStock(code, newLoc, paramsString) {
-        try {
-            const urlParams = new URLSearchParams(paramsString);
-            const payload = JSON.parse(urlParams.get("payload"));
-            if(!allStockMap[code]) allStockMap[code] = [];
-            payload.matrix.forEach(m => { allStockMap[code].push({ size: m.size, color: m.color, qty: m.qty }); });
-            if(newLoc) { curItem.location = newLoc; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b> | ${curItem.code} | <b>${newLoc}</b>`; }
-        } catch(e) { console.error(e); }
-      }
-
-      function resetFilter() {
-        invLimit = 30;
-        document.getElementById("inventoryContainer").innerHTML = "";
-        const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value;
-        filteredItems = allItems.filter(i => (b==='All' || i.brand === b) && (c==='All' || i.category === c));
-        renderInventoryChunk();
-      }
-
-      function renderInventoryChunk() {
-        const container = document.getElementById("inventoryContainer");
-        const btnContainer = document.getElementById("loadMoreContainer");
-        if (filteredItems.length === 0) {
-            container.innerHTML = '<div class="text-center py-5 small w-100">상품 없음</div>';
-            btnContainer.innerHTML = "";
-            return;
-        }
-        const currentCount = container.children.length;
-        const nextBatch = filteredItems.slice(currentCount, invLimit);
-        nextBatch.forEach(i => container.appendChild(createCard(i)));
-        if (filteredItems.length > invLimit) {
-            btnContainer.innerHTML = `<button class="load-more-btn" onclick="loadMore()">더 보기 (${filteredItems.length - invLimit}개 남음)</button>`;
-        } else {
-            btnContainer.innerHTML = "";
-        }
-      }
-
+      function updateLocalStock(code, newLoc, paramsString) { try { if(paramsString){ const urlParams = new URLSearchParams(paramsString); const payload = JSON.parse(urlParams.get("payload")); if(!allStockMap[code]) allStockMap[code] = []; payload.matrix.forEach(m => { allStockMap[code].push({ size: m.size, color: m.color, qty: m.qty }); }); } if(newLoc) { curItem.location = newLoc; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b> | ${curItem.code} | <b>${newLoc}</b>`; } } catch(e) { console.error(e); } }
+      function resetFilter() { invLimit = 30; document.getElementById("inventoryContainer").innerHTML = ""; const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value; filteredItems = allItems.filter(i => (b==='All' || i.brand === b) && (c==='All' || i.category === c)); renderInventoryChunk(); }
+      function renderInventoryChunk() { const container = document.getElementById("inventoryContainer"); const btnContainer = document.getElementById("loadMoreContainer"); if (filteredItems.length === 0) { container.innerHTML = '<div class="text-center py-5 small w-100">상품 없음</div>'; btnContainer.innerHTML = ""; return; } const currentCount = container.children.length; const nextBatch = filteredItems.slice(currentCount, invLimit); nextBatch.forEach(i => container.appendChild(createCard(i))); if (filteredItems.length > invLimit) { btnContainer.innerHTML = `<button class="load-more-btn" onclick="loadMore()">더 보기 (${filteredItems.length - invLimit}개 남음)</button>`; } else { btnContainer.innerHTML = ""; } }
       function loadMore() { invLimit += 30; renderInventoryChunk(); }
-      
-      function renderSchedule() {
-        const container = document.getElementById("scheduleContainer"); container.innerHTML = "";
-        const filtered = allItems.filter(i => i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date));
-        if (!filtered.length) { container.innerHTML = '<div class="text-center py-5 small">편성 없음</div>'; return; }
-        const groups = {};
-        filtered.forEach(i => {
-          const t = i.date && i.date.match(/\d{1,2}:\d{1,2}/) ? i.date.match(/\d{1,2}:\d{1,2}/)[0] : "시간미정";
-          if(!groups[t]) groups[t] = []; groups[t].push(i);
-        });
-        Object.keys(groups).forEach(t => {
-          const g = document.createElement("div"); g.innerHTML = `<div class="time-label">${t}</div>`;
-          const grid = document.createElement("div"); grid.className = "product-grid";
-          groups[t].forEach(item => grid.appendChild(createCard(item)));
-          g.appendChild(grid); container.appendChild(g);
-        });
-      }
-      function createCard(item) {
-        const div = document.createElement("div"); div.className = "p-card"; div.onclick = () => openModal(item);
-        const timeMatch = item.date && item.date.match(/\d{1,2}:\d{1,2}/);
-        div.innerHTML = `<div class="p-img-box">${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}<img src="${item.image}" class="p-img" loading="lazy"></div><div class="p-info"><div class="p-brand">${item.brand || ""}</div><div class="p-name">${item.name || ""}</div><div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div></div>`;
-        return div;
-      }
-      function toggleModalView(v) {
-        document.getElementById('v-view').style.display = v === 'view' ? 'block' : 'none';
-        document.getElementById('v-add').style.display = v === 'add' ? 'block' : 'none';
-        document.getElementById('v-outfits').style.display = v === 'view' ? 'block' : 'none';
-        document.getElementById('v-rentals').style.display = v === 'view' ? 'block' : 'none';
-        
-        document.getElementById('btn-save').style.display = v === 'add' ? 'block' : 'none';
-        document.getElementById('t-view').classList.toggle('active', v === 'view');
-        document.getElementById('t-add').classList.toggle('active', v === 'add');
-      }
+      function renderSchedule() { const container = document.getElementById("scheduleContainer"); container.innerHTML = ""; const filtered = allItems.filter(i => i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date)); if (!filtered.length) { container.innerHTML = '<div class="text-center py-5 small">편성 없음</div>'; return; } const groups = {}; filtered.forEach(i => { const t = i.date && i.date.match(/\d{1,2}:\d{1,2}/) ? i.date.match(/\d{1,2}:\d{1,2}/)[0] : "시간미정"; if(!groups[t]) groups[t] = []; groups[t].push(i); }); Object.keys(groups).forEach(t => { const g = document.createElement("div"); g.innerHTML = `<div class="time-label">${t}</div>`; const grid = document.createElement("div"); grid.className = "product-grid"; groups[t].forEach(item => grid.appendChild(createCard(item))); g.appendChild(grid); container.appendChild(g); }); }
+      function createCard(item) { const div = document.createElement("div"); div.className = "p-card"; div.onclick = () => openModal(item); const timeMatch = item.date && item.date.match(/\d{1,2}:\d{1,2}/); div.innerHTML = `<div class="p-img-box">${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}<img src="${item.image}" class="p-img" loading="lazy"></div><div class="p-info"><div class="p-brand">${item.brand || ""}</div><div class="p-name">${item.name || ""}</div><div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div></div>`; return div; }
+      function toggleModalView(v) { document.getElementById('v-view').style.display = v === 'view' ? 'block' : 'none'; document.getElementById('v-outfit').style.display = v === 'outfit' ? 'block' : 'none'; document.getElementById('v-add').style.display = v === 'add' ? 'block' : 'none'; document.getElementById('btn-save').style.display = v === 'add' ? 'block' : 'none'; document.getElementById('t-view').classList.toggle('active', v === 'view'); document.getElementById('t-outfit').classList.toggle('active', v === 'outfit'); document.getElementById('t-add').classList.toggle('active', v === 'add'); }
       function openLotteMall() { if(!curItem || !curItem.code) return; window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=" + curItem.code, '_blank'); }
       function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); if(!m) return 9999; let h = parseInt(m[1]), min = parseInt(m[2]); if(s.includes("오후") && h < 12) h += 12; if(s.includes("오전") && h === 12) h = 0; return h * 60 + min; }
       function addRow() { const table = document.getElementById("add-table"), row = table.insertRow(); row.innerHTML = `<td class="col-color"><input type="text" placeholder="색상"></td>` + `<td><input type="number"></td>`.repeat(table.rows[0].cells.length - 1); }
       function addCol() { const table = document.getElementById("add-table"), th = document.createElement("th"); th.innerHTML = `<input type="text" placeholder="사이즈">`; table.rows[0].appendChild(th); for(let i=1; i<table.rows.length; i++) { table.rows[i].insertCell().innerHTML = `<input type="number">`; } }
-      function showToast(msg) {
-        const t = document.createElement('div'); t.className = 'toast show'; t.innerText = msg;
-        document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
-      }
+      function showToast(msg) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
     </script>
   </body>
 </html>
-
-
