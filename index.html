@@ -57,13 +57,12 @@
       .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
       .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0; }
       .st-table th { background: #f8f9fa; font-weight: 700; color: #666; }
-      
-      /* [수정] 재고 셀 스타일: 일반 검정색, 밑줄 없음, 클릭 가능 */
       .cell-clickable { color: #333; font-weight: 400; cursor: pointer; text-decoration: none; }
       .cell-clickable:active { background: #eef2ff; font-weight: 700; }
 
       .outfit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 20px; }
-      .outfit-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 6px; padding: 8px 4px; text-align: center; }
+      .outfit-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 6px; padding: 8px 4px; text-align: center; cursor: pointer; transition: 0.1s; }
+      .outfit-box:active { background: #e9ecef; }
       .outfit-host { font-size: 11px; color: #888; margin-bottom: 2px; }
       .outfit-size { font-size: 12px; font-weight: 700; color: #333; }
       
@@ -71,9 +70,12 @@
       .rh-name { font-weight: 600; color: #333; }
       .rh-info { color: #888; font-size: 11px; }
 
-      .input-form-box { background: #f1f3f5; padding: 15px; margin: 10px 20px; border-radius: 12px; display: none; }
-      .form-row { display: flex; gap: 8px; margin-bottom: 8px; }
-      .form-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; }
+      /* [수정] 착장 등록 폼 스타일 변경 (삐져나감 방지, 4:6 비율) */
+      .input-form-box { background: #f1f3f5; padding: 15px; margin: 10px 20px; border-radius: 12px; display: none; box-sizing: border-box; }
+      .form-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
+      .form-row input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; }
+      .of-name { flex: 4; } /* 이름 40% */
+      .of-size { flex: 6; } /* 사이즈 60% */
       .form-label { font-size: 11px; color: #666; font-weight: 600; margin-bottom: 8px; display: block; }
 
       #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
@@ -166,18 +168,10 @@
       </div>
     </div>
 
-    <!-- 하단 탭 (아이콘 제거, 텍스트만) -->
     <nav class="bottom-nav">
-      <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')">
-          <span>편성표</span>
-      </button>
-      <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')">
-          <span>재고관리</span>
-      </button>
-      <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')">
-          <span>대여/반납</span>
-          <span id="global-badge" class="badge-cnt">0</span>
-      </button>
+      <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')"><span>편성표</span></button>
+      <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')"><span>재고관리</span></button>
+      <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')"><span>대여/반납</span><span id="global-badge" class="badge-cnt">0</span></button>
     </nav>
     
     <div class="modal fade" id="itemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-body">
@@ -193,9 +187,7 @@
           </ul>
       </div>
 
-      <!-- 1. 재고 현황 뷰 -->
       <div id="v-view" style="display:block;">
-         <!-- 안내 문구 제거됨 -->
          <div id="v-stock-table" class="table-full-container"></div>
          
          <div id="rental-wrapper" style="display:none;">
@@ -208,7 +200,6 @@
              <button class="btn-mini" onclick="toggleHandlingForm()">+ 등록</button>
          </div>
          
-         <!-- 핸들링 등록 폼 -->
          <div id="handling-form" class="handling-form-box">
              <label>이미지 등록 (JPG)</label>
              <div class="d-flex align-items-center gap-2 mb-2">
@@ -228,7 +219,6 @@
          <div id="handling-container" class="handling-grid"></div>
       </div>
 
-      <!-- 2. 착장 내역 뷰 -->
       <div id="v-outfit" style="display:none;">
           <div id="outfit-container" class="outfit-grid"></div>
           <div class="d-grid px-3 mt-3">
@@ -236,13 +226,18 @@
           </div>
           <div id="outfit-form" class="input-form-box">
               <span class="form-label">진행자 / 게스트 등록 (최대 2명)</span>
-              <div class="form-row"><input type="text" class="of-name" placeholder="이름"><input type="text" class="of-size" placeholder="사이즈"></div>
-              <div class="form-row"><input type="text" class="of-name" placeholder="이름"><input type="text" class="of-size" placeholder="사이즈"></div>
+              <div class="form-row">
+                  <input type="text" class="of-name" placeholder="이름">
+                  <input type="text" class="of-size" placeholder="사이즈">
+              </div>
+              <div class="form-row">
+                  <input type="text" class="of-name" placeholder="이름">
+                  <input type="text" class="of-size" placeholder="사이즈">
+              </div>
               <button class="btn btn-sm btn-primary w-100 mt-2" onclick="saveOutfit()">저장</button>
           </div>
       </div>
 
-      <!-- 3. 입고 등록 뷰 -->
       <div id="v-add" style="display:none;">
          <div class="modal-main-padding"><div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div></div>
          <div id="add-table-container" class="table-full-container"></div>
@@ -363,6 +358,7 @@
         
         if(curItem && document.getElementById('itemModal').classList.contains('show')) {
             renderHandling(curItem.code);
+            renderOutfits(curItem.code);
         }
         
         document.getElementById('loading-overlay').style.display = 'none';
@@ -587,11 +583,33 @@
         document.getElementById('rt-return').classList.toggle('active', mode === 'return');
       }
       function toggleOutfitForm() { const form = document.getElementById("outfit-form"); form.style.display = form.style.display === "block" ? "none" : "block"; }
+      
+      // [수정] 착장 내역 렌더링 (클릭 시 수정)
       function renderOutfits(code) {
         const container = document.getElementById("outfit-container"); const list = allOutfits.filter(o => o.code == code);
         if (list.length === 0) { container.innerHTML = '<div class="text-muted small text-center w-100" style="grid-column: span 4;">등록된 정보가 없습니다.</div>'; return; }
-        let html = ''; list.forEach(o => { html += `<div class="outfit-box"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`; }); container.innerHTML = html;
+        
+        let html = ''; 
+        list.forEach(o => { 
+            // 이름과 사이즈에 작은따옴표가 있을 수 있으므로 이스케이프 처리
+            const safeHost = o.host.replace(/'/g, "\\'");
+            const safeSize = o.size.replace(/'/g, "\\'");
+            html += `<div class="outfit-box" onclick="editOutfit('${safeHost}', '${safeSize}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`; 
+        }); 
+        container.innerHTML = html;
       }
+
+      // [신규] 착장 사이즈 수정 (프롬프트 활용)
+      function editOutfit(host, oldSize) {
+        const newSize = prompt(`${host}님의 사이즈를 수정합니다.`, oldSize);
+        if (newSize === null) return; // 취소 시
+        if (newSize === oldSize || newSize.trim() === "") return; // 변경 없음
+
+        const payload = [{ code: curItem.code, host: host, size: newSize.trim() }];
+        // 기존 저장 함수 재활용 (덮어쓰기 로직이 이미 있음)
+        fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+      }
+
       function saveOutfit() {
         const names = document.querySelectorAll('.of-name'); const sizes = document.querySelectorAll('.of-size'); const payload = [];
         names.forEach((nameIn, i) => { if(nameIn.value.trim() && sizes[i].value.trim()) { payload.push({ code: curItem.code, host: nameIn.value.trim(), size: sizes[i].value.trim() }); } });
@@ -634,5 +652,6 @@
     </script>
   </body>
 </html>
+
 
 
