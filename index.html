@@ -32,12 +32,12 @@
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
       .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
-      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 55px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
-      .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
-      .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); }
-      .nav-btn span { font-size: 11px; font-weight: 700; margin-top: 2px; }
-      .nav-icon { font-size: 20px !important; }
-      .badge-cnt { position: absolute; top: 5px; right: 25%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
+      /* [수정] 하단 탭 스타일 변경 (아이콘 제거, 텍스트 중심) */
+      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 50px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
+      .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
+      .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); font-weight: 800; }
+      .nav-btn span { font-size: 14px; }
+      .badge-cnt { position: absolute; top: 8px; right: 20%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
 
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; padding-bottom: 20px; }
@@ -58,8 +58,10 @@
       .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
       .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; padding: 0; }
       .st-table th { background: #f8f9fa; font-weight: 700; color: #666; }
-      .cell-clickable { color: var(--primary); font-weight: 800; cursor: pointer; text-decoration: underline; }
-      .cell-clickable:active { background: #eef2ff; }
+      
+      /* [수정] 재고 셀 스타일 변경 (파란색/밑줄 제거 -> 일반 검정색) */
+      .cell-clickable { color: #333; font-weight: 400; cursor: pointer; text-decoration: none; }
+      .cell-clickable:active { background: #eef2ff; font-weight: 700; }
 
       .outfit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 20px; }
       .outfit-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 6px; padding: 8px 4px; text-align: center; }
@@ -101,7 +103,6 @@
       
       .section-header { font-size: 13px; font-weight: 700; color: #333; margin: 25px 20px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 
-      /* 핸들링 정보 카드 스타일 */
       .handling-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 20px; }
       .h-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
       .h-img-wrap { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -165,17 +166,15 @@
       </div>
     </div>
 
+    <!-- [수정] 하단 탭 (아이콘 제거, 텍스트만 유지) -->
     <nav class="bottom-nav">
       <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')">
-          <span class="material-icons-round nav-icon">calendar_today</span>
           <span>편성표</span>
       </button>
       <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')">
-          <span class="material-icons-round nav-icon">inventory_2</span>
           <span>재고관리</span>
       </button>
       <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')">
-          <span class="material-icons-round nav-icon">shopping_bag</span>
           <span>대여/반납</span>
           <span id="global-badge" class="badge-cnt">0</span>
       </button>
@@ -196,13 +195,9 @@
 
       <!-- 1. 재고 현황 뷰 -->
       <div id="v-view" style="display:block;">
-         <div class="alert alert-primary py-1 px-2 mx-3 small d-flex align-items-center mb-2" style="font-size:11px;">
-            <span class="material-icons-round me-1" style="font-size:14px">info</span>
-            표의 <b>&nbsp;숫자를 클릭</b>하면 대여 카트에 담깁니다.
-         </div>
+         <!-- [수정] 안내 메시지 박스 제거됨 -->
          <div id="v-stock-table" class="table-full-container"></div>
          
-         <!-- [수정] 대여 현황 섹션 (Wrapper 추가) -->
          <div id="rental-wrapper" style="display:none;">
              <div class="section-header">현재 대여 현황</div>
              <div id="rental-container"></div>
@@ -464,18 +459,17 @@
         }
       }
 
-      // [수정] 대여 현황 렌더링 (없으면 섹션 전체 숨김)
       function renderCurrentRentals(code) {
         const wrapper = document.getElementById("rental-wrapper");
         const container = document.getElementById("rental-container");
         const list = allRentals.filter(r => r.code == code);
 
         if (list.length === 0) {
-            wrapper.style.display = 'none'; // 전체 숨김
+            wrapper.style.display = 'none'; 
             return;
         }
 
-        wrapper.style.display = 'block'; // 보임
+        wrapper.style.display = 'block'; 
         let html = '';
         list.forEach(r => {
             html += `
