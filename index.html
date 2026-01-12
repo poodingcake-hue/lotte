@@ -35,7 +35,7 @@
       .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 55px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
       .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); font-weight: 800; }
-      .nav-btn span { font-size: 14px; font-weight: 500; margin-top: 2px; }
+      .nav-btn span { font-size: 11px; font-weight: 500; margin-top: 2px; }
       .badge-cnt { position: absolute; top: 5px; right: 25%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
 
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
@@ -70,12 +70,11 @@
       .rh-name { font-weight: 600; color: #333; }
       .rh-info { color: #888; font-size: 11px; }
 
-      /* [수정] 착장 등록 폼 스타일 변경 (삐져나감 방지, 4:6 비율) */
       .input-form-box { background: #f1f3f5; padding: 15px; margin: 10px 20px; border-radius: 12px; display: none; box-sizing: border-box; }
       .form-row { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
       .form-row input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box; }
-      .of-name { flex: 4; } /* 이름 40% */
-      .of-size { flex: 6; } /* 사이즈 60% */
+      .of-name { flex: 4; } 
+      .of-size { flex: 6; }
       .form-label { font-size: 11px; color: #666; font-weight: 600; margin-bottom: 8px; display: block; }
 
       #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
@@ -115,6 +114,9 @@
       .handling-form-box label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
       .handling-form-box textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 13px; height: 60px; margin-bottom: 8px; }
       .btn-mini { font-size: 11px; padding: 2px 8px; background: #4361ee; color: white; border: none; border-radius: 4px; cursor: pointer; }
+      
+      /* [수정] 모달 푸터 여백 추가 (하단 탭에 가리지 않게) */
+      .modal-footer { padding-bottom: 30px; border: 0; }
     </style>
   </head>
   <body>
@@ -226,14 +228,8 @@
           </div>
           <div id="outfit-form" class="input-form-box">
               <span class="form-label">진행자 / 게스트 등록 (최대 2명)</span>
-              <div class="form-row">
-                  <input type="text" class="of-name" placeholder="이름">
-                  <input type="text" class="of-size" placeholder="사이즈">
-              </div>
-              <div class="form-row">
-                  <input type="text" class="of-name" placeholder="이름">
-                  <input type="text" class="of-size" placeholder="사이즈">
-              </div>
+              <div class="form-row"><input type="text" class="of-name" placeholder="이름"><input type="text" class="of-size" placeholder="사이즈"></div>
+              <div class="form-row"><input type="text" class="of-name" placeholder="이름"><input type="text" class="of-size" placeholder="사이즈"></div>
               <button class="btn btn-sm btn-primary w-100 mt-2" onclick="saveOutfit()">저장</button>
           </div>
       </div>
@@ -584,14 +580,12 @@
       }
       function toggleOutfitForm() { const form = document.getElementById("outfit-form"); form.style.display = form.style.display === "block" ? "none" : "block"; }
       
-      // [수정] 착장 내역 렌더링 (클릭 시 수정)
       function renderOutfits(code) {
         const container = document.getElementById("outfit-container"); const list = allOutfits.filter(o => o.code == code);
         if (list.length === 0) { container.innerHTML = '<div class="text-muted small text-center w-100" style="grid-column: span 4;">등록된 정보가 없습니다.</div>'; return; }
         
         let html = ''; 
         list.forEach(o => { 
-            // 이름과 사이즈에 작은따옴표가 있을 수 있으므로 이스케이프 처리
             const safeHost = o.host.replace(/'/g, "\\'");
             const safeSize = o.size.replace(/'/g, "\\'");
             html += `<div class="outfit-box" onclick="editOutfit('${safeHost}', '${safeSize}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`; 
@@ -599,14 +593,12 @@
         container.innerHTML = html;
       }
 
-      // [신규] 착장 사이즈 수정 (프롬프트 활용)
       function editOutfit(host, oldSize) {
         const newSize = prompt(`${host}님의 사이즈를 수정합니다.`, oldSize);
-        if (newSize === null) return; // 취소 시
-        if (newSize === oldSize || newSize.trim() === "") return; // 변경 없음
+        if (newSize === null) return; 
+        if (newSize === oldSize || newSize.trim() === "") return; 
 
         const payload = [{ code: curItem.code, host: host, size: newSize.trim() }];
-        // 기존 저장 함수 재활용 (덮어쓰기 로직이 이미 있음)
         fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
       }
 
@@ -617,13 +609,31 @@
         fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
         names.forEach(i => i.value = ""); sizes.forEach(i => i.value = "");
       }
+      // [수정] 사이즈 정렬 로직 적용
       function renderStock(stock) {
         const container = document.getElementById("v-stock-table");
         if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
-        const sizes = [...new Set(stock.map(s => s.size))].sort(); const colors = [...new Set(stock.map(s => s.color))].sort();
+        
+        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); 
+        const colors = [...new Set(stock.map(s => s.color))].sort();
+        
         let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
         colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); const clickAttr = q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''; return `<td ${clickAttr}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
       }
+
+      // [신규] 사이즈 정렬 함수
+      function sortSizes(sizes) {
+        const order = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "2XL", "3XL", "85", "90", "95", "100", "105", "110", "115"];
+        return sizes.sort((a, b) => {
+            const idxA = order.indexOf(a.toUpperCase());
+            const idxB = order.indexOf(b.toUpperCase());
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+      }
+
       function saveData() {
         const table = document.getElementById("add-table"), headers = Array.from(table.rows[0].cells).slice(1).map(c => c.querySelector("input").value.trim());
         const loc = document.getElementById("in-location").value.trim(), matrix = [];
@@ -652,6 +662,3 @@
     </script>
   </body>
 </html>
-
-
-
