@@ -16,7 +16,7 @@ jobs:
         run: |
           # 아래 주소 뒤에 ?action=getInitialData 를 붙여서 데이터를 가져옵니다.
           # "YOUR_WEB_APP_URL" 부분을 1단계에서 복사한 주소로 바꿔주세요.
-          curl -L "https://script.google.com/macros/s/긴_알수없는_주소_여기에_붙여넣기/exec?action=getInitialData" -o data.json
+          curl -L "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec?action=getInitialData" -o data.json
 
       - name: Commit and Push
         run: |
