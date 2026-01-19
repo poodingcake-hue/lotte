@@ -1,8 +1,12 @@
 name: Update Data from Google Sheet
 
 on:
+  # [추가됨] 구글 앱스 스크립트에서 보내는 신호(google_sheet_update)를 받습니다.
+  repository_dispatch:
+    types: [google_sheet_update]
+    
   schedule:
-    - cron: '0 * * * *' # 1시간마다 자동 실행
+    - cron: '0 * * * *' # 1시간마다 자동 백업/실행 (혹시 신호가 누락될 경우를 대비)
   workflow_dispatch:      # 수동 실행 버튼 활성화
 
 permissions:
@@ -19,16 +23,25 @@ jobs:
 
       - name: Fetch Data
         run: |
-          # 알려주신 구글 웹앱 주소로 데이터를 가져와 data.json으로 저장합니다.
+          # 구글 웹앱 주소로 데이터를 가져와 data.json으로 저장합니다.
+          # 주의: 아래 URL이 최신 배포된 웹앱 URL인지 꼭 확인하세요.
           curl -L "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec?action=getInitialData" -o data.json
 
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 파일이 변경되었는지 확인
           git add data.json
-          # 변경사항이 있을 때만 업데이트를 진행합니다.
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update data.json" && git push)
+          
+          # 변경사항이 있을 때만 커밋하고 푸시합니다.
+          if ! git diff --cached --quiet; then
+            git commit -m "Update data.json via Google Sheet trigger"
+            git push
+          else
+            echo "No changes to commit"
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
