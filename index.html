@@ -256,13 +256,32 @@
 
       window.onload = function() { fetchData("getInitialData"); };
 
-      function fetchData(action, params = "") {
-        const btn = document.getElementById("btn-save");
-        fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
+      // [수정된 코드] - 여기를 복사해서 위 함수 대신 붙여넣으세요
+function fetchData(action, params = "") {
+    const btn = document.getElementById("btn-save");
+    
+    // [핵심 변경] 데이터를 처음 불러올 때는 구글 대신 깃허브의 data.json을 읽습니다.
+    if (action === "getInitialData") {
+        fetch(`data.json?v=${new Date().getTime()}`) // 내 깃허브 파일 읽기
           .then(res => res.json())
           .then(data => handleResponse(data, action))
-          .catch(err => handleError(err));
-      }
+          .catch(err => {
+              console.error("JSON 로드 실패:", err);
+              // 만약 JSON 파일이 없으면 기존 방식(구글)으로 시도
+              fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
+                  .then(res => res.json())
+                  .then(data => handleResponse(data, action))
+                  .catch(err => handleError(err));
+          });
+        return;
+    }
+
+    // 저장(Save)이나 대여(Rental) 같은 쓰기 작업은 여전히 구글 서버가 필요합니다.
+    fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
+      .then(res => res.json())
+      .then(data => handleResponse(data, action))
+      .catch(err => handleError(err));
+}
 
       function fetchPost(action, payload) {
         fetch(API_URL, {
@@ -662,3 +681,4 @@
     </script>
   </body>
 </html>
+
