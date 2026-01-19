@@ -2,8 +2,13 @@ name: Update Data from Google Sheet
 
 on:
   schedule:
-    - cron: '0 * * * *' # 1시간마다 실행 (필요하면 시간 조절 가능)
-  workflow_dispatch:      # 버튼 눌러서 수동 실행 가능
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write      # 페이지 배포 권한 추가
+  id-token: write
 
 jobs:
   fetch-and-save:
@@ -12,17 +17,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Fetch Data from Google Script
+      - name: Fetch Data
         run: |
-          # 아래 주소 뒤에 ?action=getInitialData 를 붙여서 데이터를 가져옵니다.
-          # "YOUR_WEB_APP_URL" 부분을 1단계에서 복사한 주소로 바꿔주세요.
-          curl -L "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec?action=getInitialData" -o data.json
+          # YOUR_GOOGLE_SCRIPT_URL 부분을 실제 본인 주소로 꼭 바꿔주세요!
+          curl -L "YOUR_GOOGLE_SCRIPT_URL?action=getInitialData" -o data.json
 
       - name: Commit and Push
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          
-          # 변경사항이 있을 때만 저장합니다
           git add data.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update data.json from Google Sheets" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update data" && git push)
+
+      # 수정한 데이터로 웹페이지를 새로고침(배포) 합니다.
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
