@@ -2,12 +2,12 @@ name: Update Data from Google Sheet
 
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
+    - cron: '0 * * * *' # 1시간마다 자동 실행
+  workflow_dispatch:      # 수동 버튼 생성
 
 permissions:
   contents: write
-  pages: write      # 페이지 배포 권한 추가
+  pages: write      # 페이지 업데이트 권한
   id-token: write
 
 jobs:
@@ -15,21 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Fetch Data
         run: |
-          # YOUR_GOOGLE_SCRIPT_URL 부분을 실제 본인 주소로 꼭 바꿔주세요!
+          # YOUR_GOOGLE_SCRIPT_URL 부분을 본인의 구글 웹앱 주소로 꼭 바꾸세요!
           curl -L "YOUR_GOOGLE_SCRIPT_URL?action=getInitialData" -o data.json
 
       - name: Commit and Push
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update data" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update data.json" && git push)
 
-      # 수정한 데이터로 웹페이지를 새로고침(배포) 합니다.
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
