@@ -13,7 +13,7 @@
       
       .date-scroller { display: flex; overflow-x: auto; padding: 12px 10px; gap: 10px; background: white; border-bottom: 1px solid #eee; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 1000; }
       .date-scroller::-webkit-scrollbar { display: none; }
-      .date-btn { min-width: 50px; height: 60px; background: #f1f3f5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: none; }
+      .date-btn { min-width: 50px; height: 60px; background: #f1f3f5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: none; cursor: pointer; }
       .date-btn.active { background: var(--primary); color: white; }
       .date-btn .dow { font-size: 10px; opacity: 0.8; }
       .date-btn .day { font-size: 16px; font-weight: 700; }
@@ -115,7 +115,6 @@
       .handling-form-box textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 13px; height: 60px; margin-bottom: 8px; }
       .btn-mini { font-size: 11px; padding: 2px 8px; background: #4361ee; color: white; border: none; border-radius: 4px; cursor: pointer; }
       
-      /* [수정] 모달 푸터 여백 추가 (하단 탭에 가리지 않게) */
       .modal-footer { padding-bottom: 30px; border: 0; }
     </style>
   </head>
@@ -256,32 +255,30 @@
 
       window.onload = function() { fetchData("getInitialData"); };
 
-      // [수정된 코드] - 여기를 복사해서 위 함수 대신 붙여넣으세요
-function fetchData(action, params = "") {
-    const btn = document.getElementById("btn-save");
-    
-    // [핵심 변경] 데이터를 처음 불러올 때는 구글 대신 깃허브의 data.json을 읽습니다.
-    if (action === "getInitialData") {
-        fetch(`data.json?v=${new Date().getTime()}`) // 내 깃허브 파일 읽기
+      function fetchData(action, params = "") {
+        const btn = document.getElementById("btn-save");
+        
+        // 데이터 읽기: 깃허브 JSON 우선 사용
+        if (action === "getInitialData") {
+            fetch(`data.json?v=${new Date().getTime()}`)
+              .then(res => res.json())
+              .then(data => handleResponse(data, action))
+              .catch(err => {
+                  console.error("GitHub JSON 로드 실패, GAS API 시도:", err);
+                  fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
+                      .then(res => res.json())
+                      .then(data => handleResponse(data, action))
+                      .catch(err => handleError(err));
+              });
+            return;
+        }
+
+        // 데이터 쓰기: 구글 API 사용
+        fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
           .then(res => res.json())
           .then(data => handleResponse(data, action))
-          .catch(err => {
-              console.error("JSON 로드 실패:", err);
-              // 만약 JSON 파일이 없으면 기존 방식(구글)으로 시도
-              fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
-                  .then(res => res.json())
-                  .then(data => handleResponse(data, action))
-                  .catch(err => handleError(err));
-          });
-        return;
-    }
-
-    // 저장(Save)이나 대여(Rental) 같은 쓰기 작업은 여전히 구글 서버가 필요합니다.
-    fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
-      .then(res => res.json())
-      .then(data => handleResponse(data, action))
-      .catch(err => handleError(err));
-}
+          .catch(err => handleError(err));
+      }
 
       function fetchPost(action, payload) {
         fetch(API_URL, {
@@ -359,8 +356,12 @@ function fetchData(action, params = "") {
         const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
         b.innerHTML = '<option value="All">전체 브랜드</option>'; c.innerHTML = '<option value="All">전체 카테고리</option>';
         data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
+        
+        const scroller = document.getElementById("dateScroller"); 
+        scroller.innerHTML = "";
+        
         if(data.dates.length > 0) {
-          const scroller = document.getElementById("dateScroller"); scroller.innerHTML = ""; selDate = data.dates[0];
+          selDate = data.dates[0];
           data.dates.forEach(d => {
             const dateObj = new Date(d); const btn = document.createElement("div");
             btn.className = `date-btn ${d === selDate ? 'active' : ''}`;
@@ -369,6 +370,16 @@ function fetchData(action, params = "") {
             scroller.appendChild(btn);
           });
         }
+        
+        // [추가된 부분] 깃허브 강제 업데이트 버튼
+        const upBtn = document.createElement("div");
+        upBtn.className = "date-btn";
+        upBtn.style.backgroundColor = "#212529";
+        upBtn.style.color = "white";
+        upBtn.innerHTML = `<span class="material-icons-round" style="font-size:20px; margin-bottom:2px;">sync</span><span class="dow" style="font-size:9px;">UP</span>`;
+        upBtn.onclick = requestGithubUpdate;
+        scroller.appendChild(upBtn);
+
         renderSchedule(); 
         
         if(curItem && document.getElementById('itemModal').classList.contains('show')) {
@@ -628,7 +639,7 @@ function fetchData(action, params = "") {
         fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
         names.forEach(i => i.value = ""); sizes.forEach(i => i.value = "");
       }
-      // [수정] 사이즈 정렬 로직 적용
+      
       function renderStock(stock) {
         const container = document.getElementById("v-stock-table");
         if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
@@ -640,7 +651,6 @@ function fetchData(action, params = "") {
         colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); const clickAttr = q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''; return `<td ${clickAttr}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
       }
 
-      // [신규] 사이즈 정렬 함수
       function sortSizes(sizes) {
         const order = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "2XL", "3XL", "85", "90", "95", "100", "105", "110", "115"];
         return sizes.sort((a, b) => {
@@ -678,7 +688,26 @@ function fetchData(action, params = "") {
       function addRow() { const table = document.getElementById("add-table"), row = table.insertRow(); row.innerHTML = `<td class="col-color"><input type="text" placeholder="색상"></td>` + `<td><input type="number"></td>`.repeat(table.rows[0].cells.length - 1); }
       function addCol() { const table = document.getElementById("add-table"), th = document.createElement("th"); th.innerHTML = `<input type="text" placeholder="사이즈">`; table.rows[0].appendChild(th); for(let i=1; i<table.rows.length; i++) { table.rows[i].insertCell().innerHTML = `<input type="number">`; } }
       function showToast(msg) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
+
+      function requestGithubUpdate() {
+        if (!confirm("현재 데이터를 깃허브 웹사이트에 반영하시겠습니까?\n(약 1~2분 소요됩니다)")) return;
+        document.getElementById('loading-overlay').style.display = 'flex';
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "forceUpdate", payload: {} }),
+            headers: { "Content-Type": "text/plain;charset=utf-8" }
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('loading-overlay').style.display = 'none';
+            if (data.success) alert("✅ 요청 성공: 깃허브 업데이트가 시작되었습니다.\n잠시 후 웹사이트에 반영됩니다.");
+            else alert("❌ 실패: " + (data.message || "알 수 없는 오류"));
+        })
+        .catch(err => {
+            document.getElementById('loading-overlay').style.display = 'none';
+            alert("통신 오류 발생: " + err);
+        });
+      }
     </script>
   </body>
 </html>
-
