@@ -11,7 +11,6 @@
       :root { --primary: #4361ee; --bg: #f8f9fa; --text: #212529; }
       body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 70px; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
       
-      /* 데이트 스크롤러 */
       .date-scroller { display: flex; overflow-x: auto; padding: 12px 10px; gap: 10px; background: white; border-bottom: 1px solid #eee; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 1000; }
       .date-scroller::-webkit-scrollbar { display: none; }
       .date-btn { min-width: 50px; height: 60px; background: #f1f3f5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: none; cursor: pointer; }
@@ -19,11 +18,9 @@
       .date-btn .dow { font-size: 10px; opacity: 0.8; }
       .date-btn .day { font-size: 16px; font-weight: 700; }
 
-      /* 필터바 */
       .filter-bar { background: white; padding: 10px 15px; display: flex; gap: 8px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
       .filter-bar select { border-radius: 8px; font-size: 13px; border: 1px solid #ddd; height: 36px; flex: 1; }
 
-      /* 그리드 및 카드 */
       .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px; }
       .p-card { background: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative; }
       .p-img-box { position: relative; width: 100%; aspect-ratio: 1/1; background: #fff; display: flex; align-items: center; justify-content: center; }
@@ -35,14 +32,12 @@
       .p-loc { font-size: 10px; background: #f1f3f5; padding: 2px 5px; border-radius: 4px; color: #666; font-weight: 600; }
       .b-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: white; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 600; z-index: 5; }
 
-      /* 내비게이션 */
       .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 55px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000; }
       .nav-btn { flex: 1; border: none; background: none; color: #adb5bd; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; transition: 0.2s; position: relative; }
       .nav-btn.active { color: var(--primary); background: #f8faff; border-top: 2px solid var(--primary); font-weight: 800; }
       .nav-btn span { font-size: 11px; font-weight: 500; margin-top: 2px; }
       .badge-cnt { position: absolute; top: 5px; right: 25%; background: #ef4444; color: white; border-radius: 10px; padding: 1px 5px; font-size: 9px; font-weight: bold; display: none; }
 
-      /* 모달 스타일 */
       .modal-content { border-radius: 20px; border: none; overflow: hidden; }
       .modal-body { padding: 0; padding-bottom: 20px; }
       .modal-img-wrap { width: 100%; background: #fff; border-bottom: 1px solid #eee; position: relative; cursor: pointer; }
@@ -52,43 +47,35 @@
       .m-product-title { font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: calc(100% - 40px); }
       .modal-main-padding { padding: 0 20px; }
 
-      /* 표 스타일 */
-      .table-full-container { margin: 0; padding: 0; width: 100%; overflow-x: auto; }
-      .st-table { font-size: 10px !important; width: 100% !important; margin: 0 !important; border-collapse: collapse; table-layout: fixed; border: none !important; }
-      .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; }
-      .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
-      .st-table input { width: 100%; border: none; text-align: center; font-size: 11px; outline: none; background: transparent; }
-      .cell-clickable { color: #333; cursor: pointer; }
-      .cell-clickable:active { background: #eef2ff; font-weight: 700; }
-
-      /* 핸들링 카드 */
-      .handling-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 20px; }
-      .h-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
-      .h-img-wrap { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
-      .h-img { width: 100%; height: 100%; object-fit: contain; }
-      .h-desc { padding: 10px; font-size: 12px; color: #444; min-height: 40px; }
-
-      /* 공통 UI */
-      .load-more-btn { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #eee; background: white; border-radius: 8px; font-size: 13px; font-weight: 700; color: #555; }
       #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
       .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       .time-label { font-size: 16px; font-weight: 800; margin: 15px 12px 10px; display: flex; align-items: center; gap: 8px; }
       .time-label::after { content: ""; flex-grow: 1; height: 1px; background: #ddd; }
-      .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; z-index: 3000; opacity: 0; transition: 0.3s; pointer-events: none; }
-      .toast.show { opacity: 1; }
+      
+      .st-table { font-size: 10px !important; width: 100% !important; margin: 0 !important; border-collapse: collapse; table-layout: fixed; border: none !important; }
+      .st-table th, .st-table td { border: 1px solid #eee; padding: 10px 2px; text-align: center; vertical-align: middle; }
+      .col-color { width: 19vw !important; white-space: nowrap !important; font-size: 9px !important; font-weight: 600; background-color: #fcfcfc; }
+      .cell-clickable { color: #333; cursor: pointer; text-decoration: none; }
+      .cell-clickable:active { background: #eef2ff; font-weight: 700; }
+
+      .handling-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 20px; }
+      .h-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
+      .h-img-wrap { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+      .h-img { width: 100%; height: 100%; object-fit: contain; }
+      .h-desc { padding: 10px; font-size: 12px; color: #444; line-height: 1.4; min-height: 40px; }
     </style>
   </head>
   <body>
     <div id="loading-overlay"><div class="spinner"></div><div class="small">데이터 가져오는 중...</div></div>
     
-    <!-- 편성표 페이지 -->
+    <!-- 편성표 -->
     <div id="page-schedule">
       <div class="date-scroller" id="dateScroller"></div>
       <div id="scheduleContainer"></div>
     </div>
 
-    <!-- 재고관리 페이지 -->
+    <!-- 재고관리 -->
     <div id="page-inventory" style="display:none;">
       <div class="filter-bar">
         <select id="brandSel" class="form-select form-select-sm" onchange="resetFilter()"></select>
@@ -98,19 +85,14 @@
       <div id="loadMoreContainer" style="padding: 0 12px 20px;"></div>
     </div>
 
-    <!-- 대여/반납 페이지 -->
-    <div id="page-rental" style="display:none; padding: 0 15px;">
-        <!-- (대여/반납 탭 생략 - 기존과 동일) -->
-    </div>
-
-    <!-- 하단 내비바 -->
+    <!-- 하단 메뉴 -->
     <nav class="bottom-nav">
       <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')"><span>편성표</span></button>
       <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')"><span>재고관리</span></button>
       <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')"><span>대여/반납</span><span id="global-badge" class="badge-cnt">0</span></button>
     </nav>
     
-    <!-- 상품 상세 모달 -->
+    <!-- 모달 -->
     <div class="modal fade" id="itemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-body">
       <div class="modal-img-wrap mb-2" onclick="openLotteMall()"><img id="m-img" src=""><button type="button" class="btn-close" data-bs-dismiss="modal" style="position:absolute; top:15px; right:15px; background:white; border-radius:50%; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button></div>
       <div class="m-product-info-top" id="m-info-top"></div>
@@ -128,176 +110,228 @@
          <div id="v-stock-table" class="table-full-container"></div>
          <div id="handling-container" class="handling-grid mt-3"></div>
       </div>
-      <!-- (착장/입고 영역 생략 - 기존과 동일) -->
     </div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       const API_URL = "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec";
-      let curItem = null, allItems = [], selDate = null, modalObj = null;
-      let allStockMap = {}, allRentals = [], allOutfits = [], allHandlings = {};
-      let invLimit = 30, filteredItems = [], cart = []; 
+      let allItems = [], allStockMap = {}, allHandlings = {}, selDate = null, modalObj = null;
+      let filteredItems = [], invLimit = 30;
 
-      // [핵심: 뒤로가기 로직 복구]
+      // [기능 1] 브라우저 히스토리 제어 (뒤로가기 완벽 대응)
       window.onpopstate = function(event) {
-        // 모달이 열려있으면 닫기
         const modalEl = document.getElementById('itemModal');
-        if (modalEl && modalEl.classList.contains('show')) {
-            modalObj.hide();
+        // 1. 모달이 열려있으면 모달만 닫기
+        if (modalEl.classList.contains('show')) {
+            bootstrap.Modal.getInstance(modalEl).hide();
             return;
         }
-        // 인벤토리나 렌탈 탭에 있으면 편성표로 돌아가기
-        if (document.getElementById('page-schedule').style.display === 'none') {
+        // 2. 다른 탭에 있으면 편성표 탭으로 이동
+        if (event.state && event.state.page) {
+            switchTabUI(event.state.page);
+        } else {
             switchTabUI('schedule');
-            return;
         }
       };
 
-      window.onload = function() { 
-          // 초기 상태 히스토리에 기록
-          window.history.replaceState({page: 'schedule'}, '');
-          fetchData("getInitialData"); 
+      window.onload = function() {
+        // 첫 페이지 진입 시 히스토리 초기화
+        window.history.replaceState({page: 'schedule'}, '');
+        fetchData();
       };
 
-      function fetchData(action, params = "") {
-        if (action === "getInitialData") {
-            fetch(`data.json?v=${new Date().getTime()}`)
-              .then(res => res.json())
-              .then(data => onDataLoad(data))
-              .catch(() => {
-                  fetch(`${API_URL}?action=${action}${params}`)
-                      .then(res => res.json())
-                      .then(data => onDataLoad(data));
-              });
-            return;
-        }
-        // 기타 API 호출...
+      function fetchData() {
+        fetch(`data.json?v=${new Date().getTime()}`)
+          .then(res => res.json())
+          .then(data => onDataLoad(data))
+          .catch(() => {
+              fetch(`${API_URL}?action=getInitialData`)
+                .then(res => res.json())
+                .then(data => onDataLoad(data));
+          });
       }
 
       function onDataLoad(data) {
-        allItems = data.items || []; allStockMap = data.stockMap || {}; allHandlings = data.handlings || {};
+        allItems = data.items || [];
+        allStockMap = data.stockMap || {};
+        allHandlings = data.handlings || {};
         modalObj = new bootstrap.Modal(document.getElementById('itemModal'));
-        
-        // 브랜드/카테고리 셀렉트박스 세팅
+
+        // 필터 설정
         const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
-        b.innerHTML = '<option value="All">전체 브랜드</option>'; c.innerHTML = '<option value="All">전체 카테고리</option>';
-        data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
-        
-        // 날짜 세팅
-        const scroller = document.getElementById("dateScroller"); scroller.innerHTML = "";
+        b.innerHTML = '<option value="All">전체 브랜드</option>';
+        c.innerHTML = '<option value="All">전체 카테고리</option>';
+        data.brands.forEach(v => b.add(new Option(v, v)));
+        data.categories.forEach(v => c.add(new Option(v, v)));
+
+        // 날짜 스크롤러
+        const scroller = document.getElementById("dateScroller");
+        scroller.innerHTML = "";
         if(data.dates.length > 0) {
-          if(!selDate) selDate = data.dates[0];
+          selDate = data.dates[0];
           data.dates.forEach(d => {
+            const dateObj = new Date(d);
             const btn = document.createElement("div");
             btn.className = `date-btn ${d === selDate ? 'active' : ''}`;
-            btn.innerHTML = `<span class="dow">${"일월화수목금토"[(new Date(d)).getDay()]}</span><span class="day">${(new Date(d)).getDate()}</span>`;
-            btn.onclick = () => { document.querySelectorAll('.date-btn').forEach(el => el.classList.remove('active')); btn.classList.add('active'); selDate = d; renderSchedule(); };
+            btn.innerHTML = `<span class="dow">${"일월화수목금토"[dateObj.getDay()]}</span><span class="day">${dateObj.getDate()}</span>`;
+            btn.onclick = () => {
+              document.querySelectorAll('.date-btn').forEach(el => el.classList.remove('active'));
+              btn.classList.add('active'); selDate = d; renderSchedule();
+            };
             scroller.appendChild(btn);
           });
         }
         
-        // UP 버튼
+        // 깃허브 동기화 버튼
         const upBtn = document.createElement("div");
         upBtn.className = "date-btn"; upBtn.style.background = "#212529"; upBtn.style.color = "white";
         upBtn.innerHTML = `<span class="material-icons-round">sync</span><span class="dow">UP</span>`;
-        upBtn.onclick = requestGithubUpdate; scroller.appendChild(upBtn);
+        upBtn.onclick = () => { if(confirm("업데이트를 시작할까요?")) location.reload(); };
+        scroller.appendChild(upBtn);
 
-        renderSchedule(); 
+        renderSchedule();
         document.getElementById('loading-overlay').style.display = 'none';
       }
 
-      function openModal(item) {
-        curItem = item;
-        document.getElementById("m-info-top").innerHTML = `<b>${item.brand}</b> | ${item.code} | <b>${item.location || '-'}</b>`;
-        document.getElementById("m-title").innerText = item.name.replace(/(\r\n|\n|\r)/gm, " ");
-        document.getElementById("m-img").src = item.image || `https://image2.lotteimall.com/goods/${String(item.code).substring(6, 8)}/${String(item.code).substring(4, 6)}/${String(item.code).substring(2, 4)}/${item.code}_L.jpg`;
-        
-        renderStock(allStockMap[item.code] || []);
-        renderHandling(item.code);
-        
-        // [중요] 모달 열 때 히스토리 추가
-        window.history.pushState({page: 'modal'}, '');
-        modalObj.show();
-      }
-
+      // [기능 2] 탭 전환 및 히스토리 기록
       function switchTab(t) {
-        // [중요] 탭 바꿀 때 히스토리 추가
-        window.history.pushState({page: t}, '');
+        if (document.getElementById('page-' + t).style.display === 'block') return;
+        window.history.pushState({page: t}, ''); // 히스토리 추가
         switchTabUI(t);
       }
 
       function switchTabUI(t) {
-        document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
-        document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
-        document.getElementById('page-rental').style.display = t === 'rental' ? 'block' : 'none';
+        const pages = ['schedule', 'inventory', 'rental'];
+        pages.forEach(p => document.getElementById('page-' + p).style.display = (p === t ? 'block' : 'none'));
+        
+        const navs = {schedule: 'nav-sch', inventory: 'nav-inv', rental: 'nav-rent'};
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('nav-' + (t==='schedule'?'sch':t==='inventory'?'inv':'rent')).classList.add('active');
+        document.getElementById(navs[t]).classList.add('active');
+
         if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") resetFilter();
       }
 
+      // [기능 3] 재고 중복 노출 해결 (isMaster 필터)
       function resetFilter() {
-        invLimit = 30; document.getElementById("inventoryContainer").innerHTML = "";
-        const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value;
-        filteredItems = allItems.filter(i => i.isMaster && (b==='All' || i.brand === b) && (c==='All' || i.category === c));
+        invLimit = 30;
+        document.getElementById("inventoryContainer").innerHTML = "";
+        const b = document.getElementById("brandSel").value;
+        const c = document.getElementById("cateSel").value;
+        
+        // 중요: 재고관리 탭에서는 마스터 상품만 노출 (중복 방지)
+        filteredItems = allItems.filter(i => 
+            i.isMaster && 
+            (b === 'All' || i.brand === b) && 
+            (c === 'All' || i.category === c)
+        );
         renderInventoryChunk();
       }
-      
-      function renderInventoryChunk() { 
-        const container = document.getElementById("inventoryContainer"); 
+
+      function renderInventoryChunk() {
+        const container = document.getElementById("inventoryContainer");
         const currentCount = container.children.length;
         const nextBatch = filteredItems.slice(currentCount, currentCount + invLimit);
         nextBatch.forEach(i => container.appendChild(createCard(i)));
+        
         const btnContainer = document.getElementById("loadMoreContainer");
-        btnContainer.innerHTML = filteredItems.length > container.children.length ? `<button class="load-more-btn" onclick="renderInventoryChunk()">더 보기</button>` : "";
+        btnContainer.innerHTML = filteredItems.length > container.children.length ? 
+            `<button class="load-more-btn" onclick="renderInventoryChunk()">더 보기</button>` : "";
       }
 
       function renderSchedule() {
-        const container = document.getElementById("scheduleContainer"); container.innerHTML = "";
-        const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date));
-        if (!filtered.length) { container.innerHTML = '<div class="text-center py-5 small">편성 없음</div>'; return; }
-        const groups = {}; 
-        filtered.forEach(i => { 
-            const t = i.date && i.date.match(/\d{1,2}:\d{1,2}/) ? i.date.match(/\d{1,2}:\d{1,2}/)[0] : "시간미정"; 
-            if(!groups[t]) groups[t] = []; groups[t].push(i); 
+        const container = document.getElementById("scheduleContainer");
+        container.innerHTML = "";
+        
+        // 중요: 편성표 탭에서는 마스터가 아닌(방송 일정이 있는) 아이템만 노출
+        const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate)
+            .sort((a,b) => parseTime(a.date) - parseTime(b.date));
+
+        if (!filtered.length) {
+          container.innerHTML = '<div class="text-center py-5 small">편성 없음</div>';
+          return;
+        }
+
+        const groups = {};
+        filtered.forEach(i => {
+          const t = i.date && i.date.match(/\d{1,2}:\d{1,2}/) ? i.date.match(/\d{1,2}:\d{1,2}/)[0] : "시간미정";
+          if(!groups[t]) groups[t] = [];
+          groups[t].push(i);
         });
+
         Object.keys(groups).forEach(t => {
-          const g = document.createElement("div"); g.innerHTML = `<div class="time-label">${t}</div>`;
+          const g = document.createElement("div");
+          g.innerHTML = `<div class="time-label">${t}</div>`;
           const grid = document.createElement("div"); grid.className = "product-grid";
           groups[t].forEach(item => grid.appendChild(createCard(item)));
           g.appendChild(grid); container.appendChild(g);
         });
       }
-      
+
       function createCard(item) {
-        const div = document.createElement("div"); div.className = "p-card"; div.onclick = () => openModal(item);
+        const div = document.createElement("div"); div.className = "p-card";
+        div.onclick = () => openModal(item);
         const timeMatch = item.date && item.date.match(/\d{1,2}:\d{1,2}/);
-        div.innerHTML = `<div class="p-img-box">${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}<img src="${item.image || ''}" class="p-img" loading="lazy"></div><div class="p-info"><div class="p-brand">${item.brand || ""}</div><div class="p-name">${item.name || ""}</div><div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div></div>`;
+        const imgSrc = item.image || `https://image2.lotteimall.com/goods/${String(item.code).substring(6, 8)}/${String(item.code).substring(4, 6)}/${String(item.code).substring(2, 4)}/${item.code}_L.jpg`;
+        div.innerHTML = `
+          <div class="p-img-box">
+            ${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}
+            <img src="${imgSrc}" class="p-img" loading="lazy">
+          </div>
+          <div class="p-info">
+            <div class="p-brand">${item.brand || ""}</div>
+            <div class="p-name">${item.name || ""}</div>
+            <div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div>
+          </div>`;
         return div;
+      }
+
+      function openModal(item) {
+        curItem = item;
+        document.getElementById("m-info-top").innerHTML = `<b>${item.brand}</b> | ${item.code} | <b>${item.location || '-'}</b>`;
+        document.getElementById("m-title").innerText = item.name;
+        document.getElementById("m-img").src = item.image || `https://image2.lotteimall.com/goods/${String(item.code).substring(6, 8)}/${String(item.code).substring(4, 6)}/${String(item.code).substring(2, 4)}/${item.code}_L.jpg`;
+        
+        renderStock(allStockMap[item.code] || []);
+        renderHandling(item.code);
+
+        // 모달 열 때 히스토리 추가
+        window.history.pushState({page: 'modal'}, '');
+        modalObj.show();
       }
 
       function renderStock(stock) {
         const container = document.getElementById("v-stock-table");
-        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
-        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); 
+        if(!stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
+        
+        const sizes = [...new Set(stock.map(s => s.size))].sort();
         const colors = [...new Set(stock.map(s => s.color))].sort();
+        
         let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
-        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { 
-            const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); 
-            return `<td ${q > 0 ? `class="cell-clickable"` : ''}>${q || 0}</td>`; 
-        }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
+        colors.forEach(c => {
+          h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => {
+            const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
+            return `<td>${q || 0}</td>`;
+          }).join("") + "</tr>";
+        });
+        container.innerHTML = h + "</tbody></table>";
       }
 
-      function sortSizes(sizes) {
-        const order = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "100", "105", "110"];
-        return sizes.sort((a, b) => { let idxA = order.indexOf(a), idxB = order.indexOf(b); if (idxA !== -1 && idxB !== -1) return idxA - idxB; return a.localeCompare(b); });
+      function renderHandling(code) {
+        const list = allHandlings[code];
+        const container = document.getElementById("handling-container");
+        if (!list || list.length === 0) { container.innerHTML = ""; return; }
+        let html = '';
+        list.forEach(item => {
+            html += `<div class="h-card">${item.img ? `<div class="h-img-wrap"><img src="${item.img}" class="h-img"></div>` : ''}<div class="h-desc">${item.desc || ''}</div></div>`;
+        });
+        container.innerHTML = html;
       }
 
       function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); if(!m) return 9999; return parseInt(m[1]) * 60 + parseInt(m[2]); }
-      function showToast(msg) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
-      function requestGithubUpdate() { if(confirm("업데이트를 시작할까요?")) { document.getElementById('loading-overlay').style.display = 'flex'; location.reload(); } }
       function openLotteMall() { if(curItem) window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=" + curItem.code, '_blank'); }
       function toggleModalView(v) { ['v-view','v-outfit','v-add'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = (id === 'v-'+v ? 'block' : 'none'); }); }
     </script>
   </body>
 </html>
+
 
