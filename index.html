@@ -248,18 +248,19 @@
       let allStockMap = {}, allRentals = [], allOutfits = [], allHandlings = {};
       let invLimit = 30, filteredItems = [], cart = []; 
 
-      // 히스토리 제어 (뒤로가기)
+      // 뒤로가기 로직 (모달 닫기 -> 스케줄 탭 이동)
       window.onpopstate = function() {
-        if (document.getElementById('itemModal').classList.contains('show')) {
-            bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+        const modalEl = document.getElementById('itemModal');
+        if (modalEl.classList.contains('show')) {
+            bootstrap.Modal.getInstance(modalEl).hide();
         } else if (document.getElementById('page-schedule').style.display === 'none') {
             switchTabUI('schedule');
         }
       };
 
       window.onload = function() { 
-          window.history.replaceState({page: 'schedule'}, '');
-          fetchData("getInitialData"); 
+        window.history.replaceState({page: 'schedule'}, '');
+        fetchData("getInitialData"); 
       };
 
       function fetchData(action, params = "") {
@@ -293,15 +294,11 @@
       }
 
       function handleResponse(data, action) {
-        const btn = document.getElementById("btn-save");
-        const btnH = document.getElementById("btn-h-save");
-
         if (action == "getInitialData") onDataLoad(data);
         else if (action == "saveInventoryData") {
-            alert(data); 
-            const stock = allStockMap[curItem.code] || [];
-            renderStock(stock);
-            toggleModalView('view');
+            alert(data); updateLocalStock(curItem.code, document.getElementById("in-location").value);
+            document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
+            renderStock(allStockMap[curItem.code] || []); toggleModalView('view');
         } else if (action == "processRental") {
             alert(data.message); cart = []; renderCart(); fetchData("getInitialData");
         } else if (action == "processReturn") {
@@ -310,6 +307,8 @@
             alert(data.message); fetchData("getInitialData");
         }
       }
+
+      function handleError(err) { console.error(err); alert("오류 발생: " + err); }
 
       function onDataLoad(data) {
         allItems = data.items || []; allStockMap = data.stockMap || {}; allRentals = data.rentals || []; 
@@ -348,7 +347,7 @@
       function openModal(item) {
         curItem = item;
         document.getElementById("m-info-top").innerHTML = `<b>${item.brand}</b> | ${item.code} | <b>${item.location || '-'}</b>`;
-        document.getElementById("m-title").innerText = item.name;
+        document.getElementById("m-title").innerText = item.name.replace(/(\r\n|\n|\r)/gm, " ");
         document.getElementById("m-img").src = item.image || `https://image2.lotteimall.com/goods/${String(item.code).substring(6, 8)}/${String(item.code).substring(4, 6)}/${String(item.code).substring(2, 4)}/${item.code}_L.jpg`;
         
         renderStock(allStockMap[item.code] || []);
@@ -363,19 +362,6 @@
         modalObj.show();
       }
 
-      function renderStock(stock) {
-        const container = document.getElementById("v-stock-table");
-        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
-        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); const colors = [...new Set(stock.map(s => s.color))].sort();
-        let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
-        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); return `<td ${q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
-      }
-
-      function sortSizes(sizes) {
-        const order = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "100", "105", "110"];
-        return sizes.sort((a, b) => { let idxA = order.indexOf(a), idxB = order.indexOf(b); if (idxA !== -1 && idxB !== -1) return idxA - idxB; return a.localeCompare(b); });
-      }
-
       function resetFilter() {
         invLimit = 30; document.getElementById("inventoryContainer").innerHTML = "";
         const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value;
@@ -384,8 +370,7 @@
       }
       
       function renderInventoryChunk() { 
-        const container = document.getElementById("inventoryContainer"); 
-        const currentCount = container.children.length;
+        const container = document.getElementById("inventoryContainer"); const currentCount = container.children.length;
         const nextBatch = filteredItems.slice(currentCount, currentCount + invLimit);
         nextBatch.forEach(i => container.appendChild(createCard(i)));
         const btnContainer = document.getElementById("loadMoreContainer");
@@ -412,14 +397,12 @@
         return div;
       }
 
-      function switchTab(t) { window.history.pushState({page: t}, ''); switchTabUI(t); }
-      function switchTabUI(t) {
-        document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
-        document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
-        document.getElementById('page-rental').style.display = t === 'rental' ? 'block' : 'none';
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('nav-' + (t==='schedule'?'sch':t==='inventory'?'inv':'rent')).classList.add('active');
-        if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") resetFilter();
+      function renderStock(stock) {
+        const container = document.getElementById("v-stock-table");
+        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
+        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); const colors = [...new Set(stock.map(s => s.color))].sort();
+        let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
+        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); return `<td ${q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
       }
 
       function addToCart(code, name, color, size, q) {
@@ -428,18 +411,13 @@
         else cart.push({code, name, color, size, qty: 1, max: q});
         showToast("카트에 담김"); renderCart();
       }
+
       function renderCart() {
         const list = document.getElementById("cart-list"), badge = document.getElementById("global-badge");
         const total = cart.reduce((a,b) => a+b.qty, 0); 
         document.getElementById("cart-cnt").innerText = total; badge.innerText = total; badge.style.display = total > 0 ? "block" : "none";
         if(cart.length === 0) { list.innerHTML = '<div class="text-center py-4 small text-muted">카트가 비어있습니다.</div>'; return; }
         list.innerHTML = cart.map((item, idx) => `<div class="cart-item"><div class="cart-info"><div>${item.name}</div><small>${item.color}/${item.size}</small></div><div class="cart-actions"><b>${item.qty}</b><button class="btn-del" onclick="cart.splice(${idx},1);renderCart();">✕</button></div></div>`).join("");
-      }
-
-      function submitRental() {
-        const name = document.getElementById("renter-name").value.trim();
-        if(!name || cart.length === 0) return alert("정보 입력 부족");
-        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify({ items: cart, renter: name }))}`);
       }
 
       function searchReturns() {
@@ -453,23 +431,14 @@
       function submitReturn() {
         const list = document.getElementById("return-list"), name = document.getElementById("returner-name").value.trim();
         const checks = list.querySelectorAll(".return-chk:checked"); if(!name || checks.length === 0) return alert("입력 부족");
-        const data = JSON.parse(list.dataset.searchResults);
-        const targets = Array.from(checks).map(c => data[c.dataset.idx]);
+        const data = JSON.parse(list.dataset.searchResults); const targets = Array.from(checks).map(c => data[c.dataset.idx]);
         fetchData("processReturn", `&payload=${encodeURIComponent(JSON.stringify({ items: targets, returner: name }))}`);
       }
 
-      function renderOutfits(code) {
-        const container = document.getElementById("outfit-container"), list = allOutfits.filter(o => o.code == code);
-        container.innerHTML = list.length ? list.map(o => `<div class="outfit-box" onclick="editOutfit('${o.host}', '${o.size}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`).join("") : '<div class="text-center w-100 small">내역 없음</div>';
-      }
-      function editOutfit(h, s) {
-        const ns = prompt(`${h}님 사이즈 수정`, s);
-        if(ns && ns !== s) fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify([{ code: curItem.code, host: h, size: ns.trim() }]))}`);
-      }
-      function saveOutfit() {
-        const ns = document.querySelectorAll('.of-name'), sz = document.querySelectorAll('.of-size'), p = [];
-        ns.forEach((n, i) => { if(n.value.trim() && sz[i].value.trim()) p.push({code: curItem.code, host: n.value.trim(), size: sz[i].value.trim()}); });
-        if(p.length) fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(p))}`);
+      function submitRental() {
+        const name = document.getElementById("renter-name").value.trim();
+        if(!name || cart.length === 0) return alert("정보 입력 부족");
+        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify({ items: cart, renter: name }))}`);
       }
 
       function saveHandling() {
@@ -491,21 +460,55 @@
         container.innerHTML = list.map(h => `<div class="h-card"><div class="h-del-btn" onclick="fetchPost('deleteHandlingInfo',{code:curItem.code,img:'${h.img}',desc:'${h.desc.replace(/'/g,"")}'})">✕</div>${h.img?`<div class="h-img-wrap"><img src="${h.img}" class="h-img"></div>`:''}<div class="h-desc">${h.desc}</div></div>`).join("");
       }
 
+      function renderOutfits(code) {
+        const container = document.getElementById("outfit-container"), list = allOutfits.filter(o => o.code == code);
+        container.innerHTML = list.length ? list.map(o => `<div class="outfit-box" onclick="editOutfit('${o.host}', '${o.size}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`).join("") : '<div class="text-center w-100 small">내역 없음</div>';
+      }
+      function editOutfit(h, s) {
+        const ns = prompt(`${h}님 사이즈 수정`, s);
+        if(ns && ns !== s) fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify([{ code: curItem.code, host: h, size: ns.trim() }]))}`);
+      }
+      function saveOutfit() {
+        const ns = document.querySelectorAll('.of-name'), sz = document.querySelectorAll('.of-size'), p = [];
+        ns.forEach((n, i) => { if(n.value.trim() && sz[i].value.trim()) p.push({code: curItem.code, host: n.value.trim(), size: sz[i].value.trim()}); });
+        if(p.length) fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(p))}`);
+      }
+
       function renderCurrentRentals(code) {
         const list = allRentals.filter(r => r.code == code), wrapper = document.getElementById("rental-wrapper");
         wrapper.style.display = list.length ? 'block' : 'none';
         document.getElementById("rental-container").innerHTML = list.map(r => `<div class="rental-history-item"><span>${r.renter}</span><small>${r.color}/${r.size}</small></div>`).join("");
       }
 
-      function requestGithubUpdate() { if(confirm("업데이트 시작?")) fetchPost("forceUpdate", {}); }
-      function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
-      function showToast(m) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = m; document.body.appendChild(t); setTimeout(()=>t.remove(), 2000); }
-      function openLotteMall() { if(curItem) window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no="+curItem.code); }
-      function toggleModalView(v) { ['v-view','v-outfit','v-add'].forEach(id => document.getElementById(id).style.display = id === 'v-'+v ? 'block' : 'none'); }
+      function switchTab(t) { window.history.pushState({page: t}, ''); switchTabUI(t); }
+      function switchTabUI(t) {
+        ['schedule','inventory','rental'].forEach(p => document.getElementById('page-'+p).style.display = (p===t?'block':'none'));
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('nav-'+(t==='schedule'?'sch':t==='inventory'?'inv':'rent')).classList.add('active');
+        if(t==='inventory' && document.getElementById("inventoryContainer").innerHTML==="") resetFilter();
+      }
+      function toggleModalView(v) { ['v-view','v-outfit','v-add'].forEach(id => document.getElementById(id).style.display = id === 'v-'+v ? 'block' : 'none'); document.getElementById('btn-save').style.display = (v === 'add' ? 'block' : 'none'); }
+      function switchRentalMode(m) { ['rent','return'].forEach(id => document.getElementById('mode-'+id).style.display = (id===m?'block':'none')); document.getElementById('rt-rent').classList.toggle('active',m==='rent'); document.getElementById('rt-return').classList.toggle('active',m==='return'); }
+      function saveData() {
+        const table = document.getElementById("add-table"), headers = Array.from(table.rows[0].cells).slice(1).map(c => c.querySelector("input").value.trim());
+        const loc = document.getElementById("in-location").value.trim(), matrix = [];
+        for(let i=1; i<table.rows.length; i++) {
+          const color = table.rows[i].cells[0].innerText.trim();
+          headers.forEach((size, idx) => { const qty = table.rows[i].cells[idx+1].querySelector("input").value; if(qty > 0) matrix.push({ color, size, qty: Number(qty) }); });
+        }
+        if(matrix.length === 0) return alert("수량 입력");
+        fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify({ code: curItem.code, combinedName: curItem.brand + " " + curItem.name, name: curItem.name, matrix: matrix, location: loc }))}`);
+      }
+      function updateLocalStock(c, l) { if(l) { curItem.location = l; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b>|${curItem.code}|<b>${l}</b>`; } }
+      function addRow() { const t = document.getElementById("add-table"), r = t.insertRow(); r.innerHTML = `<td class="col-color"><input type="text"></td>` + `<td><input type="number"></td>`.repeat(t.rows[0].cells.length - 1); }
+      function addCol() { const t = document.getElementById("add-table"); t.rows[0].appendChild(document.createElement("th")).innerHTML = `<input type="text">`; for(let i=1;i<t.rows.length;i++) t.rows[i].insertCell().innerHTML = `<input type="number">`; }
       function toggleHandlingForm() { const f = document.getElementById("handling-form"); f.style.display = f.style.display === "block" ? "none" : "block"; }
       function toggleOutfitForm() { const f = document.getElementById("outfit-form"); f.style.display = f.style.display === "block" ? "none" : "block"; }
-      function addRow() { const t = document.getElementById("add-table"), r = t.insertRow(); r.innerHTML = `<td><input type="text"></td>` + `<td><input type="number"></td>`.repeat(t.rows[0].cells.length - 1); }
-      function addCol() { const t = document.getElementById("add-table"); t.rows[0].appendChild(document.createElement("th")).innerHTML = `<input type="text">`; for(let i=1;i<t.rows.length;i++) t.rows[i].insertCell().innerHTML = `<input type="number">`; }
+      function showToast(m) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = m; document.body.appendChild(t); setTimeout(()=>t.remove(), 2000); }
+      function openLotteMall() { if(curItem) window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no="+curItem.code); }
+      function requestGithubUpdate() { if(confirm("업데이트?")) fetchPost("forceUpdate", {}); }
+      function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
+      function sortSizes(s) { const o = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "100", "105", "110"]; return s.sort((a, b) => { let iA = o.indexOf(a), iB = o.indexOf(b); if (iA !== -1 && iB !== -1) return iA - iB; return a.localeCompare(b); }); }
     </script>
   </body>
 </html>
