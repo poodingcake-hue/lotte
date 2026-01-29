@@ -46,6 +46,10 @@
       .m-product-info-top b { color: #222; font-weight: 800; }
       .m-product-title { font-size: 14px; font-weight: 700; color: #111; margin: 0 20px 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: calc(100% - 40px); }
       
+      /* 모달 내 탭 버튼 파란색 활성화 */
+      .nav-pills .nav-link { color: #666; }
+      .nav-pills .nav-link.active { background-color: var(--primary) !important; color: white !important; }
+
       .modal-main-padding { padding: 0 20px; }
       .loc-input-group { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
       .loc-input-group label { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 5px; }
@@ -121,6 +125,7 @@
   <body>
     <div id="loading-overlay"><div class="spinner"></div><div class="small">데이터 가져오는 중...</div></div>
     
+    <!-- 페이지 섹션 -->
     <div id="page-schedule">
       <div class="date-scroller" id="dateScroller"></div>
       <div id="scheduleContainer"></div>
@@ -149,7 +154,7 @@
         <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
             <label style="font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block;">대여자 이름</label>
             <input type="text" id="renter-name" class="search-input" placeholder="이름을 입력하세요">
-            <button class="full-btn" onclick="submitRental()">대여 처리 완료</button>
+            <button class="full-btn" id="btn-submit-rental" onclick="submitRental()">대여 처리 완료</button>
         </div>
       </div>
 
@@ -162,19 +167,21 @@
             <div class="text-center py-4 small text-muted">반납할 대여 건을 검색하세요.</div>
         </div>
         <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-             <label style="font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block;">반납 처리자</label>
+             <label style="font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block;">반납 확인자</label>
              <input type="text" id="returner-name" class="search-input" placeholder="확인자 이름">
-             <button class="full-btn" onclick="submitReturn()">반납 처리 완료</button>
+             <button class="full-btn" id="btn-submit-return" onclick="submitReturn()">반납 처리 완료</button>
         </div>
       </div>
     </div>
 
+    <!-- 하단 네비게이션 -->
     <nav class="bottom-nav">
       <button class="nav-btn active" id="nav-sch" onclick="switchTab('schedule')"><span>편성표</span></button>
       <button class="nav-btn" id="nav-inv" onclick="switchTab('inventory')"><span>재고관리</span></button>
       <button class="nav-btn" id="nav-rent" onclick="switchTab('rental')"><span>대여/반납</span><span id="global-badge" class="badge-cnt">0</span></button>
     </nav>
     
+    <!-- 상품 상세 모달 -->
     <div class="modal fade" id="itemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-body">
       <div class="modal-img-wrap mb-2" onclick="openLotteMall()"><img id="m-img" src=""><button type="button" class="btn-close" data-bs-dismiss="modal" style="position:absolute; top:15px; right:15px; background:white; border-radius:50%; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button></div>
       <div class="m-product-info-top" id="m-info-top"></div>
@@ -188,6 +195,7 @@
           </ul>
       </div>
 
+      <!-- 모달: 재고현황 탭 -->
       <div id="v-view" style="display:block;">
          <div id="v-stock-table" class="table-full-container"></div>
          
@@ -220,6 +228,7 @@
          <div id="handling-container" class="handling-grid"></div>
       </div>
 
+      <!-- 모달: 착장내역 탭 -->
       <div id="v-outfit" style="display:none;">
           <div id="outfit-container" class="outfit-grid"></div>
           <div class="d-grid px-3 mt-3">
@@ -233,6 +242,7 @@
           </div>
       </div>
 
+      <!-- 모달: 입고등록 탭 -->
       <div id="v-add" style="display:none;">
          <div class="modal-main-padding"><div class="loc-input-group"><label>입고 위치 입력 (G열 저장)</label><input type="text" id="in-location" placeholder="예: 행거A1-1"></div></div>
          <div id="add-table-container" class="table-full-container"></div>
@@ -248,10 +258,10 @@
       let allStockMap = {}, allRentals = [], allOutfits = [], allHandlings = {};
       let invLimit = 30, filteredItems = [], cart = []; 
 
-      // 뒤로가기 로직 (모달 닫기 -> 스케줄 탭 이동)
+      // 뒤로가기 로직
       window.onpopstate = function() {
         const modalEl = document.getElementById('itemModal');
-        if (modalEl.classList.contains('show')) {
+        if (modalEl && modalEl.classList.contains('show')) {
             bootstrap.Modal.getInstance(modalEl).hide();
         } else if (document.getElementById('page-schedule').style.display === 'none') {
             switchTabUI('schedule');
@@ -259,8 +269,8 @@
       };
 
       window.onload = function() { 
-        window.history.replaceState({page: 'schedule'}, '');
-        fetchData("getInitialData"); 
+          window.history.replaceState({page: 'schedule'}, '');
+          fetchData("getInitialData"); 
       };
 
       function fetchData(action, params = "") {
@@ -268,15 +278,14 @@
             fetch(`data.json?v=${new Date().getTime()}`)
               .then(res => res.json())
               .then(data => handleResponse(data, action))
-              .catch(err => {
-                  fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
+              .catch(() => {
+                  fetch(`${API_URL}?action=${action}${params}`)
                       .then(res => res.json())
-                      .then(data => handleResponse(data, action))
-                      .catch(err => handleError(err));
+                      .then(data => handleResponse(data, action));
               });
             return;
         }
-        fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
+        fetch(`${API_URL}?action=${action}${params}`)
           .then(res => res.json())
           .then(data => handleResponse(data, action))
           .catch(err => handleError(err));
@@ -296,19 +305,43 @@
       function handleResponse(data, action) {
         if (action == "getInitialData") onDataLoad(data);
         else if (action == "saveInventoryData") {
-            alert(data); updateLocalStock(curItem.code, document.getElementById("in-location").value);
+            alert(data); 
+            // 처리 후 입고 양식 초기화 및 탭 전환
             document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
-            renderStock(allStockMap[curItem.code] || []); toggleModalView('view');
+            const btn = document.getElementById("btn-save");
+            btn.disabled = false; btn.innerText = "저장";
+            fetchData("getInitialData");
+            toggleModalView('view');
         } else if (action == "processRental") {
-            alert(data.message); cart = []; renderCart(); fetchData("getInitialData");
+            alert(data.message); 
+            // 처리 후 대여 양식 초기화
+            cart = []; renderCart(); 
+            document.getElementById("renter-name").value = "";
+            document.getElementById("btn-submit-rental").disabled = false;
+            document.getElementById("btn-submit-rental").innerText = "대여 처리 완료";
+            fetchData("getInitialData");
         } else if (action == "processReturn") {
-            alert(data.message); fetchData("getInitialData");
+            alert(data.message);
+            // 처리 후 반납 양식 초기화
+            document.getElementById("return-list").innerHTML = '<div class="text-center py-4 small text-muted">반납할 대여 건을 검색하세요.</div>';
+            document.getElementById("return-search").value = "";
+            document.getElementById("returner-name").value = "";
+            document.getElementById("btn-submit-return").disabled = false;
+            document.getElementById("btn-submit-return").innerText = "반납 처리 완료";
+            fetchData("getInitialData");
         } else if (action == "saveOutfitsBulk" || action == "saveHandlingInfo" || action == "deleteHandlingInfo") {
-            alert(data.message); fetchData("getInitialData");
+            alert(data.message);
+            document.getElementById("btn-h-save").disabled = false;
+            document.getElementById("btn-h-save").innerText = "저장";
+            fetchData("getInitialData");
         }
       }
 
-      function handleError(err) { console.error(err); alert("오류 발생: " + err); }
+      function handleError(err) { 
+          console.error(err); 
+          document.querySelectorAll(".full-btn, .btn-primary").forEach(b => b.disabled = false);
+          alert("오류 발생: " + err); 
+      }
 
       function onDataLoad(data) {
         allItems = data.items || []; allStockMap = data.stockMap || {}; allRentals = data.rentals || []; 
@@ -350,9 +383,13 @@
         document.getElementById("m-title").innerText = item.name.replace(/(\r\n|\n|\r)/gm, " ");
         document.getElementById("m-img").src = item.image || `https://image2.lotteimall.com/goods/${String(item.code).substring(6, 8)}/${String(item.code).substring(4, 6)}/${String(item.code).substring(2, 4)}/${item.code}_L.jpg`;
         
+        // 탭 상태 초기화 (파란색 활성화 포함)
+        toggleModalView('view');
+        
         renderStock(allStockMap[item.code] || []);
         renderOutfits(item.code); renderCurrentRentals(item.code); renderHandling(item.code);
 
+        // 입고 등록 테이블 초기화
         const colors = (item.colors || "기본").split(","), sizes = (item.sizes || "Free").split(",");
         let ah = `<table class="st-table" id="add-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th><input type="text" value="${s.trim()}" style="font-weight:bold;"></th>`).join("")}</tr></thead><tbody>`;
         colors.forEach(c => { ah += `<tr><td class="col-color">${c.trim()}</td>` + sizes.map(()=>`<td><input type="number"></td>`).join("") + "</tr>"; });
@@ -360,6 +397,32 @@
         
         window.history.pushState({page: 'modal'}, '');
         modalObj.show();
+      }
+
+      function toggleModalView(v) { 
+        // 화면 전환
+        ['v-view','v-outfit','v-add'].forEach(id => document.getElementById(id).style.display = (id === 'v-'+v ? 'block' : 'none'));
+        // 탭 파란색 효과 (Bootstrap active 클래스 제어)
+        ['t-view','t-outfit','t-add'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (id === 't-'+v) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        // 저장 버튼 제어
+        document.getElementById('btn-save').style.display = (v === 'add' ? 'block' : 'none');
+      }
+
+      function renderStock(stock) {
+        const container = document.getElementById("v-stock-table");
+        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
+        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); const colors = [...new Set(stock.map(s => s.color))].sort();
+        let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
+        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); return `<td ${q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
+      }
+
+      function sortSizes(sizes) {
+        const order = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "100", "105", "110"];
+        return sizes.sort((a, b) => { let idxA = order.indexOf(a), idxB = order.indexOf(b); if (idxA !== -1 && idxB !== -1) return idxA - idxB; return a.localeCompare(b); });
       }
 
       function resetFilter() {
@@ -397,12 +460,12 @@
         return div;
       }
 
-      function renderStock(stock) {
-        const container = document.getElementById("v-stock-table");
-        if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
-        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); const colors = [...new Set(stock.map(s => s.color))].sort();
-        let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
-        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); return `<td ${q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
+      function switchTab(t) { window.history.pushState({page: t}, ''); switchTabUI(t); }
+      function switchTabUI(t) {
+        ['schedule','inventory','rental'].forEach(p => document.getElementById('page-'+p).style.display = (p===t?'block':'none'));
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('nav-'+(t==='schedule'?'sch':t==='inventory'?'inv':'rent')).classList.add('active');
+        if(t==='inventory' && document.getElementById("inventoryContainer").innerHTML==="") resetFilter();
       }
 
       function addToCart(code, name, color, size, q) {
@@ -420,6 +483,14 @@
         list.innerHTML = cart.map((item, idx) => `<div class="cart-item"><div class="cart-info"><div>${item.name}</div><small>${item.color}/${item.size}</small></div><div class="cart-actions"><b>${item.qty}</b><button class="btn-del" onclick="cart.splice(${idx},1);renderCart();">✕</button></div></div>`).join("");
       }
 
+      function submitRental() {
+        const name = document.getElementById("renter-name").value.trim();
+        if(!name || cart.length === 0) return alert("대여자 이름과 카트 정보를 확인하세요.");
+        const btn = document.getElementById("btn-submit-rental");
+        btn.disabled = true; btn.innerText = "등록중입니다...";
+        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify({ items: cart, renter: name }))}`);
+      }
+
       function searchReturns() {
         const q = document.getElementById("return-search").value.trim(); const list = document.getElementById("return-list");
         const res = allRentals.filter(r => r.renter.includes(q) || r.name.includes(q));
@@ -430,19 +501,31 @@
 
       function submitReturn() {
         const list = document.getElementById("return-list"), name = document.getElementById("returner-name").value.trim();
-        const checks = list.querySelectorAll(".return-chk:checked"); if(!name || checks.length === 0) return alert("입력 부족");
-        const data = JSON.parse(list.dataset.searchResults); const targets = Array.from(checks).map(c => data[c.dataset.idx]);
+        const checks = list.querySelectorAll(".return-chk:checked"); if(!name || checks.length === 0) return alert("반납 항목과 확인자를 입력하세요.");
+        const btn = document.getElementById("btn-submit-return");
+        btn.disabled = true; btn.innerText = "등록중입니다...";
+        const data = JSON.parse(list.dataset.searchResults);
+        const targets = Array.from(checks).map(c => data[c.dataset.idx]);
         fetchData("processReturn", `&payload=${encodeURIComponent(JSON.stringify({ items: targets, returner: name }))}`);
       }
 
-      function submitRental() {
-        const name = document.getElementById("renter-name").value.trim();
-        if(!name || cart.length === 0) return alert("정보 입력 부족");
-        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify({ items: cart, renter: name }))}`);
+      function saveData() {
+        const table = document.getElementById("add-table"), headers = Array.from(table.rows[0].cells).slice(1).map(c => c.querySelector("input").value.trim());
+        const loc = document.getElementById("in-location").value.trim(), matrix = [];
+        for(let i=1; i<table.rows.length; i++) {
+          const color = table.rows[i].cells[0].innerText.trim();
+          headers.forEach((size, idx) => { const qty = table.rows[i].cells[idx+1].querySelector("input").value; if(qty > 0) matrix.push({ color, size, qty: Number(qty) }); });
+        }
+        if(matrix.length === 0) return alert("수량을 입력하세요.");
+        const btn = document.getElementById("btn-save");
+        btn.disabled = true; btn.innerText = "등록중입니다...";
+        fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify({ code: curItem.code, combinedName: curItem.brand + " " + curItem.name, name: curItem.name, matrix: matrix, location: loc }))}`);
       }
 
       function saveHandling() {
         const f = document.getElementById("h-file-input").files[0], d = document.getElementById("h-desc-input").value;
+        const btn = document.getElementById("btn-h-save");
+        btn.disabled = true; btn.innerText = "저장 중...";
         if(!f) return fetchPost("saveHandlingInfo", {code: curItem.code, desc: d});
         const r = new FileReader(); r.onload = e => {
           const img = new Image(); img.onload = () => {
@@ -456,13 +539,13 @@
 
       function renderHandling(code) {
         const container = document.getElementById("handling-container"), list = allHandlings[code];
-        if(!list || !list.length) { container.innerHTML = '<div class="small text-center w-100 py-3">정보 없음</div>'; return; }
+        if(!list || !list.length) { container.innerHTML = '<div class="small text-center w-100 py-3">핸들링 정보 없음</div>'; return; }
         container.innerHTML = list.map(h => `<div class="h-card"><div class="h-del-btn" onclick="fetchPost('deleteHandlingInfo',{code:curItem.code,img:'${h.img}',desc:'${h.desc.replace(/'/g,"")}'})">✕</div>${h.img?`<div class="h-img-wrap"><img src="${h.img}" class="h-img"></div>`:''}<div class="h-desc">${h.desc}</div></div>`).join("");
       }
 
       function renderOutfits(code) {
         const container = document.getElementById("outfit-container"), list = allOutfits.filter(o => o.code == code);
-        container.innerHTML = list.length ? list.map(o => `<div class="outfit-box" onclick="editOutfit('${o.host}', '${o.size}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`).join("") : '<div class="text-center w-100 small">내역 없음</div>';
+        container.innerHTML = list.length ? list.map(o => `<div class="outfit-box" onclick="editOutfit('${o.host}', '${o.size}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`).join("") : '<div class="text-center w-100 small">착장 내역 없음</div>';
       }
       function editOutfit(h, s) {
         const ns = prompt(`${h}님 사이즈 수정`, s);
@@ -477,38 +560,22 @@
       function renderCurrentRentals(code) {
         const list = allRentals.filter(r => r.code == code), wrapper = document.getElementById("rental-wrapper");
         wrapper.style.display = list.length ? 'block' : 'none';
-        document.getElementById("rental-container").innerHTML = list.map(r => `<div class="rental-history-item"><span>${r.renter}</span><small>${r.color}/${r.size}</small></div>`).join("");
+        document.getElementById("rental-container").innerHTML = list.map(r => `<div class="rental-history-item"><span class="rh-name">${r.renter}</span><span class="rh-info">${r.color}/${r.size} (${r.qty})</span></div>`).join("");
       }
 
-      function switchTab(t) { window.history.pushState({page: t}, ''); switchTabUI(t); }
-      function switchTabUI(t) {
-        ['schedule','inventory','rental'].forEach(p => document.getElementById('page-'+p).style.display = (p===t?'block':'none'));
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('nav-'+(t==='schedule'?'sch':t==='inventory'?'inv':'rent')).classList.add('active');
-        if(t==='inventory' && document.getElementById("inventoryContainer").innerHTML==="") resetFilter();
-      }
-      function toggleModalView(v) { ['v-view','v-outfit','v-add'].forEach(id => document.getElementById(id).style.display = id === 'v-'+v ? 'block' : 'none'); document.getElementById('btn-save').style.display = (v === 'add' ? 'block' : 'none'); }
+      function previewImage(i) { if(i.files && i.files[0]) { var r = new FileReader(); r.onload = e => { document.getElementById('h-img-preview').src = e.target.result; document.getElementById('h-img-preview').style.display = 'block'; }; r.readAsDataURL(i.files[0]); } }
+      function toggleHandlingForm() { var f = document.getElementById("handling-form"); f.style.display = (f.style.display === "block" ? "none" : "block"); }
+      function resetHandlingForm() { document.getElementById("h-file-input").value = ""; document.getElementById("h-desc-input").value = ""; document.getElementById("h-img-preview").style.display = 'none'; }
+      function toggleOutfitForm() { var f = document.getElementById("outfit-form"); f.style.display = (f.style.display === "block" ? "none" : "block"); }
+      function addRow() { var t = document.getElementById("add-table"), r = t.insertRow(); r.innerHTML = `<td class="col-color"><input type="text" placeholder="색상"></td>` + `<td><input type="number"></td>`.repeat(t.rows[0].cells.length - 1); }
+      function addCol() { var t = document.getElementById("add-table"); t.rows[0].appendChild(document.createElement("th")).innerHTML = `<input type="text" placeholder="사이즈">`; for(var i=1;i<t.rows.length;i++) t.rows[i].insertCell().innerHTML = `<input type="number">`; }
       function switchRentalMode(m) { ['rent','return'].forEach(id => document.getElementById('mode-'+id).style.display = (id===m?'block':'none')); document.getElementById('rt-rent').classList.toggle('active',m==='rent'); document.getElementById('rt-return').classList.toggle('active',m==='return'); }
-      function saveData() {
-        const table = document.getElementById("add-table"), headers = Array.from(table.rows[0].cells).slice(1).map(c => c.querySelector("input").value.trim());
-        const loc = document.getElementById("in-location").value.trim(), matrix = [];
-        for(let i=1; i<table.rows.length; i++) {
-          const color = table.rows[i].cells[0].innerText.trim();
-          headers.forEach((size, idx) => { const qty = table.rows[i].cells[idx+1].querySelector("input").value; if(qty > 0) matrix.push({ color, size, qty: Number(qty) }); });
-        }
-        if(matrix.length === 0) return alert("수량 입력");
-        fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify({ code: curItem.code, combinedName: curItem.brand + " " + curItem.name, name: curItem.name, matrix: matrix, location: loc }))}`);
-      }
-      function updateLocalStock(c, l) { if(l) { curItem.location = l; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b>|${curItem.code}|<b>${l}</b>`; } }
-      function addRow() { const t = document.getElementById("add-table"), r = t.insertRow(); r.innerHTML = `<td class="col-color"><input type="text"></td>` + `<td><input type="number"></td>`.repeat(t.rows[0].cells.length - 1); }
-      function addCol() { const t = document.getElementById("add-table"); t.rows[0].appendChild(document.createElement("th")).innerHTML = `<input type="text">`; for(let i=1;i<t.rows.length;i++) t.rows[i].insertCell().innerHTML = `<input type="number">`; }
-      function toggleHandlingForm() { const f = document.getElementById("handling-form"); f.style.display = f.style.display === "block" ? "none" : "block"; }
-      function toggleOutfitForm() { const f = document.getElementById("outfit-form"); f.style.display = f.style.display === "block" ? "none" : "block"; }
+      function requestGithubUpdate() { if(confirm("깃허브와 동기화를 시작할까요?")) fetchPost("forceUpdate", {}); }
+      function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
       function showToast(m) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = m; document.body.appendChild(t); setTimeout(()=>t.remove(), 2000); }
       function openLotteMall() { if(curItem) window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no="+curItem.code); }
-      function requestGithubUpdate() { if(confirm("업데이트?")) fetchPost("forceUpdate", {}); }
-      function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
-      function sortSizes(s) { const o = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "100", "105", "110"]; return s.sort((a, b) => { let iA = o.indexOf(a), iB = o.indexOf(b); if (iA !== -1 && iB !== -1) return iA - iB; return a.localeCompare(b); }); }
+      function updateLocalStock(c, l) { if(l) { curItem.location = l; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b>|${curItem.code}|<b>${l}</b>`; } }
     </script>
   </body>
 </html>
+
