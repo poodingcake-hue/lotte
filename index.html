@@ -256,15 +256,11 @@
       window.onload = function() { fetchData("getInitialData"); };
 
       function fetchData(action, params = "") {
-        const btn = document.getElementById("btn-save");
-        
-        // 데이터 읽기: 깃허브 JSON 우선 사용
         if (action === "getInitialData") {
             fetch(`data.json?v=${new Date().getTime()}`)
               .then(res => res.json())
               .then(data => handleResponse(data, action))
               .catch(err => {
-                  console.error("GitHub JSON 로드 실패, GAS API 시도:", err);
                   fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
                       .then(res => res.json())
                       .then(data => handleResponse(data, action))
@@ -272,8 +268,6 @@
               });
             return;
         }
-
-        // 데이터 쓰기: 구글 API 사용
         fetch(`${API_URL}?action=${action}${params}&v=${new Date().getTime()}`)
           .then(res => res.json())
           .then(data => handleResponse(data, action))
@@ -292,61 +286,21 @@
       }
 
       function handleResponse(data, action) {
-        const btn = document.getElementById("btn-save");
-        const btnH = document.getElementById("btn-h-save");
-
         if (action == "getInitialData") onDataLoad(data);
         else if (action == "saveInventoryData") {
-            alert(data); 
-            updateLocalStock(curItem.code, document.getElementById("in-location").value, null);
-            document.getElementById("in-location").value = ""; 
+            alert(data); updateLocalStock(curItem.code, document.getElementById("in-location").value, null);
             document.querySelectorAll("#add-table input[type='number']").forEach(i => i.value = ""); 
-            btn.disabled = false; btn.innerText = "저장";
-            const stock = allStockMap[curItem.code] || [];
-            renderStock(stock);
-            toggleModalView('view');
+            renderStock(allStockMap[curItem.code] || []); toggleModalView('view');
         } else if (action == "processRental") {
-            alert(data.message);
-            cart = []; renderCart(); 
-            document.getElementById("renter-name").value = "";
-            const rentalBtn = document.querySelector("#mode-rent .full-btn");
-            if(rentalBtn) { rentalBtn.disabled = false; rentalBtn.innerText = "대여 처리 완료"; }
-            fetchData("getInitialData");
+            alert(data.message); cart = []; renderCart(); fetchData("getInitialData");
         } else if (action == "processReturn") {
-            alert(data.message);
-            document.getElementById('return-list').innerHTML = ''; 
-            document.getElementById('return-search').value = '';
-            fetchData("getInitialData");
-        } else if (action == "saveOutfitsBulk") {
-            alert(data.message);
-            fetchData("getInitialData");
-            toggleOutfitForm();
-        } else if (action == "saveHandlingInfo") {
-            alert(data.message);
-            btnH.disabled = false; btnH.innerText = "저장";
-            if(data.success) {
-                if (!allHandlings[curItem.code]) allHandlings[curItem.code] = [];
-                allHandlings[curItem.code].push({ img: data.newUrl, desc: document.getElementById("h-desc-input").value });
-                renderHandling(curItem.code);
-                resetHandlingForm(); 
-                toggleHandlingForm(); 
-            }
-        } else if (action == "deleteHandlingInfo") {
-            alert(data.message);
-            if (data.success) {
-                fetchData("getInitialData");
-            }
+            alert(data.message); fetchData("getInitialData");
+        } else if (action == "saveOutfitsBulk" || action == "saveHandlingInfo" || action == "deleteHandlingInfo") {
+            alert(data.message); fetchData("getInitialData");
         }
       }
 
-      function handleError(err) {
-        const btn = document.getElementById("btn-save");
-        const btnH = document.getElementById("btn-h-save");
-        if(btn) { btn.disabled = false; btn.innerText = "저장"; }
-        if(btnH) { btnH.disabled = false; btnH.innerText = "저장"; }
-        console.error(err);
-        alert("오류 발생: " + err);
-      }
+      function handleError(err) { console.error(err); alert("오류 발생: " + err); }
 
       function onDataLoad(data) {
         allItems = data.items || []; allStockMap = data.stockMap || {}; allRentals = data.rentals || []; 
@@ -361,7 +315,7 @@
         scroller.innerHTML = "";
         
         if(data.dates.length > 0) {
-          selDate = data.dates[0];
+          if(!selDate) selDate = data.dates[0];
           data.dates.forEach(d => {
             const dateObj = new Date(d); const btn = document.createElement("div");
             btn.className = `date-btn ${d === selDate ? 'active' : ''}`;
@@ -371,33 +325,24 @@
           });
         }
         
-        // [추가된 부분] 깃허브 강제 업데이트 버튼
         const upBtn = document.createElement("div");
-        upBtn.className = "date-btn";
-        upBtn.style.backgroundColor = "#212529";
-        upBtn.style.color = "white";
+        upBtn.className = "date-btn"; upBtn.style.backgroundColor = "#212529"; upBtn.style.color = "white";
         upBtn.innerHTML = `<span class="material-icons-round" style="font-size:20px; margin-bottom:2px;">sync</span><span class="dow" style="font-size:9px;">UP</span>`;
-        upBtn.onclick = requestGithubUpdate;
-        scroller.appendChild(upBtn);
+        upBtn.onclick = requestGithubUpdate; scroller.appendChild(upBtn);
 
         renderSchedule(); 
-        
         if(curItem && document.getElementById('itemModal').classList.contains('show')) {
+            renderStock(allStockMap[curItem.code] || []);
             renderHandling(curItem.code);
             renderOutfits(curItem.code);
+            renderCurrentRentals(curItem.code);
         }
-        
         document.getElementById('loading-overlay').style.display = 'none';
-        window.history.pushState({page: 'main'}, '');
       }
 
       function generateLotteImage(code) {
-        let s = String(code);
-        if (s.length < 8) return ""; 
-        let p1 = s.substring(6, 8); 
-        let p2 = s.substring(4, 6); 
-        let p3 = s.substring(2, 4); 
-        return `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${s}_L.jpg`;
+        let s = String(code); if (s.length < 8) return ""; 
+        return `https://image2.lotteimall.com/goods/${s.substring(6, 8)}/${s.substring(4, 6)}/${s.substring(2, 4)}/${s}_L.jpg`;
       }
 
       function openModal(item) {
@@ -405,11 +350,9 @@
         document.getElementById("m-info-top").innerHTML = `<b>${item.brand}</b> | ${item.code} | <b>${item.location || '-'}</b>`;
         document.getElementById("m-title").innerText = item.name.replace(/(\r\n|\n|\r)/gm, " ");
         document.getElementById("m-img").src = item.image ? item.image : generateLotteImage(item.code);
-        document.getElementById("in-location").value = (item.location === "-" ? "" : item.location);
         toggleModalView('view');
         
-        const stock = allStockMap[item.code] || [];
-        renderStock(stock);
+        renderStock(allStockMap[item.code] || []);
         renderOutfits(item.code);
         renderCurrentRentals(item.code);
         renderHandling(item.code);
@@ -419,7 +362,6 @@
         colors.forEach(c => { ah += `<tr><td class="col-color">${c.trim()}</td>` + sizes.map(()=>`<td><input type="number"></td>`).join("") + "</tr>"; });
         document.getElementById("add-table-container").innerHTML = ah + "</tbody></table>";
         
-        window.history.pushState({page: 'modal'}, '');
         modalObj.show();
       }
 
@@ -428,8 +370,7 @@
             var reader = new FileReader();
             reader.onload = function(e) {
                 const imgEl = document.getElementById('h-img-preview');
-                imgEl.src = e.target.result;
-                imgEl.style.display = 'block';
+                imgEl.src = e.target.result; imgEl.style.display = 'block';
             }
             reader.readAsDataURL(input.files[0]);
         }
@@ -449,107 +390,55 @@
 
       function deleteHandling(img, desc) {
         if (!confirm("정말 삭제하시겠습니까?")) return;
-        const payload = { code: curItem.code, img: img, desc: desc };
-        fetchPost("deleteHandlingInfo", payload);
+        fetchPost("deleteHandlingInfo", { code: curItem.code, img: img, desc: desc });
       }
 
       function renderHandling(code) {
-        const list = allHandlings[code];
-        const container = document.getElementById("handling-container");
-        
-        if (!list || list.length === 0) {
-            container.innerHTML = '<div class="text-muted small text-center w-100 py-3" style="grid-column:span 2;">등록된 정보가 없습니다.</div>';
-            return;
-        }
-
-        let html = '';
-        list.forEach(item => {
-            const safeDesc = (item.desc || "").replace(/"/g, "&quot;").replace(/'/g, "\\'");
-            const safeImg = (item.img || "").replace(/"/g, "&quot;").replace(/'/g, "\\'");
-            
-            html += `
-            <div class="h-card">
-                <div class="h-del-btn" onclick="deleteHandling('${safeImg}', '${safeDesc}')">✕</div>
-                ${item.img ? `<div class="h-img-wrap"><img src="${item.img}" class="h-img" loading="lazy"></div>` : ''}
-                <div class="h-desc">${item.desc || ''}</div>
-            </div>`;
+        const list = allHandlings[code]; const container = document.getElementById("handling-container");
+        if (!list || list.length === 0) { container.innerHTML = '<div class="text-muted small text-center w-100 py-3" style="grid-column:span 2;">정보 없음</div>'; return; }
+        let html = ''; list.forEach(item => {
+            html += `<div class="h-card"><div class="h-del-btn" onclick="deleteHandling('${item.img}', '${item.desc}')">✕</div>${item.img ? `<div class="h-img-wrap"><img src="${item.img}" class="h-img" loading="lazy"></div>` : ''}<div class="h-desc">${item.desc || ''}</div></div>`;
         });
         container.innerHTML = html;
       }
 
       function saveHandling() {
-        const fileInput = document.getElementById("h-file-input");
+        const file = document.getElementById("h-file-input").files[0];
         const desc = document.getElementById("h-desc-input").value;
-        const file = fileInput.files[0];
-        
-        const btn = document.getElementById("btn-h-save");
-        btn.disabled = true; btn.innerText = "저장 중...";
-
+        const btn = document.getElementById("btn-h-save"); btn.disabled = true; btn.innerText = "저장 중...";
         const payload = { code: curItem.code, desc: desc, imageBase64: null, fileName: null, mimeType: null };
 
         if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 800;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
-                    const base64 = dataUrl.split(",")[1];
-                    
-                    payload.imageBase64 = base64;
-                    payload.fileName = "resized_" + file.name;
-                    payload.mimeType = "image/jpeg";
-                    
+            const reader = new FileReader(); reader.onload = function(e) {
+                const img = new Image(); img.onload = function() {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 800; let width = img.width, height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+                    payload.imageBase64 = canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
+                    payload.fileName = "resized_" + file.name; payload.mimeType = "image/jpeg";
                     fetchPost("saveHandlingInfo", payload);
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
-        } else {
-            fetchPost("saveHandlingInfo", payload);
-        }
+        } else { fetchPost("saveHandlingInfo", payload); }
       }
 
       function renderCurrentRentals(code) {
-        const wrapper = document.getElementById("rental-wrapper");
-        const container = document.getElementById("rental-container");
+        const wrapper = document.getElementById("rental-wrapper"); const container = document.getElementById("rental-container");
         const list = allRentals.filter(r => r.code == code);
-
-        if (list.length === 0) {
-            wrapper.style.display = 'none'; 
-            return;
-        }
-
-        wrapper.style.display = 'block'; 
-        let html = '';
-        list.forEach(r => {
-            html += `
-            <div class="rental-history-item">
-                <span class="rh-name">${r.renter}</span>
-                <span class="rh-info">${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</span>
-            </div>`;
-        });
+        if (list.length === 0) { wrapper.style.display = 'none'; return; }
+        wrapper.style.display = 'block'; let html = '';
+        list.forEach(r => { html += `<div class="rental-history-item"><span class="rh-name">${r.renter}</span><span class="rh-info">${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</span></div>`; });
         container.innerHTML = html;
       }
 
       function addToCart(code, name, color, size, currentQty) {
         if(currentQty <= 0) return showToast("재고가 없습니다.");
         const exist = cart.find(i => i.code === code && i.color === color && i.size === size);
-        if(exist) { if(exist.qty < currentQty) { exist.qty++; showToast("카트 수량 추가됨"); } else showToast("재고 수량 초과"); } 
-        else { cart.push({code, name, color, size, qty: 1, max: currentQty}); showToast("대여 카트에 담김"); }
+        if(exist) { if(exist.qty < currentQty) { exist.qty++; showToast("추가됨"); } else showToast("재고 초과"); } 
+        else { cart.push({code, name, color, size, qty: 1, max: currentQty}); showToast("담김"); }
         renderCart();
       }
       function renderCart() {
@@ -561,37 +450,27 @@
       function removeFromCart(idx) { cart.splice(idx, 1); renderCart(); }
       
       function submitRental() {
-        if(cart.length === 0) return alert("카트에 상품 없음");
-        const name = document.getElementById("renter-name").value.trim();
-        if(!name) return alert("이름 입력");
-        if(!confirm("대여 처리하시겠습니까?")) return;
-        
-        const btn = document.querySelector("#mode-rent .full-btn");
-        if(btn) { btn.disabled = true; btn.innerText = "처리 중..."; }
-
-        const payload = { items: cart, renter: name };
-        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+        const name = document.getElementById("renter-name").value.trim(); if(cart.length === 0 || !name) return alert("데이터 입력 필요");
+        fetchData("processRental", `&payload=${encodeURIComponent(JSON.stringify({ items: cart, renter: name }))}`);
       }
 
       function searchReturns() {
         const q = document.getElementById("return-search").value.trim(); const list = document.getElementById("return-list");
         if(!q) return alert("검색어 입력");
         const res = allRentals.filter(r => r.renter.includes(q) || r.name.includes(q));
-        if(res.length === 0) { list.innerHTML = '<div class="text-center py-4 small text-muted">검색 결과 없음</div>'; return; }
+        if(res.length === 0) { list.innerHTML = '<div class="text-center py-4 small text-muted">결과 없음</div>'; return; }
         let html = ''; res.forEach((r, idx) => { html += `<div class="cart-item"><div class="d-flex align-items-center gap-2"><input type="checkbox" class="return-chk" data-idx="${idx}" style="width:20px; height:20px;"><div class="cart-info"><div>${r.name}</div><small>${r.renter} | ${r.color}/${r.size} (${r.qty}) | ${r.date.substring(5,10)}</small></div></div></div>`; });
         list.innerHTML = html; list.dataset.searchResults = JSON.stringify(res);
       }
       function submitReturn() {
         const list = document.getElementById("return-list"); const checkboxes = list.querySelectorAll(".return-chk:checked");
-        if(checkboxes.length === 0) return alert("항목 선택");
-        const name = document.getElementById("returner-name").value.trim();
-        if(!name) return alert("이름 입력");
+        const name = document.getElementById("returner-name").value.trim(); if(checkboxes.length === 0 || !name) return alert("데이터 입력 필요");
         const searchResults = JSON.parse(list.dataset.searchResults || "[]"); const itemsToReturn = [];
         checkboxes.forEach(chk => { itemsToReturn.push(searchResults[parseInt(chk.dataset.idx)]); });
-        if(!confirm("반납 처리하시겠습니까?")) return;
-        const payload = { items: itemsToReturn, returner: name }; fetchData("processReturn", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+        fetchData("processReturn", `&payload=${encodeURIComponent(JSON.stringify({ items: itemsToReturn, returner: name }))}`);
       }
-      function switchTab(t) { const modalEl = document.getElementById('itemModal'); if (modalEl.classList.contains('show') && modalObj) { modalObj.hide(); } window.history.pushState({page: t}, ''); switchTabUI(t); }
+
+      function switchTab(t) { if (modalObj) modalObj.hide(); switchTabUI(t); }
       function switchTabUI(t) {
         document.getElementById('page-schedule').style.display = t === 'schedule' ? 'block' : 'none';
         document.getElementById('page-inventory').style.display = t === 'inventory' ? 'block' : 'none';
@@ -600,7 +479,7 @@
         document.getElementById('nav-inv').classList.toggle('active', t === 'inventory');
         document.getElementById('nav-rent').classList.toggle('active', t === 'rental');
         if (t === 'inventory' && document.getElementById("inventoryContainer").innerHTML === "") { resetFilter(); }
-        if (t === 'rental') { if (cart.length > 0) switchRentalMode('rent'); renderCart(); }
+        if (t === 'rental') renderCart();
       }
       function switchRentalMode(mode) {
         document.getElementById('mode-rent').style.display = mode === 'rent' ? 'block' : 'none';
@@ -608,107 +487,101 @@
         document.getElementById('rt-rent').classList.toggle('active', mode === 'rent');
         document.getElementById('rt-return').classList.toggle('active', mode === 'return');
       }
-      function toggleOutfitForm() { const form = document.getElementById("outfit-form"); form.style.display = form.style.display === "block" ? "none" : "block"; }
-      
+
       function renderOutfits(code) {
         const container = document.getElementById("outfit-container"); const list = allOutfits.filter(o => o.code == code);
-        if (list.length === 0) { container.innerHTML = '<div class="text-muted small text-center w-100" style="grid-column: span 4;">등록된 정보가 없습니다.</div>'; return; }
-        
-        let html = ''; 
-        list.forEach(o => { 
-            const safeHost = o.host.replace(/'/g, "\\'");
-            const safeSize = o.size.replace(/'/g, "\\'");
-            html += `<div class="outfit-box" onclick="editOutfit('${safeHost}', '${safeSize}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`; 
-        }); 
+        if (list.length === 0) { container.innerHTML = '<div class="text-muted small text-center w-100" style="grid-column: span 4;">정보 없음</div>'; return; }
+        let html = ''; list.forEach(o => { html += `<div class="outfit-box" onclick="editOutfit('${o.host}', '${o.size}')"><div class="outfit-host">${o.host}</div><div class="outfit-size">${o.size}</div></div>`; }); 
         container.innerHTML = html;
       }
-
       function editOutfit(host, oldSize) {
-        const newSize = prompt(`${host}님의 사이즈를 수정합니다.`, oldSize);
-        if (newSize === null) return; 
-        if (newSize === oldSize || newSize.trim() === "") return; 
-
-        const payload = [{ code: curItem.code, host: host, size: newSize.trim() }];
-        fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+        const newSize = prompt(`${host}님의 사이즈 수정`, oldSize);
+        if (newSize && newSize !== oldSize) fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify([{ code: curItem.code, host: host, size: newSize.trim() }]))}`);
       }
-
       function saveOutfit() {
         const names = document.querySelectorAll('.of-name'); const sizes = document.querySelectorAll('.of-size'); const payload = [];
-        names.forEach((nameIn, i) => { if(nameIn.value.trim() && sizes[i].value.trim()) { payload.push({ code: curItem.code, host: nameIn.value.trim(), size: sizes[i].value.trim() }); } });
-        if (payload.length === 0) return alert("입력 필요");
-        fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
-        names.forEach(i => i.value = ""); sizes.forEach(i => i.value = "");
+        names.forEach((nameIn, i) => { if(nameIn.value.trim() && sizes[i].value.trim()) payload.push({ code: curItem.code, host: nameIn.value.trim(), size: sizes[i].value.trim() }); });
+        if (payload.length > 0) fetchData("saveOutfitsBulk", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
       }
       
       function renderStock(stock) {
         const container = document.getElementById("v-stock-table");
         if(!stock || !stock.length) { container.innerHTML = "<div class='text-center py-4 small'>재고 없음</div>"; return; }
-        
-        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); 
-        const colors = [...new Set(stock.map(s => s.color))].sort();
-        
+        const sizes = sortSizes([...new Set(stock.map(s => s.size))]); const colors = [...new Set(stock.map(s => s.color))].sort();
         let h = `<table class="st-table"><thead><tr><th class="col-color">색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
-        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); const clickAttr = q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''; return `<td ${clickAttr}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
+        colors.forEach(c => { h += `<tr><td class="col-color">${c}</td>` + sizes.map(s => { const q = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0); return `<td ${q > 0 ? `class="cell-clickable" onclick="addToCart('${curItem.code}', '${curItem.name.replace(/'/g, "")}', '${c}', '${s}', ${q})"` : ''}>${q || 0}</td>`; }).join("") + "</tr>"; }); container.innerHTML = h + "</tbody></table>";
       }
 
       function sortSizes(sizes) {
         const order = ["44", "55", "66", "77", "88", "XS", "S", "M", "L", "XL", "2XL", "3XL", "85", "90", "95", "100", "105", "110", "115"];
-        return sizes.sort((a, b) => {
-            const idxA = order.indexOf(a.toUpperCase());
-            const idxB = order.indexOf(b.toUpperCase());
-            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-            if (idxA !== -1) return -1;
-            if (idxB !== -1) return 1;
-            return a.localeCompare(b);
-        });
+        return sizes.sort((a, b) => { let idxA = order.indexOf(a.toUpperCase()), idxB = order.indexOf(b.toUpperCase()); if (idxA !== -1 && idxB !== -1) return idxA - idxB; return a.localeCompare(b); });
       }
 
       function saveData() {
         const table = document.getElementById("add-table"), headers = Array.from(table.rows[0].cells).slice(1).map(c => c.querySelector("input").value.trim());
         const loc = document.getElementById("in-location").value.trim(), matrix = [];
         for(let i=1; i<table.rows.length; i++) {
-          const color = table.rows[i].cells[0].innerText.trim(); if(!color) continue;
-          headers.forEach((size, idx) => { const qty = table.rows[i].cells[idx+1].querySelector("input").value; if(qty && Number(qty) > 0) matrix.push({ color, size, qty: Number(qty) }); });
+          const color = table.rows[i].cells[0].innerText.trim();
+          headers.forEach((size, idx) => { const qty = table.rows[i].cells[idx+1].querySelector("input").value; if(qty > 0) matrix.push({ color, size, qty: Number(qty) }); });
         }
         if(matrix.length === 0) return alert("수량 입력");
-        const btn = document.getElementById("btn-save"); btn.disabled = true; btn.innerText = "저장 중...";
-        const combined = curItem.brand + " " + curItem.name;
-        const payload = { code: curItem.code, combinedName: combined, name: curItem.name, matrix: matrix, location: loc };
-        fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+        fetchData("saveInventoryData", `&payload=${encodeURIComponent(JSON.stringify({ code: curItem.code, combinedName: curItem.brand + " " + curItem.name, name: curItem.name, matrix: matrix, location: loc }))}`);
       }
-      function updateLocalStock(code, newLoc, paramsString) { try { if(paramsString){ const urlParams = new URLSearchParams(paramsString); const payload = JSON.parse(urlParams.get("payload")); if(!allStockMap[code]) allStockMap[code] = []; payload.matrix.forEach(m => { allStockMap[code].push({ size: m.size, color: m.color, qty: m.qty }); }); } if(newLoc) { curItem.location = newLoc; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b> | ${curItem.code} | <b>${newLoc}</b>`; } } catch(e) { console.error(e); } }
-      function resetFilter() { invLimit = 30; document.getElementById("inventoryContainer").innerHTML = ""; const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value; filteredItems = allItems.filter(i => (b==='All' || i.brand === b) && (c==='All' || i.category === c)); renderInventoryChunk(); }
-      function renderInventoryChunk() { const container = document.getElementById("inventoryContainer"); const btnContainer = document.getElementById("loadMoreContainer"); if (filteredItems.length === 0) { container.innerHTML = '<div class="text-center py-5 small w-100">상품 없음</div>'; btnContainer.innerHTML = ""; return; } const currentCount = container.children.length; const nextBatch = filteredItems.slice(currentCount, invLimit); nextBatch.forEach(i => container.appendChild(createCard(i))); if (filteredItems.length > invLimit) { btnContainer.innerHTML = `<button class="load-more-btn" onclick="loadMore()">더 보기 (${filteredItems.length - invLimit}개 남음)</button>`; } else { btnContainer.innerHTML = ""; } }
-      function loadMore() { invLimit += 30; renderInventoryChunk(); }
-      function renderSchedule() { const container = document.getElementById("scheduleContainer"); container.innerHTML = ""; const filtered = allItems.filter(i => i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date)); if (!filtered.length) { container.innerHTML = '<div class="text-center py-5 small">편성 없음</div>'; return; } const groups = {}; filtered.forEach(i => { const t = i.date && i.date.match(/\d{1,2}:\d{1,2}/) ? i.date.match(/\d{1,2}:\d{1,2}/)[0] : "시간미정"; if(!groups[t]) groups[t] = []; groups[t].push(i); }); Object.keys(groups).forEach(t => { const g = document.createElement("div"); g.innerHTML = `<div class="time-label">${t}</div>`; const grid = document.createElement("div"); grid.className = "product-grid"; groups[t].forEach(item => grid.appendChild(createCard(item))); g.appendChild(grid); container.appendChild(g); }); }
-      function createCard(item) { const div = document.createElement("div"); div.className = "p-card"; div.onclick = () => openModal(item); const timeMatch = item.date && item.date.match(/\d{1,2}:\d{1,2}/); const imgSrc = item.image ? item.image : generateLotteImage(item.code); div.innerHTML = `<div class="p-img-box">${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}<img src="${imgSrc}" class="p-img" loading="lazy"></div><div class="p-info"><div class="p-brand">${item.brand || ""}</div><div class="p-name">${item.name || ""}</div><div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div></div>`; return div; }
-      function toggleModalView(v) { document.getElementById('v-view').style.display = v === 'view' ? 'block' : 'none'; document.getElementById('v-outfit').style.display = v === 'outfit' ? 'block' : 'none'; document.getElementById('v-add').style.display = v === 'add' ? 'block' : 'none'; document.getElementById('btn-save').style.display = v === 'add' ? 'block' : 'none'; document.getElementById('t-view').classList.toggle('active', v === 'view'); document.getElementById('t-outfit').classList.toggle('active', v === 'outfit'); document.getElementById('t-add').classList.toggle('active', v === 'add'); }
-      function openLotteMall() { if(!curItem || !curItem.code) return; window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=" + curItem.code, '_blank'); }
-      function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); if(!m) return 9999; let h = parseInt(m[1]), min = parseInt(m[2]); if(s.includes("오후") && h < 12) h += 12; if(s.includes("오전") && h === 12) h = 0; return h * 60 + min; }
-      function addRow() { const table = document.getElementById("add-table"), row = table.insertRow(); row.innerHTML = `<td class="col-color"><input type="text" placeholder="색상"></td>` + `<td><input type="number"></td>`.repeat(table.rows[0].cells.length - 1); }
-      function addCol() { const table = document.getElementById("add-table"), th = document.createElement("th"); th.innerHTML = `<input type="text" placeholder="사이즈">`; table.rows[0].appendChild(th); for(let i=1; i<table.rows.length; i++) { table.rows[i].insertCell().innerHTML = `<input type="number">`; } }
-      function showToast(msg) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
+      function updateLocalStock(code, newLoc) { if(newLoc) { curItem.location = newLoc; document.getElementById("m-info-top").innerHTML = `<b>${curItem.brand}</b> | ${curItem.code} | <b>${newLoc}</b>`; } }
+      
+      // [수정된 재고관리 필터 로직: isMaster 상품만 필터링]
+      function resetFilter() {
+        invLimit = 30; document.getElementById("inventoryContainer").innerHTML = "";
+        const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value;
+        filteredItems = allItems.filter(i => i.isMaster && (b==='All' || i.brand === b) && (c==='All' || i.category === c));
+        renderInventoryChunk();
+      }
+      
+      function renderInventoryChunk() { 
+        const container = document.getElementById("inventoryContainer"); const currentCount = container.children.length;
+        const nextBatch = filteredItems.slice(currentCount, currentCount + invLimit);
+        nextBatch.forEach(i => container.appendChild(createCard(i)));
+        const btnContainer = document.getElementById("loadMoreContainer");
+        btnContainer.innerHTML = filteredItems.length > container.children.length ? `<button class="load-more-btn" onclick="renderInventoryChunk()">더 보기</button>` : "";
+      }
 
-      function requestGithubUpdate() {
-        if (!confirm("현재 데이터를 깃허브 웹사이트에 반영하시겠습니까?\n(약 1~2분 소요됩니다)")) return;
-        document.getElementById('loading-overlay').style.display = 'flex';
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "forceUpdate", payload: {} }),
-            headers: { "Content-Type": "text/plain;charset=utf-8" }
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('loading-overlay').style.display = 'none';
-            if (data.success) alert("✅ 요청 성공: 깃허브 업데이트가 시작되었습니다.\n잠시 후 웹사이트에 반영됩니다.");
-            else alert("❌ 실패: " + (data.message || "알 수 없는 오류"));
-        })
-        .catch(err => {
-            document.getElementById('loading-overlay').style.display = 'none';
-            alert("통신 오류 발생: " + err);
+      // [수정된 편성표 렌더 로직: isMaster가 아닌 아이템만 출력]
+      function renderSchedule() {
+        const container = document.getElementById("scheduleContainer"); container.innerHTML = "";
+        const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate).sort((a,b) => parseTime(a.date) - parseTime(b.date));
+        if (!filtered.length) { container.innerHTML = '<div class="text-center py-5 small">편성 없음</div>'; return; }
+        const groups = {}; filtered.forEach(i => { const t = i.date && i.date.match(/\d{1,2}:\d{1,2}/) ? i.date.match(/\d{1,2}:\d{1,2}/)[0] : "시간미정"; if(!groups[t]) groups[t] = []; groups[t].push(i); });
+        Object.keys(groups).forEach(t => {
+          const g = document.createElement("div"); g.innerHTML = `<div class="time-label">${t}</div>`;
+          const grid = document.createElement("div"); grid.className = "product-grid";
+          groups[t].forEach(item => grid.appendChild(createCard(item)));
+          g.appendChild(grid); container.appendChild(g);
         });
       }
+      
+      function createCard(item) {
+        const div = document.createElement("div"); div.className = "p-card"; div.onclick = () => openModal(item);
+        const timeMatch = item.date && item.date.match(/\d{1,2}:\d{1,2}/);
+        div.innerHTML = `<div class="p-img-box">${timeMatch ? `<div class="b-badge">${timeMatch[0]}</div>` : ''}<img src="${item.image || generateLotteImage(item.code)}" class="p-img" loading="lazy"></div><div class="p-info"><div class="p-brand">${item.brand || ""}</div><div class="p-name">${item.name || ""}</div><div class="p-footer"><span class="p-loc">${item.location || "-"}</span></div></div>`;
+        return div;
+      }
+      function toggleModalView(v) { 
+        ['v-view','v-outfit','v-add'].forEach(id => document.getElementById(id).style.display = (id === 'v-'+v ? 'block' : 'none'));
+        document.getElementById('btn-save').style.display = (v === 'add' ? 'block' : 'none');
+        ['t-view','t-outfit','t-add'].forEach(id => document.getElementById(id).classList.toggle('active', id === 't-'+v));
+      }
+      function openLotteMall() { if(curItem) window.open("https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=" + curItem.code, '_blank'); }
+      function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); if(!m) return 9999; return parseInt(m[1]) * 60 + parseInt(m[2]); }
+      function addRow() { const table = document.getElementById("add-table"), row = table.insertRow(); row.innerHTML = `<td class="col-color"><input type="text" placeholder="색상"></td>` + `<td><input type="number"></td>`.repeat(table.rows[0].cells.length - 1); }
+      function addCol() { const table = document.getElementById("add-table"), th = document.createElement("th"); th.innerHTML = `<input type="text" placeholder="사이즈">`; table.rows[0].appendChild(th); for(let i=1; i<table.rows.length; i++) table.rows[i].insertCell().innerHTML = `<input type="number">`; }
+      function showToast(msg) { const t = document.createElement('div'); t.className = 'toast show'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
+      function requestGithubUpdate() {
+        if (!confirm("업데이트를 시작할까요?")) return;
+        document.getElementById('loading-overlay').style.display = 'flex';
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "forceUpdate", payload: {} }), headers: { "Content-Type": "text/plain;charset=utf-8" } })
+        .then(res => res.json()).then(() => { alert("요청됨"); location.reload(); });
+      }
+      function toggleOutfitForm() { const form = document.getElementById("outfit-form"); form.style.display = form.style.display === "block" ? "none" : "block"; }
     </script>
   </body>
 </html>
-
