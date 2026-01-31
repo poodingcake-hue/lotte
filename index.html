@@ -14,13 +14,12 @@
             background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; 
         }
 
-        /* 레이아웃 제어 (데스크톱 13% 여백, 모바일 전체) */
+        /* 레이아웃 제어 (데스크톱 13% 여백) */
         .nav-container, .main-content { width: 100%; margin: 0 auto; padding: 0 10px; }
         @media (min-width: 992px) { .nav-container, .main-content { width: 74%; max-width: 1800px; } }
 
-        /* 상단 네비게이션 */
+        /* 네비게이션 */
         .top-nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height); background: white; box-shadow: 0 1px 10px rgba(0,0,0,0.05); z-index: 2000; display: flex; align-items: center; border: none; }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; }
         .nav-logo { font-weight: 800; font-size: 1.3rem; color: var(--primary); text-decoration: none; cursor: pointer; }
         .nav-menu { display: flex; gap: 5px; align-items: center; }
         .nav-item { border: none; background: none; padding: 8px 18px; border-radius: 10px; font-size: 15px; font-weight: 700; color: #444; transition: 0.2s; }
@@ -30,15 +29,15 @@
         .page-section { display: none; }
         .page-section.active { display: block; }
 
-        /* [상세 페이지] 레이아웃 및 간격 최적화 */
+        /* [상세 페이지] 대시보드 구조 */
         .dash-layout { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
         @media (min-width: 992px) { .dash-layout { grid-template-columns: 400px 1fr; } }
-        .dash-card { background: white; border-radius: 12px; padding: 10px; border: 1px solid #eee; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .dash-card { background: white; border-radius: 12px; padding: 12px; border: 1px solid #eee; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
         .dash-title { font-size: 13px; font-weight: 800; color: #444; margin-bottom: 8px; display: block; border-bottom: 1px solid #f8f9fa; padding-bottom: 4px; }
 
-        /* 이미지+정보 통합 영역 */
+        /* 이미지 통합 영역 */
         .integrated-section { background: white; border-radius: 12px; border: 1px solid #eee; overflow: hidden; }
-        .img-header-overlay { padding: 15px; background: white; }
+        .img-header-overlay { padding: 15px 15px 8px 15px; background: white; }
         .det-product-name { font-size: 19px; font-weight: 800; color: #000; line-height: 1.2; margin-bottom: 6px; }
         .det-sub-info { display: flex; gap: 6px; align-items: center; }
         .badge-item { padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; border: 1px solid #dee2e6; }
@@ -52,18 +51,19 @@
         .compact-table td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; color: #000 !important; font-weight: 700; }
         .compact-table td:first-child { width: 100px; background: #fcfcfc; font-weight: 700; }
 
-        /* 착장 정보 4열 */
-        .outfit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-        @media (min-width: 576px) { .outfit-grid { grid-template-columns: repeat(4, 1fr); } }
-        .outfit-item { background: white; border: 1px solid #eee; border-radius: 10px; padding: 8px 4px; text-align: center; }
-        .outfit-host { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 1px; display: block; }
-        .outfit-size { font-size: 17px; font-weight: 800; color: #000; display: block; }
+        /* [공통 카드 그리드] 착장 정보 & 대여 현황 동일 양식 */
+        .info-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        @media (min-width: 576px) { .info-card-grid { grid-template-columns: repeat(4, 1fr); } }
+        
+        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px 4px; text-align: center; }
+        .info-card-top { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 1px; display: block; }
+        .info-card-bottom { font-size: 17px; font-weight: 800; color: #000; display: block; }
 
         /* 편성표 시간 구분선 */
         .time-divider { display: flex; align-items: center; gap: 8px; margin: 15px 0 10px; font-weight: 800; color: var(--primary); font-size: 14px; }
         .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
 
-        /* 메인 상품 목록 */
+        /* 목록 카드 */
         .product-grid { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
         .p-card { background: white; border-radius: 10px; overflow: hidden; border: 1px solid #eee; cursor: pointer; height: 100%; display: flex; flex-direction: column; transition: 0.15s; }
@@ -136,11 +136,11 @@
                     </div>
                     <div class="dash-card">
                         <span class="dash-title">착장 정보</span>
-                        <div id="v-outfit-container" class="outfit-grid"></div>
+                        <div id="v-outfit-container" class="info-card-grid"></div>
                     </div>
                     <div id="v-rental-card" class="dash-card" style="display:none;">
                         <span class="dash-title" style="color: var(--primary);">현재 대여 현황</span>
-                        <div id="v-rental-list"></div>
+                        <div id="v-rental-list" class="info-card-grid"></div>
                     </div>
                 </div>
             </div>
@@ -148,7 +148,7 @@
     </main>
 
     <script>
-        // [중요] GitHub Pages 환경에서 GAS 차단을 우회하기 위해 로컬 data.json을 읽어옵니다.
+        // GitHub 데이터 연동 방식
         let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], selDate = null, filteredItems = [];
 
         window.onload = () => { fetchGitHubData(); };
@@ -156,17 +156,10 @@
 
         function fetchGitHubData() {
             document.getElementById('loading-overlay').style.display = 'flex';
-            // 캐시 방지를 위해 랜덤 쿼리 추가
             fetch(`data.json?v=${new Date().getTime()}`)
                 .then(res => res.json())
-                .then(data => {
-                    onDataLoad(data);
-                    document.getElementById('loading-overlay').style.display = 'none';
-                })
-                .catch(err => {
-                    console.error("GitHub 데이터 로드 실패:", err);
-                    alert("데이터를 불러올 수 없습니다. GitHub 업데이트를 확인하세요.");
-                });
+                .then(data => { onDataLoad(data); document.getElementById('loading-overlay').style.display = 'none'; })
+                .catch(err => { console.error("데이터 로드 실패:", err); alert("데이터 로드 실패"); });
         }
 
         function onDataLoad(data) {
@@ -209,7 +202,7 @@
                 const tm = tmMatch ? tmMatch[1] : "시간미정";
                 if (!groups[tm]) groups[tm] = []; groups[tm].push(item);
             });
-            Object.keys(groups).sort((a,b)=>parseTime(a)-parseTime(b)).forEach(tm => {
+            Object.keys(groups).sort().forEach(tm => {
                 const div = document.createElement("div"); div.className = "time-divider";
                 div.innerHTML = `${tm} 방송`;
                 container.appendChild(div);
@@ -232,17 +225,29 @@
             document.getElementById("det-loc").innerText = i.location || "-";
             document.getElementById("det-img").src = i.image || "";
             const stock = allStockMap[i.code] || [];
-            // RAW 순서대로 추출
             const sizes = []; const colors = [];
             stock.forEach(s => { if(s.size && !sizes.includes(s.size)) sizes.push(s.size); if(s.color && !colors.includes(s.color)) colors.push(s.color); });
             let h = `<table class="st-table"><thead><tr><th>색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
             colors.forEach(c => { h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => `<td>${stock.filter(x=>x.color===c && x.size===s).reduce((a,b)=>a+Number(b.qty),0) || 0}</td>`).join("") + "</tr>"; });
             document.getElementById("v-stock-table").innerHTML = h + "</tbody></table>";
+            
+            // 착장 정보 렌더링
             const outfits = allOutfits.filter(o => o.code == i.code);
-            document.getElementById("v-outfit-container").innerHTML = outfits.map(o => `<div class="outfit-item"><span class="outfit-host">${o.host}</span><span class="outfit-size">${o.size}</span></div>`).join("") || '<div class="col-12 py-1 text-muted small">정보 없음</div>';
+            document.getElementById("v-outfit-container").innerHTML = outfits.map(o => `
+                <div class="info-item-card">
+                    <span class="info-card-top">${o.host}</span>
+                    <span class="info-card-bottom">${o.size}</span>
+                </div>`).join("") || '<div class="col-12 py-1 text-muted small">정보 없음</div>';
+            
+            // 대여 현황 렌더링 (착장 정보와 동일한 카드 양식)
             const rentals = allRentals.filter(r => r.code == i.code);
-            const rCard = document.getElementById("v-rental-card"); rCard.style.display = rentals.length ? 'block' : 'none';
-            document.getElementById("v-rental-list").innerHTML = rentals.map(r => `<div class="rental-item"><span>${r.renter}</span><b>${r.color}/${r.size}(${r.qty})</b></div>`).join("");
+            const rCard = document.getElementById("v-rental-card");
+            rCard.style.display = rentals.length ? 'block' : 'none';
+            document.getElementById("v-rental-list").innerHTML = rentals.map(r => `
+                <div class="info-item-card">
+                    <span class="info-card-top">${r.renter}</span>
+                    <span class="info-card-bottom">${r.color}/${r.size}(${r.qty})</span>
+                </div>`).join("");
         }
 
         function resetFilter() {
@@ -257,11 +262,7 @@
             document.getElementById("loadMoreContainer").innerHTML = filteredItems.length > c.children.length ? `<button class="btn btn-outline-primary rounded-pill px-4 btn-sm" onclick="renderInventoryChunk()">더 보기</button>` : "";
         }
 
-        function parseTime(s) { 
-            if(!s) return 9999; 
-            const m = s.match(/(\d{1,2}):(\d{1,2})/); 
-            return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; 
-        }
+        function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
     </script>
 </body>
 </html>
