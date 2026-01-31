@@ -15,80 +15,88 @@
             background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; 
         }
 
-        /* 글로벌 네비게이션 */
+        /* [핵심 수정] 상단 네비게이션 및 중앙 레이아웃 (데스크톱 13% 여백) */
         .top-nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height); background: white; box-shadow: 0 1px 10px rgba(0,0,0,0.05); z-index: 2000; display: flex; align-items: center; }
-        .nav-container { max-width: 1400px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+        
+        /* 기본 모바일 설정 (여백 없음) */
+        .nav-container, .main-content { 
+            width: 100%; 
+            margin: 0 auto; 
+            padding: 0 15px;
+        }
+
+        /* 데스크톱 설정 (양옆 13% 여백 반영 - 가로폭 74%) */
+        @media (min-width: 992px) {
+            .nav-container, .main-content { 
+                width: 74%; 
+                max-width: 1800px; 
+            }
+        }
+
         .nav-logo { font-weight: 800; font-size: 1.2rem; color: var(--primary); text-decoration: none; cursor: pointer; }
         .nav-menu { display: flex; gap: 5px; }
         .nav-item { border: none; background: none; padding: 6px 15px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #666; transition: 0.2s; }
         .nav-item.active { background: var(--primary-soft); color: var(--primary); }
 
-        .main-content { max-width: 1400px; margin: 0 auto; padding: 10px; }
+        .main-content { padding-top: 15px; padding-bottom: 50px; }
         .page-section { display: none; }
         .page-section.active { display: block; }
 
-        /* [편성표] 날짜 스크롤러 & 날짜 선택 강조 */
-        .date-scroller { display: flex; overflow-x: auto; padding: 10px 0; gap: 8px; position: sticky; top: var(--nav-height); background: var(--bg); z-index: 1000; }
-        .date-btn { 
-            min-width: 60px; height: 72px; background: white; border-radius: 12px; border: 1px solid #eee; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; 
-        }
-        .date-btn .dow { font-size: 11px; margin-bottom: 2px; color: #777; }
-        .date-btn .day { font-size: 19px; font-weight: 800; }
-        /* 선택된 날짜 박스 강조 */
-        .date-btn.active { 
-            background: var(--primary); color: white; border-color: var(--primary); 
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3); transform: translateY(-2px);
-        }
-        .date-btn.active .dow { color: rgba(255,255,255,0.8); }
-
-        /* [편성표] 시간대별 구분선 */
-        .time-divider { 
-            display: flex; align-items: center; gap: 10px; margin: 25px 0 12px; 
-            font-weight: 800; color: var(--primary); font-size: 15px; 
-        }
-        .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
-
-        /* 메인 목록 4열 그리드 */
+        /* [메인 목록] 4열 그리드 */
         .product-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (min-width: 1200px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
 
         .p-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #eee; transition: 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; }
         .p-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
         .p-img-box { aspect-ratio: 1/1.1; background: #fff; position: relative; }
         .p-img { width: 100%; height: 100%; object-fit: contain; }
-        .p-info { padding: 10px; flex-grow: 1; }
+        .p-info { padding: 12px; flex-grow: 1; }
         .p-brand { font-size: 11px; color: var(--primary); font-weight: 800; margin-bottom: 2px; }
         .p-name { font-size: 13px; font-weight: 600; line-height: 1.3; height: 34px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        /* 상세 페이지 레이아웃 */
+        /* [상세 페이지] 대시보드 레이아웃 최적화 */
         .dash-layout { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
         @media (min-width: 992px) { .dash-layout { grid-template-columns: 420px 1fr; } }
+
         .dash-card { background: white; border-radius: 15px; padding: 15px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-bottom: 12px; }
 
-        /* 이미지+정보 통합 헤더 */
+        /* [사진2 반영] 목록으로 버튼 라인 삭제 및 상단 여백 제거 */
+        #page-detail { margin-top: 0; }
+
+        /* 이미지+정보 통합 헤더 (상품명 블랙) */
         .integrated-section { background: white; border-radius: 15px; border: 1px solid #eee; overflow: hidden; }
-        .img-header-overlay { padding: 25px 25px 10px 25px; background: white; }
-        .det-full-title { font-size: 24px; font-weight: 800; color: #000; line-height: 1.2; margin-bottom: 8px; letter-spacing: -1px; }
-        .det-full-title span { color: var(--primary); margin-right: 8px; }
+        .img-header-overlay { padding: 20px 20px 10px 20px; background: white; }
+        .det-full-title { font-size: 24px; font-weight: 800; line-height: 1.2; margin-bottom: 8px; letter-spacing: -1px; }
+        .det-full-title .brand-span { color: var(--primary); margin-right: 8px; }
+        .det-full-title .name-span { color: #000; } /* 상품명 블랙 확정 */
         .det-sub-info { display: flex; gap: 8px; align-items: center; }
         .badge-item { padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: 700; border: 1px solid #dee2e6; }
         .badge-code { background: #f8f9fa; color: #495057; }
         .badge-loc { background: var(--primary); color: white; border: none; }
+        .det-main-img { width: 100%; padding: 15px; display: block; object-fit: contain; background: white; }
 
-        /* 재고 표 (RAW 순서 유지 및 블랙 폰트) */
+        /* [재고 표] RAW 순서 및 블랙 폰트 */
         .compact-table .st-table { width: 100%; font-size: 14px; border-collapse: separate; border-spacing: 0; border: 1px solid #eee; border-radius: 10px; overflow: hidden; table-layout: fixed; }
-        .compact-table th { background: #f8f9fa; padding: 10px 4px; font-weight: 700; text-align: center; color: #333; border-bottom: 1px solid #eee; }
-        .compact-table td { padding: 14px 4px; text-align: center; color: #000 !important; font-weight: 800; border-bottom: 1px solid #eee; }
+        .compact-table th { background: #f8f9fa; padding: 10px 4px; font-weight: 700; border-bottom: 1px solid #eee; text-align: center; color: #333; }
+        .compact-table td { padding: 14px 4px; border-bottom: 1px solid #eee; text-align: center; color: #000 !important; font-weight: 800; }
         .compact-table td:first-child { width: 110px; background: #fcfcfc; font-weight: 700; }
 
-        /* 착장 정보 (4열 & 블랙 폰트) */
+        /* [착장 정보] 4열 배치 */
         .outfit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         @media (min-width: 576px) { .outfit-grid { grid-template-columns: repeat(4, 1fr); } }
         .outfit-item { background: white; border: 1px solid #eee; border-radius: 10px; padding: 12px 5px; text-align: center; }
         .outfit-host-name { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 2px; display: block; }
         .outfit-size-val { font-size: 18px; font-weight: 800; color: #000; display: block; }
+
+        /* 편성표 날짜 & 시간 */
+        .date-scroller { display: flex; overflow-x: auto; padding: 10px 0; gap: 8px; position: sticky; top: var(--nav-height); background: var(--bg); z-index: 1000; }
+        .date-btn { min-width: 55px; height: 65px; background: white; border-radius: 10px; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; }
+        .date-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .date-btn .dow { font-size: 11px; margin-bottom: 2px; }
+        .date-btn .day { font-size: 17px; font-weight: 800; }
+
+        .time-divider { display: flex; align-items: center; gap: 10px; margin: 20px 0 12px; font-weight: 800; color: var(--primary); font-size: 15px; }
+        .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
 
         /* 로딩 화면 */
         #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
@@ -98,11 +106,11 @@
 </head>
 <body>
 
-    <div id="loading-overlay"><div class="spinner"></div><div class="mt-2 fw-bold small">데이터를 불러오는 중입니다...</div></div>
+    <div id="loading-overlay"><div class="spinner"></div><div class="mt-2 fw-bold small">잠시만 기달려주세용!!...</div></div>
 
     <nav class="top-nav">
         <div class="nav-container">
-            <a href="javascript:void(0)" class="nav-logo" onclick="handleNavClick('schedule')">LOTTE WM</a>
+            <a href="javascript:void(0)" class="nav-logo" onclick="handleNavClick('schedule')">LOTTE PB실 재고</a>
             <div class="nav-menu">
                 <button class="nav-item active" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
                 <button class="nav-item" id="nav-inv" onclick="handleNavClick('inventory')">재고관리</button>
@@ -114,7 +122,7 @@
         <!-- 1. 편성표 페이지 -->
         <section id="page-schedule" class="page-section active">
             <div id="dateScroller" class="date-scroller"></div>
-            <div id="scheduleContainer"></div>
+            <div id="scheduleContainer" class="mt-1"></div>
         </section>
 
         <!-- 2. 재고관리 페이지 -->
@@ -123,7 +131,7 @@
                 <div class="row g-2">
                     <div class="col-6"><select id="brandSel" class="form-select form-select-sm bg-light" onchange="resetFilter()"></select></div>
                     <div class="col-6"><select id="cateSel" class="form-select form-select-sm bg-light" onchange="resetFilter()"></select></div>
-                    <div class="col-12"><input type="text" id="invSearch" class="form-control form-control-sm bg-light" placeholder="상품명, 브랜드, 상품코드 검색" onkeyup="resetFilter()"></div>
+                    <div class="col-12"><input type="text" id="invSearch" class="form-control form-control-sm bg-light" placeholder="상품명, 브랜드, 코드 검색" onkeyup="resetFilter()"></div>
                 </div>
             </div>
             <div id="inventoryContainer" class="product-grid"></div>
@@ -132,24 +140,26 @@
 
         <!-- 3. 상세 정보 페이지 -->
         <section id="page-detail" class="page-section">
-            <button class="btn btn-sm btn-light rounded-pill px-3 mb-3" onclick="history.back()">
-                <span class="material-icons-round align-middle me-1" style="font-size:16px;">arrow_back</span>목록으로
-            </button>
-
+            <!-- [사진2 반영] 목록으로 버튼 및 공백 삭제됨. 바로 내용 시작 -->
             <div class="dash-layout">
+                <!-- 왼쪽: 정보 통합 섹션 -->
                 <div class="dash-left">
                     <div class="integrated-section">
                         <div class="img-header-overlay">
-                            <h1 class="det-full-title"><span id="det-brand">BRAND</span><span id="det-name">PRODUCT NAME</span></h1>
+                            <h1 class="det-full-title">
+                                <span id="det-brand" class="brand-span">BRAND</span>
+                                <span id="det-name" class="name-span">PRODUCT NAME</span>
+                            </h1>
                             <div class="det-sub-info">
                                 <span id="det-code" class="badge-item badge-code">CODE</span>
                                 <span id="det-loc" class="badge-item badge-loc">LOCATION</span>
                             </div>
                         </div>
-                        <img id="det-img" src="" alt="상품이미지" class="det-main-img" style="width:100%; padding:10px; object-fit:contain;">
+                        <img id="det-img" src="" alt="상품이미지" class="det-main-img">
                     </div>
                 </div>
 
+                <!-- 오른쪽: 데이터 영역 -->
                 <div class="dash-right">
                     <div class="dash-card">
                         <div class="dash-title"><i class="material-icons-round">inventory_2</i> 실시간 재고 현황</div>
@@ -165,7 +175,7 @@
                             <div class="dash-title"><i class="material-icons-round">face</i> 착장 정보</div>
                             <div id="v-outfit-container" class="outfit-grid"></div>
                         </div>
-                        <div class="dash-card" id="handling-card">
+                        <div id="handling-card" class="dash-card">
                             <div class="dash-title"><i class="material-icons-round">info</i> 핸들링 가이드</div>
                             <div id="v-handling-container" class="row g-2"></div>
                         </div>
@@ -199,31 +209,21 @@
             fetch(API_URL + "?action=" + action + params)
                 .then(res => res.json())
                 .then(data => { if (action === "getInitialData") onDataLoad(data); })
-                .catch(err => { console.error(err); alert("연결 오류: URL 배포 설정을 확인하세요."); })
-                .finally(() => document.getElementById('loading-overlay').style.display = 'none');
+                .catch(err => { console.error(err); alert("데이터 연결 실패"); })
+                .finally(() => { document.getElementById('loading-overlay').style.display = 'none'; });
         }
 
         function onDataLoad(data) {
-            allItems = data.items || [];
-            allStockMap = data.stockMap || {};
-            allRentals = data.rentals || [];
-            allOutfits = data.outfits || [];
-            allHandlings = data.handlings || {};
-            
+            allItems = data.items || []; allStockMap = data.stockMap || {}; allRentals = data.rentals || [];
+            allOutfits = data.outfits || []; allHandlings = data.handlings || {};
             const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
-            b.innerHTML = '<option value="All">브랜드 전체</option>';
-            c.innerHTML = '<option value="All">카테고리 전체</option>';
-            data.brands.forEach(v => b.add(new Option(v, v)));
-            data.categories.forEach(v => c.add(new Option(v, v)));
-            
-            // 날짜 버튼 생성
-            const scroller = document.getElementById("dateScroller");
-            scroller.innerHTML = "";
+            b.innerHTML = '<option value="All">브랜드 전체</option>'; c.innerHTML = '<option value="All">카테고리 전체</option>';
+            data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
+            const scroller = document.getElementById("dateScroller"); scroller.innerHTML = "";
             if(data.dates.length > 0) {
                 if(!selDate) selDate = data.dates[0];
                 data.dates.forEach(d => {
-                    const dateObj = new Date(d);
-                    const btn = document.createElement("div");
+                    const dateObj = new Date(d); const btn = document.createElement("div");
                     btn.className = `date-btn ${d === selDate ? 'active' : ''}`;
                     btn.innerHTML = `<span class="dow">${"일월화수목금토"[dateObj.getDay()]}</span><span class="day">${dateObj.getDate()}</span>`;
                     btn.onclick = () => { selDate = d; renderSchedule(); };
@@ -233,10 +233,7 @@
             renderPageUI(history.state ? history.state.page : 'schedule');
         }
 
-        function handleNavClick(page) {
-            history.pushState({page: page}, '', '#' + page);
-            renderPageUI(page);
-        }
+        function handleNavClick(page) { history.pushState({page: page}, '', '#' + page); renderPageUI(page); }
 
         function renderPageUI(t) {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
@@ -244,49 +241,33 @@
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
             const nid = t==='schedule'?'nav-sch':'nav-inv';
             if(document.getElementById(nid)) document.getElementById(nid).classList.add('active');
-            
             if(t === 'schedule') renderSchedule();
             if(t === 'inventory' && !document.getElementById("inventoryContainer").children.length) resetFilter();
             window.scrollTo(0,0);
         }
 
-        // [에러 방지 강화된 편성표 렌더링]
         function renderSchedule() {
-            const container = document.getElementById("scheduleContainer");
-            container.innerHTML = "";
-            
-            // 날짜 버튼 active 갱신
+            const container = document.getElementById("scheduleContainer"); container.innerHTML = "";
             document.querySelectorAll('.date-btn').forEach(btn => {
-                const dayValue = parseInt(btn.querySelector('.day').innerText);
-                const selDateObj = new Date(selDate);
-                if (dayValue === selDateObj.getDate()) btn.classList.add('active');
+                const dayVal = parseInt(btn.querySelector('.day').innerText);
+                const selObj = new Date(selDate);
+                if (dayVal === selObj.getDate()) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-
-            const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate);
-            if(!filtered.length) { container.innerHTML = "<div class='text-center py-5 text-muted'>해당 날짜의 편성 일정이 없습니다.</div>"; return; }
-
-            // 시간순 정렬
-            filtered.sort((a,b) => parseTime(a.date) - parseTime(b.date));
-
+            const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate).sort((a,b)=>parseTime(a.date)-parseTime(b.date));
+            if(!filtered.length) { container.innerHTML = "<div class='text-center py-5 text-muted'>편성 일정이 없습니다.</div>"; return; }
             const groups = {};
             filtered.forEach(item => {
-                // 시간 추출 로직 안전하게 수정 (Regex Null 체크)
-                const timeMatch = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
-                const timeKey = timeMatch ? timeMatch[1] : "시간미정";
-                if (!groups[timeKey]) groups[timeKey] = [];
-                groups[timeKey].push(item);
+                const tm = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
+                const key = tm ? tm[1] : "시간미정";
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(item);
             });
-
-            // 시간대별로 구분선과 함께 출력
-            Object.keys(groups).sort((a,b) => parseTime(a) - parseTime(b)).forEach(time => {
-                const divider = document.createElement("div");
-                divider.className = "time-divider";
-                divider.innerHTML = `<span class="material-icons-round fs-5">schedule</span> ${time} 방송`;
-                container.appendChild(divider);
-
-                const grid = document.createElement("div");
-                grid.className = "product-grid";
+            Object.keys(groups).sort((a,b)=>parseTime(a)-parseTime(b)).forEach(time => {
+                const div = document.createElement("div"); div.className = "time-divider";
+                div.innerHTML = `<span class="material-icons-round fs-5">schedule</span> ${time} 방송`;
+                container.appendChild(div);
+                const grid = document.createElement("div"); grid.className = "product-grid";
                 groups[time].forEach(item => grid.appendChild(createCard(item)));
                 container.appendChild(grid);
             });
@@ -303,30 +284,21 @@
             curItem = item;
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.getElementById('page-detail').classList.add('active');
-            
-            document.getElementById("det-brand").innerText = item.brand + " ";
+            document.getElementById("det-brand").innerText = item.brand;
             document.getElementById("det-name").innerText = item.name;
             document.getElementById("det-code").innerText = item.code;
             document.getElementById("det-loc").innerText = item.location || "미지정";
             document.getElementById("det-img").src = item.image || "";
-            
             renderStock(allStockMap[item.code] || []);
-            renderOutfits(item.code);
-            renderHandling(item.code);
-            renderCurrentRentals(item.code);
+            renderOutfits(item.code); renderHandling(item.code); renderCurrentRentals(item.code);
             window.scrollTo(0,0);
         }
 
         function renderStock(stock) {
             const container = document.getElementById("v-stock-table");
-            if(!stock.length) { container.innerHTML = "<div class='py-5 text-center text-muted small'>데이터 없음</div>"; return; }
-            
+            if(!stock.length) { container.innerHTML = "<div class='py-4 text-center text-muted small'>데이터 없음</div>"; return; }
             const sizes = []; const colors = [];
-            stock.forEach(item => {
-                if (item.size && !sizes.includes(item.size)) sizes.push(item.size);
-                if (item.color && !colors.includes(item.color)) colors.push(item.color);
-            });
-            
+            stock.forEach(i => { if(i.size && !sizes.includes(i.size)) sizes.push(i.size); if(i.color && !colors.includes(i.color)) colors.push(i.color); });
             let h = `<table class="st-table"><thead><tr><th>색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
             colors.forEach(c => {
                 h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => {
@@ -340,11 +312,7 @@
         function renderOutfits(code) {
             const container = document.getElementById("v-outfit-container");
             const list = allOutfits.filter(o => o.code == code);
-            container.innerHTML = list.length ? list.map(o => `
-                <div class="outfit-item">
-                    <span class="outfit-host-name">${o.host}</span>
-                    <span class="outfit-size-val">${o.size}</span>
-                </div>`).join("") : '<div class="col-12 text-center py-3 text-muted small">정보 없음</div>';
+            container.innerHTML = list.length ? list.map(o => `<div class="outfit-item"><span class="outfit-host-name">${o.host}</span><span class="outfit-size-val">${o.size}</span></div>`).join("") : '<div class="col-12 text-center py-3 text-muted small">정보 없음</div>';
         }
 
         function renderHandling(code) {
@@ -364,15 +332,9 @@
         }
 
         function resetFilter() {
-            const b = document.getElementById("brandSel").value;
-            const c = document.getElementById("cateSel").value;
-            const q = document.getElementById("invSearch").value.toLowerCase();
-            filteredItems = allItems.filter(i => {
-                return i.isMaster && (b === 'All' || i.brand === b) && (c === 'All' || i.category === c) && 
-                       (i.name.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
-            });
-            document.getElementById("inventoryContainer").innerHTML = ""; 
-            renderInventoryChunk();
+            const b = document.getElementById("brandSel").value; const c = document.getElementById("cateSel").value; const q = document.getElementById("invSearch").value.toLowerCase();
+            filteredItems = allItems.filter(i => i.isMaster && (b === 'All' || i.brand === b) && (c === 'All' || i.category === c) && (i.name.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)));
+            document.getElementById("inventoryContainer").innerHTML = ""; renderInventoryChunk();
         }
 
         function renderInventoryChunk() {
@@ -382,13 +344,7 @@
             document.getElementById("loadMoreContainer").innerHTML = filteredItems.length > container.children.length ? `<button class="btn btn-outline-primary rounded-pill px-4 btn-sm" onclick="renderInventoryChunk()">더 보기</button>` : "";
         }
 
-        // [시간 파싱 함수 안정화]
-        function parseTime(s) { 
-            if(!s) return 9999; 
-            const m = s.match(/(\d{1,2}):(\d{1,2})/); 
-            if(!m) return 9999;
-            return parseInt(m[1])*60+parseInt(m[2]); 
-        }
+        function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
     </script>
 </body>
 </html>
