@@ -10,6 +10,7 @@
         :root { --primary: #4361ee; --primary-soft: #eef2ff; --bg: #f8f9fa; --text: #1a1a1a; --nav-height: 64px; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; }
 
+        /* 헤더: 로고(좌) / 메뉴(우) 정렬 */
         .top-nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height); background: white; box-shadow: 0 1px 10px rgba(0,0,0,0.05); z-index: 2000; display: flex; align-items: center; border: none; }
         .nav-container, .main-content { width: 100%; margin: 0 auto; padding: 0 15px; }
         @media (min-width: 992px) { .nav-container, .main-content { width: 74%; max-width: 1800px; } }
@@ -23,11 +24,13 @@
         .page-section { display: none; }
         .page-section.active { display: block; }
 
+        /* 대시보드 레이아웃 */
         .dash-layout { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
         @media (min-width: 992px) { .dash-layout { grid-template-columns: 400px 1fr; } }
         .dash-card { background: white; border-radius: 12px; padding: 10px; border: 1px solid #eee; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
         .dash-title { font-size: 13px; font-weight: 800; color: #444; margin-bottom: 8px; display: block; border-bottom: 1px solid #f8f9fa; padding-bottom: 4px; }
 
+        /* 이미지+정보 통합 섹션 */
         .integrated-section { background: white; border-radius: 12px; border: 1px solid #eee; overflow: hidden; }
         .img-header-overlay { padding: 15px 15px 8px 15px; background: white; }
         .det-product-name { font-size: 19px; font-weight: 800; color: #000; line-height: 1.2; margin-bottom: 6px; }
@@ -37,23 +40,23 @@
         .badge-loc { background: var(--primary); color: white; border: none; }
         .det-main-img { width: 80%; margin: 0 auto; padding: 5px; display: block; object-fit: contain; }
 
+        /* 재고 표 (RAW 순서 유지) */
         .compact-table .st-table { width: 100%; font-size: 12.5px; border-collapse: separate; border-spacing: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; table-layout: fixed; }
         .compact-table th { background: #f8f9fa; padding: 6px 4px; font-weight: 800; color: #333; border-bottom: 1px solid #eee; text-align: center; }
         .compact-table td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; color: #000 !important; font-weight: 700; }
         .compact-table td:first-child { width: 100px; background: #fcfcfc; font-weight: 700; }
 
+        /* 공통 카드 그리드 (착장/대여) */
         .info-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
         @media (min-width: 576px) { .info-card-grid { grid-template-columns: repeat(4, 1fr); } }
-        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px 4px; text-align: center; position: relative; }
+        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 8px 4px; text-align: center; position: relative; }
         .info-card-top { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 1px; display: block; }
         .info-card-bottom { font-size: 17px; font-weight: 800; color: #000; display: block; }
         
-        .delete-btn { position: absolute; top: 2px; right: 5px; color: #ccc; cursor: pointer; font-size: 12px; border: none; background: none; }
-        .delete-btn:hover { color: red; }
+        .delete-btn { position: absolute; top: 2px; right: 5px; color: #ddd; cursor: pointer; border: none; background: none; font-size: 14px; }
+        .delete-btn:hover { color: #ff4d4f; }
 
-        .time-divider { display: flex; align-items: center; gap: 8px; margin: 15px 0 10px; font-weight: 800; color: var(--primary); font-size: 14px; }
-        .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
-
+        /* 메인 상품 목록 (4열) */
         .product-grid { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
         .p-card { background: white; border-radius: 10px; overflow: hidden; border: 1px solid #eee; cursor: pointer; height: 100%; display: flex; flex-direction: column; transition: 0.15s; }
@@ -71,7 +74,8 @@
         .date-btn { min-width: 60px; height: 68px; background: white; border-radius: 12px; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; }
         .date-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         
-        .add-btn { background: var(--primary); color: white; border: none; border-radius: 5px; padding: 5px 10px; font-size: 12px; margin-top: 5px; width: 100%; }
+        .time-divider { display: flex; align-items: center; gap: 8px; margin: 15px 0 10px; font-weight: 800; color: var(--primary); font-size: 14px; }
+        .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
     </style>
 </head>
 <body>
@@ -134,7 +138,7 @@
                     </div>
                     <div id="v-rental-card" class="dash-card">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="dash-title mb-0" style="border:none;">현재 대여 현황</span>
+                            <span class="dash-title mb-0" style="border:none; color: var(--primary);">현재 대여 현황</span>
                             <button class="btn btn-sm btn-outline-primary py-0" onclick="addRentalData()">+ 대여</button>
                         </div>
                         <div id="v-rental-list" class="info-card-grid"></div>
@@ -146,13 +150,11 @@
 
     <script>
         /**
-         * [설정] 본사 GAS 차단 우회용 설정
-         * GITHUB_TOKEN: 보안상 직접 노출은 위험하므로, 실행 시 물어보거나 
-         * 본인만 아는 장소에 보관하세요. (여기서는 예시로 설명)
+         * [깃허브 API 실시간 연동 설정]
          */
         const GITHUB_USER = "poodingcake-hue";
         const GITHUB_REPO = "lotte";
-        const GITHUB_TOKEN = ""; // ◀ 여기에 토큰을 넣으면 저장이 가능해집니다.
+        const GITHUB_TOKEN = "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"; // 제공해주신 토큰 결합
 
         let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], selDate = null, filteredItems = [];
 
@@ -163,12 +165,11 @@
             document.getElementById('loading-overlay').style.display = 'flex';
             try {
                 const ts = new Date().getTime();
-                // 1. 마스터 데이터 (시트에서 생성된 정적 파일)
+                // 1. 마스터 데이터 (data.json)
                 const masterRes = await fetch(`data.json?v=${ts}`);
                 const masterData = await masterRes.json();
                 
-                // 2. 실시간 데이터 (깃허브 API를 통해 별도 관리)
-                // 깃허브 Pages는 반영이 느리므로, API raw 주소로 직접 호출하여 실시간성 확보
+                // 2. 실시간 데이터 (rentals.json / outfits.json) - Raw API를 직접 찔러 캐시 없이 로드
                 const rentalsRes = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/rentals.json?v=${ts}`);
                 allRentals = await rentalsRes.json();
 
@@ -177,49 +178,41 @@
 
                 onDataLoad(masterData);
             } catch (err) {
-                console.error("데이터 로드 실패:", err);
+                console.error("데이터 동기화 실패:", err);
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
 
-        /**
-         * [저장] 깃허브 API를 이용한 직접 저장 로직 (GAS 우회)
-         */
+        // 깃허브 파일 저장 로직 (SHA 자동 매칭)
         async function saveToGitHub(fileName, data) {
-            if (!GITHUB_TOKEN) {
-                const token = prompt("깃허브 토큰이 필요합니다:");
-                if (!token) return;
-                // 임시로 메모리에 저장 (세션 동안 유지)
-                window.G_TOKEN = token;
-            }
-            
-            const token = GITHUB_TOKEN || window.G_TOKEN;
-            const path = fileName;
-            const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+            document.getElementById('loading-overlay').style.display = 'flex';
+            const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${fileName}`;
+            try {
+                // 1. 기존 SHA 값 가져오기
+                const getRes = await fetch(url, { headers: { Authorization: `token ${GITHUB_TOKEN}` } });
+                const fileInfo = await getRes.json();
+                
+                // 2. 파일 업데이트 실행
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+                const putRes = await fetch(url, {
+                    method: "PUT",
+                    headers: { Authorization: `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: `Update ${fileName}`, content: content, sha: fileInfo.sha })
+                });
 
-            // 1. 기존 파일의 SHA 값을 가져와야 덮어쓰기가 가능함
-            const getRes = await fetch(url, { headers: { Authorization: `token ${token}` } });
-            const fileData = await getRes.json();
-            const sha = fileData.sha;
-
-            // 2. 파일 업데이트
-            const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-            const putRes = await fetch(url, {
-                method: "PUT",
-                headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ message: `Update ${fileName}`, content: content, sha: sha })
-            });
-
-            if (putRes.ok) {
-                alert("저장 완료! 약 10초 후 새로고침하세요.");
-                location.reload();
-            } else {
-                alert("저장 실패. 토큰이나 권한을 확인하세요.");
+                if (putRes.ok) {
+                    location.reload(); // 성공 시 리로드하여 최신 데이터 반영
+                } else {
+                    alert("저장 실패. 토큰 만료 여부를 확인하세요.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("네트워크 오류");
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-
-        // --- 기존 UI 제어 로직 ---
 
         function onDataLoad(data) {
             allItems = data.items || []; allStockMap = data.stockMap || {};
@@ -257,13 +250,12 @@
             const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate).sort((a,b)=>parseTime(a.date)-parseTime(b.date));
             const groups = {};
             filtered.forEach(item => {
-                const tmMatch = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
-                const tm = tmMatch ? tmMatch[1] : "시간미정";
-                if (!groups[tm]) groups[tm] = []; groups[tm].push(item);
+                const tm = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
+                const key = tm ? tm[1] : "시간미정";
+                if (!groups[key]) groups[key] = []; groups[key].push(item);
             });
             Object.keys(groups).sort().forEach(tm => {
-                const div = document.createElement("div"); div.className = "time-divider";
-                div.innerHTML = `${tm} 방송`;
+                const div = document.createElement("div"); div.className = "time-divider"; div.innerHTML = `${tm} 방송`;
                 container.appendChild(div);
                 const grid = document.createElement("div"); grid.className = "product-grid";
                 groups[tm].forEach(i => grid.appendChild(createCard(i)));
@@ -279,12 +271,11 @@
         }
 
         function renderDetailUI(i) {
-            curItem = i; // 전역 저장
+            curItem = i;
             document.getElementById("det-name").innerText = `${i.brand} ${i.name}`;
             document.getElementById("det-code").innerText = i.code;
             document.getElementById("det-loc").innerText = i.location || "-";
             document.getElementById("det-img").src = i.image || "";
-            
             const stock = allStockMap[i.code] || [];
             const sizes = []; const colors = [];
             stock.forEach(s => { if(s.size && !sizes.includes(s.size)) sizes.push(s.size); if(s.color && !colors.includes(s.color)) colors.push(s.color); });
@@ -292,56 +283,36 @@
             colors.forEach(c => { h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => `<td>${stock.filter(x=>x.color===c && x.size===s).reduce((a,b)=>a+Number(b.qty),0) || 0}</td>`).join("") + "</tr>"; });
             document.getElementById("v-stock-table").innerHTML = h + "</tbody></table>";
             
-            // 착장 정보
             const outfits = allOutfits.filter(o => o.code == i.code);
-            document.getElementById("v-outfit-container").innerHTML = outfits.map((o, idx) => `
+            document.getElementById("v-outfit-container").innerHTML = outfits.map(o => `
                 <div class="info-item-card">
-                    <button class="delete-btn" onclick="deleteInfo('outfit', '${o.code}', '${o.host}')">×</button>
+                    <button class="delete-btn" onclick="deleteEntry('outfit', '${o.code}', '${o.host}')">×</button>
                     <span class="info-card-top">${o.host}</span>
                     <span class="info-card-bottom">${o.size}</span>
                 </div>`).join("") || '<div class="col-12 py-1 text-muted small">정보 없음</div>';
             
-            // 대여 현황
             const rentals = allRentals.filter(r => r.code == i.code);
-            document.getElementById("v-rental-list").innerHTML = rentals.map((r, idx) => `
+            document.getElementById("v-rental-list").innerHTML = rentals.map(r => `
                 <div class="info-item-card">
-                    <button class="delete-btn" onclick="deleteInfo('rental', '${r.code}', '${r.renter}', '${r.color}')">×</button>
+                    <button class="delete-btn" onclick="deleteEntry('rental', '${r.code}', '${r.renter}', '${r.color}')">×</button>
                     <span class="info-card-top">${r.renter}</span>
                     <span class="info-card-bottom">${r.color}/${r.size}(${r.qty})</span>
                 </div>`).join("") || '<div class="col-12 py-1 text-muted small">정보 없음</div>';
         }
 
-        // --- 추가/삭제 비즈니스 로직 (깃허브 API 연동) ---
-
+        // --- 실시간 데이터 핸들러 ---
         function addOutfitData() {
-            const host = prompt("성함:");
-            const size = prompt("사이즈:");
-            if(host && size) {
-                allOutfits.push({ code: curItem.code, host, size });
-                saveToGitHub("outfits.json", allOutfits);
-            }
+            const h = prompt("성함:"), s = prompt("사이즈:");
+            if(h && s) { allOutfits.push({ code: curItem.code, host: h, size: s }); saveToGitHub("outfits.json", allOutfits); }
         }
-
         function addRentalData() {
-            const renter = prompt("대여자:");
-            const color = prompt("색상:");
-            const size = prompt("사이즈:");
-            const qty = prompt("수량:", "1");
-            if(renter && color && size) {
-                allRentals.push({ code: curItem.code, renter, color, size, qty });
-                saveToGitHub("rentals.json", allRentals);
-            }
+            const r = prompt("대여자:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
+            if(r && c && s) { allRentals.push({ code: curItem.code, renter: r, color: c, size: s, qty: q }); saveToGitHub("rentals.json", allRentals); }
         }
-
-        function deleteInfo(type, code, key, color) {
+        function deleteEntry(type, code, key, color) {
             if(!confirm("삭제하시겠습니까?")) return;
-            if(type === 'outfit') {
-                allOutfits = allOutfits.filter(o => !(o.code === code && o.host === key));
-                saveToGitHub("outfits.json", allOutfits);
-            } else {
-                allRentals = allRentals.filter(r => !(r.code === code && r.renter === key && r.color === color));
-                saveToGitHub("rentals.json", allRentals);
-            }
+            if(type === 'outfit') { allOutfits = allOutfits.filter(o => !(o.code === code && o.host === key)); saveToGitHub("outfits.json", allOutfits); }
+            else { allRentals = allRentals.filter(r => !(r.code === code && r.renter === key && r.color === color)); saveToGitHub("rentals.json", allRentals); }
         }
 
         function resetFilter() {
@@ -349,13 +320,11 @@
             filteredItems = allItems.filter(i => i.isMaster && (b === 'All' || i.brand === b) && (c === 'All' || i.category === c) && (i.name.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)));
             document.getElementById("inventoryContainer").innerHTML = ""; renderInventoryChunk();
         }
-
         function renderInventoryChunk() {
             const c = document.getElementById("inventoryContainer"), current = c.children.length;
             filteredItems.slice(current, current + 40).forEach(i => c.appendChild(createCard(i)));
             document.getElementById("loadMoreContainer").innerHTML = filteredItems.length > c.children.length ? `<button class="btn btn-outline-primary rounded-pill px-4 btn-sm" onclick="renderInventoryChunk()">더 보기</button>` : "";
         }
-
         function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
     </script>
 </body>
