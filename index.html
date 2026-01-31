@@ -6,30 +6,38 @@
     <title>LOTTE WM Dashboard Professional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
         :root { --primary: #4361ee; --primary-soft: #eef2ff; --bg: #f8f9fa; --text: #1a1a1a; --nav-height: 64px; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; }
 
+        /* 헤더 디자인: 로고(좌) / 메뉴(우) */
         .top-nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height); background: white; box-shadow: 0 1px 10px rgba(0,0,0,0.05); z-index: 2000; display: flex; align-items: center; border: none; }
         .nav-container, .main-content { width: 100%; margin: 0 auto; padding: 0 15px; }
+        
+        /* 데스크톱 양옆 13% 여백 반영 */
         @media (min-width: 992px) { .nav-container, .main-content { width: 74%; max-width: 1800px; } }
+        
         .nav-container { display: flex; justify-content: space-between; align-items: center; }
         .nav-logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); text-decoration: none; cursor: pointer; }
-        .nav-menu { display: flex; gap: 5px; align-items: center; }
+        .nav-menu { display: flex; gap: 5px; }
         .nav-item { border: none; background: none; padding: 8px 20px; border-radius: 12px; font-size: 16px; font-weight: 700; color: #444; transition: 0.2s; }
         .nav-item.active { background: var(--primary-soft); color: var(--primary); }
 
-        .main-content { padding-top: 15px; padding-bottom: 40px; }
+        .main-content { padding-top: 15px; padding-bottom: 50px; }
         .page-section { display: none; }
         .page-section.active { display: block; }
 
+        /* 대시보드 레이아웃 */
         .dash-layout { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
-        @media (min-width: 992px) { .dash-layout { grid-template-columns: 400px 1fr; } }
-        .dash-card { background: white; border-radius: 12px; padding: 10px; border: 1px solid #eee; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
-        .dash-title { font-size: 13px; font-weight: 800; color: #444; margin-bottom: 8px; display: block; border-bottom: 1px solid #f8f9fa; padding-bottom: 4px; }
+        @media (min-width: 992px) { .dash-layout { grid-template-columns: 420px 1fr; } }
+        .dash-card { background: white; border-radius: 12px; padding: 12px; border: 1px solid #eee; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .dash-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #f8f9fa; }
+        .dash-title { font-size: 13px; font-weight: 800; color: #444; }
 
+        /* 이미지+정보 통합 헤더 */
         .integrated-section { background: white; border-radius: 12px; border: 1px solid #eee; overflow: hidden; }
-        .img-header-overlay { padding: 15px 15px 8px 15px; background: white; }
+        .img-header-overlay { padding: 15px; background: white; }
         .det-product-name { font-size: 19px; font-weight: 800; color: #000; line-height: 1.2; margin-bottom: 6px; }
         .det-sub-info { display: flex; gap: 6px; align-items: center; }
         .badge-item { padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; border: 1px solid #dee2e6; }
@@ -37,22 +45,25 @@
         .badge-loc { background: var(--primary); color: white; border: none; }
         .det-main-img { width: 80%; margin: 0 auto; padding: 5px; display: block; object-fit: contain; }
 
+        /* 재고 표 */
         .compact-table .st-table { width: 100%; font-size: 12.5px; border-collapse: separate; border-spacing: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; table-layout: fixed; }
         .compact-table th { background: #f8f9fa; padding: 6px 4px; font-weight: 800; color: #333; border-bottom: 1px solid #eee; text-align: center; }
         .compact-table td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; color: #000 !important; font-weight: 700; }
         .compact-table td:first-child { width: 100px; background: #fcfcfc; font-weight: 700; }
 
-        .info-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        /* 공통 정보 카드 (착장/대여) */
+        .info-card-grid { display: grid; gap: 6px; grid-template-columns: repeat(2, 1fr); }
         @media (min-width: 576px) { .info-card-grid { grid-template-columns: repeat(4, 1fr); } }
-        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px 4px; text-align: center; position: relative; }
+        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 8px 4px; text-align: center; position: relative; }
         .info-card-top { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 1px; display: block; }
         .info-card-bottom { font-size: 17px; font-weight: 800; color: #000; display: block; }
-        
         .delete-btn { position: absolute; top: 2px; right: 5px; color: #ddd; cursor: pointer; border: none; background: none; font-size: 14px; }
+        .delete-btn:hover { color: #ff4d4f; }
 
-        .time-divider { display: flex; align-items: center; gap: 8px; margin: 15px 0 10px; font-weight: 800; color: var(--primary); font-size: 14px; }
-        .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
+        /* + 버튼 스타일 */
+        .btn-plus { background: var(--primary); color: white; width: 22px; height: 22px; border-radius: 6px; border: none; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: pointer; }
 
+        /* 상품 목록 (4열) */
         .product-grid { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
         .p-card { background: white; border-radius: 10px; overflow: hidden; border: 1px solid #eee; cursor: pointer; height: 100%; display: flex; flex-direction: column; transition: 0.15s; }
@@ -74,7 +85,7 @@
 </head>
 <body>
 
-    <div id="loading-overlay"><div class="spinner"></div><div class="mt-2 fw-bold small">데이터 동기화 중...</div></div>
+    <div id="loading-overlay"><div class="spinner"></div><div class="mt-2 fw-bold small">LOTTE WM 데이터 동기화</div></div>
 
     <nav class="top-nav">
         <div class="nav-container">
@@ -87,13 +98,11 @@
     </nav>
 
     <main class="main-content">
-        <!-- 편성표 -->
         <section id="page-schedule" class="page-section">
             <div id="dateScroller" class="date-scroller"></div>
             <div id="scheduleContainer"></div>
         </section>
 
-        <!-- 재고관리 -->
         <section id="page-inventory" class="page-section">
             <div class="card border-0 shadow-sm p-2 mb-2 rounded-3">
                 <div class="row g-2">
@@ -106,9 +115,9 @@
             <div id="loadMoreContainer" class="text-center mt-3"></div>
         </section>
 
-        <!-- 상세 -->
         <section id="page-detail" class="page-section">
             <div class="dash-layout">
+                <!-- 이미지 통합 정보 섹션 -->
                 <div class="dash-left">
                     <div class="integrated-section">
                         <div class="img-header-overlay">
@@ -121,22 +130,25 @@
                         <img id="det-img" src="" alt="상품이미지" class="det-main-img">
                     </div>
                 </div>
+                <!-- 데이터 영역 -->
                 <div class="dash-right">
                     <div class="dash-card">
-                        <span class="dash-title">실시간 재고 현황</span>
+                        <div class="dash-title-row"><span class="dash-title">실시간 재고 현황</span></div>
                         <div id="v-stock-table" class="compact-table"></div>
                     </div>
+                    <!-- 착장 정보 섹션 -->
                     <div class="dash-card">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="dash-title mb-0" style="border:none;">착장 정보</span>
-                            <button class="btn btn-sm btn-outline-primary py-0" onclick="addOutfit()">+ 추가</button>
+                        <div class="dash-title-row">
+                            <span class="dash-title">착장 정보</span>
+                            <button class="btn-plus" onclick="addOutfit()">+</button>
                         </div>
                         <div id="v-outfit-container" class="info-card-grid"></div>
                     </div>
-                    <div id="v-rental-card" class="dash-card">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="dash-title mb-0" style="border:none; color: var(--primary);">현재 대여 현황</span>
-                            <button class="btn btn-sm btn-outline-primary py-0" onclick="addRental()">+ 대여</button>
+                    <!-- 대여 현황 섹션 -->
+                    <div class="dash-card">
+                        <div class="dash-title-row">
+                            <span class="dash-title" style="color: var(--primary);">현재 대여 현황</span>
+                            <button class="btn-plus" onclick="addRental()">+</button>
                         </div>
                         <div id="v-rental-list" class="info-card-grid"></div>
                     </div>
@@ -146,6 +158,9 @@
     </main>
 
     <script>
+        /**
+         * [설정] 깃허브 API 연동
+         */
         const GH_CONFIG = {
             user: "poodingcake-hue",
             repo: "lotte",
@@ -160,48 +175,46 @@
         async function initApp() {
             document.getElementById('loading-overlay').style.display = 'flex';
             const ts = new Date().getTime();
-            
             try {
-                // 1. 마스터 데이터 로드 (로컬 상대경로)
+                // 1. 마스터 데이터 (data.json)
                 const masterRes = await fetch(`data.json?v=${ts}`);
-                if (!masterRes.ok) throw new Error("data.json 로드 실패");
                 const masterData = await masterRes.json();
                 
-                // 2. 대여 정보 로드 (상대경로)
-                try {
-                    const rentalsRes = await fetch(`rentals.json?v=${ts}`);
-                    if (rentalsRes.ok) allRentals = await rentalsRes.json();
-                } catch(e) { console.warn("rentals.json 없음"); allRentals = []; }
+                // 2. 실시간 대여 정보 (rentals.json)
+                const rentalsRes = await fetch(`https://raw.githubusercontent.com/${GH_CONFIG.user}/${GH_CONFIG.repo}/main/rentals.json?v=${ts}`);
+                allRentals = rentalsRes.ok ? await rentalsRes.json() : [];
 
-                // 3. 착장 정보 로드 (상대경로)
-                try {
-                    const outfitsRes = await fetch(`outfits.json?v=${ts}`);
-                    if (outfitsRes.ok) allOutfits = await outfitsRes.json();
-                } catch(e) { console.warn("outfits.json 없음"); allOutfits = []; }
+                // 3. 실시간 착장 정보 (outfits.json)
+                const outfitsRes = await fetch(`https://raw.githubusercontent.com/${GH_CONFIG.user}/${GH_CONFIG.repo}/main/outfits.json?v=${ts}`);
+                allOutfits = outfitsRes.ok ? await outfitsRes.json() : [];
 
                 onDataLoad(masterData);
             } catch (err) {
-                console.error("데이터 로드 최종 실패:", err);
-                alert("데이터 로드 오류: 깃허브에 data.json 파일이 있는지 확인하세요.");
+                console.error("동기화 실패:", err);
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
 
+        // 깃허브 파일 저장 (SHA 자동갱신 로직 포함)
         async function saveToGitHub(fileName, data) {
             document.getElementById('loading-overlay').style.display = 'flex';
             const url = `https://api.github.com/repos/${GH_CONFIG.user}/${GH_CONFIG.repo}/contents/${fileName}`;
             try {
+                // 기존 SHA 가져오기
                 const getRes = await fetch(url, { headers: { Authorization: `token ${GH_CONFIG.token}` } });
                 const fileInfo = await getRes.json();
+                
+                // 파일 업데이트
                 const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
                 const putRes = await fetch(url, {
                     method: "PUT",
                     headers: { Authorization: `token ${GH_CONFIG.token}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ message: `Update ${fileName}`, content: content, sha: fileInfo.sha })
                 });
-                if (putRes.ok) { alert("저장 성공"); location.reload(); }
-                else alert("저장 실패 (토큰/권한 확인)");
+
+                if (putRes.ok) location.reload();
+                else alert("토큰 권한을 확인하세요. (repo 권한 필요)");
             } catch (e) { alert("네트워크 오류"); }
             finally { document.getElementById('loading-overlay').style.display = 'none'; }
         }
@@ -210,9 +223,7 @@
             allItems = data.items || []; allStockMap = data.stockMap || {};
             const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
             b.innerHTML = '<option value="All">브랜드 전체</option>'; c.innerHTML = '<option value="All">카테고리 전체</option>';
-            if(data.brands) data.brands.forEach(v => b.add(new Option(v, v)));
-            if(data.categories) data.categories.forEach(v => c.add(new Option(v, v)));
-            
+            data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
             const scroller = document.getElementById("dateScroller"); scroller.innerHTML = "";
             if(data.dates && data.dates.length > 0) {
                 if(!selDate) selDate = data.dates[0];
@@ -230,8 +241,7 @@
         function handleNavClick(p) { history.pushState({page: p}, '', '#' + p); renderPageUI(p); }
         function renderPageUI(t, item = null) {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-            const target = document.getElementById('page-'+t);
-            if (target) target.classList.add('active');
+            document.getElementById('page-'+t).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === (t==='schedule'?'nav-sch':'nav-inv')));
             if(t === 'schedule') renderSchedule();
             if(t === 'inventory' && !document.getElementById("inventoryContainer").children.length) resetFilter();
@@ -245,9 +255,9 @@
             const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate).sort((a,b)=>parseTime(a.date)-parseTime(b.date));
             const groups = {};
             filtered.forEach(item => {
-                const tmMatch = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
-                const tm = tmMatch ? tmMatch[1] : "시간미정";
-                if (!groups[tm]) groups[tm] = []; groups[tm].push(item);
+                const tm = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
+                const key = tm ? tm[1] : "시간미정";
+                if (!groups[key]) groups[key] = []; groups[key].push(item);
             });
             Object.keys(groups).sort().forEach(tm => {
                 const div = document.createElement("div"); div.className = "time-divider"; div.innerHTML = `${tm} 방송`;
@@ -271,6 +281,7 @@
             document.getElementById("det-code").innerText = i.code;
             document.getElementById("det-loc").innerText = i.location || "-";
             document.getElementById("det-img").src = i.image || "";
+            
             const stock = allStockMap[i.code] || [];
             const sizes = []; const colors = [];
             stock.forEach(s => { if(s.size && !sizes.includes(s.size)) sizes.push(s.size); if(s.color && !colors.includes(s.color)) colors.push(s.color); });
@@ -284,7 +295,7 @@
                     <button class="delete-btn" onclick="deleteEntry('outfit', '${o.code}', '${o.host}')">×</button>
                     <span class="info-card-top">${o.host}</span>
                     <span class="info-card-bottom">${o.size}</span>
-                </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">정보 없음</div>';
+                </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">내역 없음</div>';
             
             const rentals = allRentals.filter(r => r.code == i.code);
             document.getElementById("v-rental-list").innerHTML = rentals.map(r => `
@@ -292,16 +303,17 @@
                     <button class="delete-btn" onclick="deleteEntry('rental', '${r.code}', '${r.renter}', '${r.color}', '${r.size}')">×</button>
                     <span class="info-card-top">${r.renter}</span>
                     <span class="info-card-bottom">${r.color}/${r.size}(${r.qty})</span>
-                </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">정보 없음</div>';
+                </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">내역 없음</div>';
         }
 
+        // 실시간 추가 기능 (+ 버튼 트리거)
         function addOutfit() {
-            const h = prompt("호스트 성함:"), s = prompt("사이즈:");
+            const h = prompt("성함:"), s = prompt("사이즈:");
             if(h && s) { allOutfits.push({ code: curItem.code, host: h, size: s }); saveToGitHub("outfits.json", allOutfits); }
         }
         function addRental() {
-            const r = prompt("반출자 성함:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
-            if(r && c && s) { allRentals.push({ code: curItem.code, name: curItem.name, color: c, size: s, qty: q, renter: r, date: new Date().toLocaleString() }); saveToGitHub("rentals.json", allRentals); }
+            const r = prompt("대여자 성함:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
+            if(r && c && s) { allRentals.push({ code: curItem.code, renter: r, color: c, size: s, qty: q }); saveToGitHub("rentals.json", allRentals); }
         }
         function deleteEntry(type, code, key, color, size) {
             if(!confirm("삭제하시겠습니까?")) return;
@@ -316,8 +328,8 @@
             document.getElementById("inventoryContainer").innerHTML = ""; renderInventoryChunk();
         }
         function renderInventoryChunk() {
-            const c = document.getElementById("inventoryContainer"), current = c.children.length;
-            filteredItems.slice(current, current + 40).forEach(i => c.appendChild(createCard(i)));
+            const c = document.getElementById("inventoryContainer"), cur = c.children.length;
+            filteredItems.slice(cur, cur + 40).forEach(i => c.appendChild(createCard(i)));
             document.getElementById("loadMoreContainer").innerHTML = filteredItems.length > c.children.length ? `<button class="btn btn-outline-primary rounded-pill px-4 btn-sm" onclick="renderInventoryChunk()">더 보기</button>` : "";
         }
         function parseTime(s) { if(!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 9999; }
