@@ -8,56 +8,21 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root { --primary: #4361ee; --primary-soft: #eef2ff; --bg: #f8f9fa; --text: #1a1a1a; --nav-height: 64px; }
-        
-        body { 
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; 
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; }
 
-        /* [핵심 수정] 상단 헤더 정렬: 로고(좌) / 메뉴(우) */
-        .top-nav { 
-            position: fixed; top: 0; left: 0; right: 0; 
-            height: var(--nav-height); background: white; 
-            box-shadow: 0 1px 10px rgba(0,0,0,0.05); 
-            z-index: 2000; display: flex; align-items: center; border: none; 
-        }
-        
-        /* 양옆 여백 13% 및 컨텐츠 가로 정렬 */
-        .nav-container, .main-content { 
-            width: 100%; margin: 0 auto; padding: 0 15px; 
-        }
-        
-        @media (min-width: 992px) { 
-            .nav-container, .main-content { width: 74%; max-width: 1800px; } 
-        }
-
-        .nav-container { 
-            display: flex; 
-            justify-content: space-between; /* 로고와 메뉴를 양 끝으로 배치 */
-            align-items: center; 
-        }
-
+        .top-nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height); background: white; box-shadow: 0 1px 10px rgba(0,0,0,0.05); z-index: 2000; display: flex; align-items: center; border: none; }
+        .nav-container, .main-content { width: 100%; margin: 0 auto; padding: 0 15px; }
+        @media (min-width: 992px) { .nav-container, .main-content { width: 74%; max-width: 1800px; } }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; }
         .nav-logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); text-decoration: none; cursor: pointer; }
-        
-        .nav-menu { 
-            display: flex; 
-            gap: 5px; 
-            align-items: center; 
-        }
-
-        .nav-item { 
-            border: none; background: none; 
-            padding: 8px 20px; border-radius: 10px; 
-            font-size: 16px; font-weight: 700; color: #444; 
-            transition: 0.2s; 
-        }
+        .nav-menu { display: flex; gap: 5px; align-items: center; }
+        .nav-item { border: none; background: none; padding: 8px 20px; border-radius: 10px; font-size: 16px; font-weight: 700; color: #444; transition: 0.2s; }
         .nav-item.active { background: var(--primary-soft); color: var(--primary); }
 
         .main-content { padding-top: 15px; padding-bottom: 40px; }
         .page-section { display: none; }
         .page-section.active { display: block; }
 
-        /* [상세 페이지] 여백 및 간격 최적화 */
         .dash-layout { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
         @media (min-width: 992px) { .dash-layout { grid-template-columns: 400px 1fr; } }
         .dash-card { background: white; border-radius: 12px; padding: 10px; border: 1px solid #eee; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
@@ -72,24 +37,23 @@
         .badge-loc { background: var(--primary); color: white; border: none; }
         .det-main-img { width: 80%; margin: 0 auto; padding: 5px; display: block; object-fit: contain; }
 
-        /* 재고 표 컴팩트화 */
         .compact-table .st-table { width: 100%; font-size: 12.5px; border-collapse: separate; border-spacing: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; table-layout: fixed; }
         .compact-table th { background: #f8f9fa; padding: 6px 4px; font-weight: 800; color: #333; border-bottom: 1px solid #eee; text-align: center; }
         .compact-table td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; color: #000 !important; font-weight: 700; }
         .compact-table td:first-child { width: 100px; background: #fcfcfc; font-weight: 700; }
 
-        /* 정보 카드 공통 양식 (착장/대여) */
         .info-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
         @media (min-width: 576px) { .info-card-grid { grid-template-columns: repeat(4, 1fr); } }
-        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px 4px; text-align: center; }
+        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px 4px; text-align: center; position: relative; }
         .info-card-top { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 1px; display: block; }
         .info-card-bottom { font-size: 17px; font-weight: 800; color: #000; display: block; }
+        
+        .delete-btn { position: absolute; top: 2px; right: 5px; color: #ccc; cursor: pointer; font-size: 12px; border: none; background: none; }
+        .delete-btn:hover { color: red; }
 
-        /* 편성표 시간 구분 */
         .time-divider { display: flex; align-items: center; gap: 8px; margin: 15px 0 10px; font-weight: 800; color: var(--primary); font-size: 14px; }
         .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
 
-        /* 상품 목록 카드 */
         .product-grid { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
         .p-card { background: white; border-radius: 10px; overflow: hidden; border: 1px solid #eee; cursor: pointer; height: 100%; display: flex; flex-direction: column; transition: 0.15s; }
@@ -102,22 +66,21 @@
 
         #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .date-scroller { display: flex; overflow-x: auto; padding: 8px 0; gap: 8px; position: sticky; top: var(--nav-height); background: var(--bg); z-index: 1000; }
         .date-btn { min-width: 60px; height: 68px; background: white; border-radius: 12px; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; }
         .date-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .add-btn { background: var(--primary); color: white; border: none; border-radius: 5px; padding: 5px 10px; font-size: 12px; margin-top: 5px; width: 100%; }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay"><div class="spinner"></div><div class="mt-2 fw-bold small">LOTTE PB실</div></div>
+    <div id="loading-overlay"><div class="spinner"></div><div class="mt-2 fw-bold small">LOTTE WM</div></div>
 
     <nav class="top-nav">
         <div class="nav-container">
-            <!-- 로고는 왼쪽 -->
             <a href="javascript:void(0)" class="nav-logo" onclick="handleNavClick('schedule')">LOTTE WM</a>
-            <!-- 메뉴 버튼은 오른쪽 -->
             <div class="nav-menu">
                 <button class="nav-item active" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
                 <button class="nav-item" id="nav-inv" onclick="handleNavClick('inventory')">재고관리</button>
@@ -163,11 +126,17 @@
                         <div id="v-stock-table" class="compact-table"></div>
                     </div>
                     <div class="dash-card">
-                        <span class="dash-title">착장 정보</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="dash-title mb-0" style="border:none;">착장 정보</span>
+                            <button class="btn btn-sm btn-outline-primary py-0" onclick="addOutfitData()">+ 추가</button>
+                        </div>
                         <div id="v-outfit-container" class="info-card-grid"></div>
                     </div>
-                    <div id="v-rental-card" class="dash-card" style="display:none;">
-                        <span class="dash-title" style="color: var(--primary);">현재 대여 현황</span>
+                    <div id="v-rental-card" class="dash-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="dash-title mb-0" style="border:none;">현재 대여 현황</span>
+                            <button class="btn btn-sm btn-outline-primary py-0" onclick="addRentalData()">+ 대여</button>
+                        </div>
                         <div id="v-rental-list" class="info-card-grid"></div>
                     </div>
                 </div>
@@ -176,22 +145,84 @@
     </main>
 
     <script>
-        // GitHub 데이터 연동 방식 로직
+        /**
+         * [설정] 본사 GAS 차단 우회용 설정
+         * GITHUB_TOKEN: 보안상 직접 노출은 위험하므로, 실행 시 물어보거나 
+         * 본인만 아는 장소에 보관하세요. (여기서는 예시로 설명)
+         */
+        const GITHUB_USER = "poodingcake-hue";
+        const GITHUB_REPO = "lotte";
+        const GITHUB_TOKEN = ""; // ◀ 여기에 토큰을 넣으면 저장이 가능해집니다.
+
         let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], selDate = null, filteredItems = [];
 
         window.onload = () => { fetchGitHubData(); };
         window.onpopstate = (e) => { if (e.state && e.state.page) renderPageUI(e.state.page, e.state.item); };
 
-        function fetchGitHubData() {
+        async function fetchGitHubData() {
             document.getElementById('loading-overlay').style.display = 'flex';
-            fetch(`data.json?v=${new Date().getTime()}`)
-                .then(res => res.json())
-                .then(data => { onDataLoad(data); document.getElementById('loading-overlay').style.display = 'none'; })
-                .catch(err => { console.error("로드 실패:", err); });
+            try {
+                const ts = new Date().getTime();
+                // 1. 마스터 데이터 (시트에서 생성된 정적 파일)
+                const masterRes = await fetch(`data.json?v=${ts}`);
+                const masterData = await masterRes.json();
+                
+                // 2. 실시간 데이터 (깃허브 API를 통해 별도 관리)
+                // 깃허브 Pages는 반영이 느리므로, API raw 주소로 직접 호출하여 실시간성 확보
+                const rentalsRes = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/rentals.json?v=${ts}`);
+                allRentals = await rentalsRes.json();
+
+                const outfitsRes = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/outfits.json?v=${ts}`);
+                allOutfits = await outfitsRes.json();
+
+                onDataLoad(masterData);
+            } catch (err) {
+                console.error("데이터 로드 실패:", err);
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
         }
 
+        /**
+         * [저장] 깃허브 API를 이용한 직접 저장 로직 (GAS 우회)
+         */
+        async function saveToGitHub(fileName, data) {
+            if (!GITHUB_TOKEN) {
+                const token = prompt("깃허브 토큰이 필요합니다:");
+                if (!token) return;
+                // 임시로 메모리에 저장 (세션 동안 유지)
+                window.G_TOKEN = token;
+            }
+            
+            const token = GITHUB_TOKEN || window.G_TOKEN;
+            const path = fileName;
+            const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${path}`;
+
+            // 1. 기존 파일의 SHA 값을 가져와야 덮어쓰기가 가능함
+            const getRes = await fetch(url, { headers: { Authorization: `token ${token}` } });
+            const fileData = await getRes.json();
+            const sha = fileData.sha;
+
+            // 2. 파일 업데이트
+            const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+            const putRes = await fetch(url, {
+                method: "PUT",
+                headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ message: `Update ${fileName}`, content: content, sha: sha })
+            });
+
+            if (putRes.ok) {
+                alert("저장 완료! 약 10초 후 새로고침하세요.");
+                location.reload();
+            } else {
+                alert("저장 실패. 토큰이나 권한을 확인하세요.");
+            }
+        }
+
+        // --- 기존 UI 제어 로직 ---
+
         function onDataLoad(data) {
-            allItems = data.items || []; allStockMap = data.stockMap || {}; allRentals = data.rentals || []; allOutfits = data.outfits || [];
+            allItems = data.items || []; allStockMap = data.stockMap || {};
             const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
             b.innerHTML = '<option value="All">브랜드 전체</option>'; c.innerHTML = '<option value="All">카테고리 전체</option>';
             data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
@@ -248,10 +279,12 @@
         }
 
         function renderDetailUI(i) {
+            curItem = i; // 전역 저장
             document.getElementById("det-name").innerText = `${i.brand} ${i.name}`;
             document.getElementById("det-code").innerText = i.code;
             document.getElementById("det-loc").innerText = i.location || "-";
             document.getElementById("det-img").src = i.image || "";
+            
             const stock = allStockMap[i.code] || [];
             const sizes = []; const colors = [];
             stock.forEach(s => { if(s.size && !sizes.includes(s.size)) sizes.push(s.size); if(s.color && !colors.includes(s.color)) colors.push(s.color); });
@@ -259,21 +292,56 @@
             colors.forEach(c => { h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => `<td>${stock.filter(x=>x.color===c && x.size===s).reduce((a,b)=>a+Number(b.qty),0) || 0}</td>`).join("") + "</tr>"; });
             document.getElementById("v-stock-table").innerHTML = h + "</tbody></table>";
             
+            // 착장 정보
             const outfits = allOutfits.filter(o => o.code == i.code);
-            document.getElementById("v-outfit-container").innerHTML = outfits.map(o => `
+            document.getElementById("v-outfit-container").innerHTML = outfits.map((o, idx) => `
                 <div class="info-item-card">
+                    <button class="delete-btn" onclick="deleteInfo('outfit', '${o.code}', '${o.host}')">×</button>
                     <span class="info-card-top">${o.host}</span>
                     <span class="info-card-bottom">${o.size}</span>
                 </div>`).join("") || '<div class="col-12 py-1 text-muted small">정보 없음</div>';
             
+            // 대여 현황
             const rentals = allRentals.filter(r => r.code == i.code);
-            const rCard = document.getElementById("v-rental-card");
-            rCard.style.display = rentals.length ? 'block' : 'none';
-            document.getElementById("v-rental-list").innerHTML = rentals.map(r => `
+            document.getElementById("v-rental-list").innerHTML = rentals.map((r, idx) => `
                 <div class="info-item-card">
+                    <button class="delete-btn" onclick="deleteInfo('rental', '${r.code}', '${r.renter}', '${r.color}')">×</button>
                     <span class="info-card-top">${r.renter}</span>
                     <span class="info-card-bottom">${r.color}/${r.size}(${r.qty})</span>
-                </div>`).join("");
+                </div>`).join("") || '<div class="col-12 py-1 text-muted small">정보 없음</div>';
+        }
+
+        // --- 추가/삭제 비즈니스 로직 (깃허브 API 연동) ---
+
+        function addOutfitData() {
+            const host = prompt("성함:");
+            const size = prompt("사이즈:");
+            if(host && size) {
+                allOutfits.push({ code: curItem.code, host, size });
+                saveToGitHub("outfits.json", allOutfits);
+            }
+        }
+
+        function addRentalData() {
+            const renter = prompt("대여자:");
+            const color = prompt("색상:");
+            const size = prompt("사이즈:");
+            const qty = prompt("수량:", "1");
+            if(renter && color && size) {
+                allRentals.push({ code: curItem.code, renter, color, size, qty });
+                saveToGitHub("rentals.json", allRentals);
+            }
+        }
+
+        function deleteInfo(type, code, key, color) {
+            if(!confirm("삭제하시겠습니까?")) return;
+            if(type === 'outfit') {
+                allOutfits = allOutfits.filter(o => !(o.code === code && o.host === key));
+                saveToGitHub("outfits.json", allOutfits);
+            } else {
+                allRentals = allRentals.filter(r => !(r.code === code && r.renter === key && r.color === color));
+                saveToGitHub("rentals.json", allRentals);
+            }
         }
 
         function resetFilter() {
@@ -292,4 +360,3 @@
     </script>
 </body>
 </html>
-
