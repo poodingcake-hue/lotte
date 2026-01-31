@@ -8,36 +8,26 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root { --primary: #4361ee; --primary-soft: #eef2ff; --bg: #f8f9fa; --text: #1a1a1a; --nav-height: 64px; }
-        
-        body { 
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; 
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-top: var(--nav-height); letter-spacing: -0.5px; }
 
-        /* [디자인] 상단 헤더: 로고(좌) / 메뉴(우) */
         .top-nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height); background: white; box-shadow: 0 1px 10px rgba(0,0,0,0.05); z-index: 2000; display: flex; align-items: center; border: none; }
-        
-        /* [디자인] 데스크톱 양옆 13% 여백 / 모바일 0% */
         .nav-container, .main-content { width: 100%; margin: 0 auto; padding: 0 15px; }
         @media (min-width: 992px) { .nav-container, .main-content { width: 74%; max-width: 1800px; } }
-
         .nav-container { display: flex; justify-content: space-between; align-items: center; }
         .nav-logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); text-decoration: none; cursor: pointer; }
         .nav-menu { display: flex; gap: 5px; align-items: center; }
         .nav-item { border: none; background: none; padding: 8px 20px; border-radius: 12px; font-size: 16px; font-weight: 700; color: #444; transition: 0.2s; }
         .nav-item.active { background: var(--primary-soft); color: var(--primary); }
 
-        .main-content { padding-top: 15px; padding-bottom: 50px; }
+        .main-content { padding-top: 15px; padding-bottom: 40px; }
         .page-section { display: none; }
         .page-section.active { display: block; }
 
-        /* [상세 페이지] 대시보드 구조 및 마진 축소 */
         .dash-layout { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
-        @media (min-width: 992px) { .dash-layout { grid-template-columns: 420px 1fr; } }
-        .dash-card { background: white; border-radius: 12px; padding: 12px; border: 1px solid #eee; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        @media (min-width: 992px) { .dash-layout { grid-template-columns: 400px 1fr; } }
+        .dash-card { background: white; border-radius: 12px; padding: 10px; border: 1px solid #eee; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
         .dash-title { font-size: 13px; font-weight: 800; color: #444; margin-bottom: 8px; display: block; border-bottom: 1px solid #f8f9fa; padding-bottom: 4px; }
 
-        /* [이미지영역] 정보 통합 디자인 */
         .integrated-section { background: white; border-radius: 12px; border: 1px solid #eee; overflow: hidden; }
         .img-header-overlay { padding: 15px 15px 8px 15px; background: white; }
         .det-product-name { font-size: 19px; font-weight: 800; color: #000; line-height: 1.2; margin-bottom: 6px; }
@@ -47,31 +37,27 @@
         .badge-loc { background: var(--primary); color: white; border: none; }
         .det-main-img { width: 80%; margin: 0 auto; padding: 5px; display: block; object-fit: contain; }
 
-        /* [재고표] RAW 순서 유지 및 블랙 폰트, 마진 축소 */
         .compact-table .st-table { width: 100%; font-size: 12.5px; border-collapse: separate; border-spacing: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; table-layout: fixed; }
         .compact-table th { background: #f8f9fa; padding: 6px 4px; font-weight: 800; color: #333; border-bottom: 1px solid #eee; text-align: center; }
         .compact-table td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; color: #000 !important; font-weight: 700; }
         .compact-table td:first-child { width: 100px; background: #fcfcfc; font-weight: 700; }
 
-        /* [정보카드] 착장/대여 4열 공통 양식 */
         .info-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
         @media (min-width: 576px) { .info-card-grid { grid-template-columns: repeat(4, 1fr); } }
-        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 8px 4px; text-align: center; position: relative; }
+        .info-item-card { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px 4px; text-align: center; position: relative; }
         .info-card-top { font-size: 13px; font-weight: 700; color: #000; margin-bottom: 1px; display: block; }
         .info-card-bottom { font-size: 17px; font-weight: 800; color: #000; display: block; }
+        
         .delete-btn { position: absolute; top: 2px; right: 5px; color: #ddd; cursor: pointer; border: none; background: none; font-size: 14px; }
-        .delete-btn:hover { color: #ff4d4f; }
 
-        /* [편성표] 시간별 구분선 */
         .time-divider { display: flex; align-items: center; gap: 8px; margin: 15px 0 10px; font-weight: 800; color: var(--primary); font-size: 14px; }
         .time-divider::after { content: ""; flex-grow: 1; height: 1px; background: #e0e0e0; }
 
-        /* 목록 카드 그리드 */
         .product-grid { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
         .p-card { background: white; border-radius: 10px; overflow: hidden; border: 1px solid #eee; cursor: pointer; height: 100%; display: flex; flex-direction: column; transition: 0.15s; }
         .p-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
-        .p-img-box { aspect-ratio: 1/1.1; background: #fff; position: relative; }
+        .p-img-box { aspect-ratio: 1/1.1; background: #fff; }
         .p-img { width: 100%; height: 100%; object-fit: contain; }
         .p-info { padding: 10px; flex-grow: 1; }
         .p-brand { font-size: 11px; color: var(--primary); font-weight: 800; margin-bottom: 2px; }
@@ -79,6 +65,7 @@
 
         #loading-overlay { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .date-scroller { display: flex; overflow-x: auto; padding: 8px 0; gap: 8px; position: sticky; top: var(--nav-height); background: var(--bg); z-index: 1000; }
         .date-btn { min-width: 60px; height: 68px; background: white; border-radius: 12px; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; }
@@ -93,18 +80,20 @@
         <div class="nav-container">
             <a href="javascript:void(0)" class="nav-logo" onclick="handleNavClick('schedule')">LOTTE WM</a>
             <div class="nav-menu">
-                <button class="nav-item" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
+                <button class="nav-item active" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
                 <button class="nav-item" id="nav-inv" onclick="handleNavClick('inventory')">재고관리</button>
             </div>
         </div>
     </nav>
 
     <main class="main-content">
+        <!-- 편성표 -->
         <section id="page-schedule" class="page-section">
             <div id="dateScroller" class="date-scroller"></div>
             <div id="scheduleContainer"></div>
         </section>
 
+        <!-- 재고관리 -->
         <section id="page-inventory" class="page-section">
             <div class="card border-0 shadow-sm p-2 mb-2 rounded-3">
                 <div class="row g-2">
@@ -117,9 +106,9 @@
             <div id="loadMoreContainer" class="text-center mt-3"></div>
         </section>
 
+        <!-- 상세 -->
         <section id="page-detail" class="page-section">
             <div class="dash-layout">
-                <!-- 이미지 통합 정보 섹션 -->
                 <div class="dash-left">
                     <div class="integrated-section">
                         <div class="img-header-overlay">
@@ -132,7 +121,6 @@
                         <img id="det-img" src="" alt="상품이미지" class="det-main-img">
                     </div>
                 </div>
-                <!-- 데이터 그리드 영역 -->
                 <div class="dash-right">
                     <div class="dash-card">
                         <span class="dash-title">실시간 재고 현황</span>
@@ -158,9 +146,6 @@
     </main>
 
     <script>
-        /**
-         * [깃허브 실시간 동기화 설정]
-         */
         const GH_CONFIG = {
             user: "poodingcake-hue",
             repo: "lotte",
@@ -174,22 +159,30 @@
 
         async function initApp() {
             document.getElementById('loading-overlay').style.display = 'flex';
+            const ts = new Date().getTime();
+            
             try {
-                const ts = new Date().getTime();
-                // 1. 마스터 정보 (편성/상품)
+                // 1. 마스터 데이터 로드 (로컬 상대경로)
                 const masterRes = await fetch(`data.json?v=${ts}`);
+                if (!masterRes.ok) throw new Error("data.json 로드 실패");
                 const masterData = await masterRes.json();
                 
-                // 2. 실시간 정보 (대여/착장) - Raw 호출로 캐시 우회
-                const rentalsRes = await fetch(`https://raw.githubusercontent.com/${GH_CONFIG.user}/${GH_CONFIG.repo}/main/rentals.json?v=${ts}`);
-                allRentals = await rentalsRes.json();
+                // 2. 대여 정보 로드 (상대경로)
+                try {
+                    const rentalsRes = await fetch(`rentals.json?v=${ts}`);
+                    if (rentalsRes.ok) allRentals = await rentalsRes.json();
+                } catch(e) { console.warn("rentals.json 없음"); allRentals = []; }
 
-                const outfitsRes = await fetch(`https://raw.githubusercontent.com/${GH_CONFIG.user}/${GH_CONFIG.repo}/main/outfits.json?v=${ts}`);
-                allOutfits = await outfitsRes.json();
+                // 3. 착장 정보 로드 (상대경로)
+                try {
+                    const outfitsRes = await fetch(`outfits.json?v=${ts}`);
+                    if (outfitsRes.ok) allOutfits = await outfitsRes.json();
+                } catch(e) { console.warn("outfits.json 없음"); allOutfits = []; }
 
                 onDataLoad(masterData);
             } catch (err) {
-                console.error("데이터 로드 실패:", err);
+                console.error("데이터 로드 최종 실패:", err);
+                alert("데이터 로드 오류: 깃허브에 data.json 파일이 있는지 확인하세요.");
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
@@ -207,9 +200,9 @@
                     headers: { Authorization: `token ${GH_CONFIG.token}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ message: `Update ${fileName}`, content: content, sha: fileInfo.sha })
                 });
-                if (putRes.ok) location.reload();
-                else alert("저장 실패");
-            } catch (e) { console.error(e); alert("네트워크 오류"); }
+                if (putRes.ok) { alert("저장 성공"); location.reload(); }
+                else alert("저장 실패 (토큰/권한 확인)");
+            } catch (e) { alert("네트워크 오류"); }
             finally { document.getElementById('loading-overlay').style.display = 'none'; }
         }
 
@@ -217,7 +210,9 @@
             allItems = data.items || []; allStockMap = data.stockMap || {};
             const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
             b.innerHTML = '<option value="All">브랜드 전체</option>'; c.innerHTML = '<option value="All">카테고리 전체</option>';
-            data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
+            if(data.brands) data.brands.forEach(v => b.add(new Option(v, v)));
+            if(data.categories) data.categories.forEach(v => c.add(new Option(v, v)));
+            
             const scroller = document.getElementById("dateScroller"); scroller.innerHTML = "";
             if(data.dates && data.dates.length > 0) {
                 if(!selDate) selDate = data.dates[0];
@@ -235,7 +230,8 @@
         function handleNavClick(p) { history.pushState({page: p}, '', '#' + p); renderPageUI(p); }
         function renderPageUI(t, item = null) {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-'+t).classList.add('active');
+            const target = document.getElementById('page-'+t);
+            if (target) target.classList.add('active');
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === (t==='schedule'?'nav-sch':'nav-inv')));
             if(t === 'schedule') renderSchedule();
             if(t === 'inventory' && !document.getElementById("inventoryContainer").children.length) resetFilter();
@@ -276,14 +272,12 @@
             document.getElementById("det-loc").innerText = i.location || "-";
             document.getElementById("det-img").src = i.image || "";
             const stock = allStockMap[i.code] || [];
-            // RAW 순서 유지
             const sizes = []; const colors = [];
             stock.forEach(s => { if(s.size && !sizes.includes(s.size)) sizes.push(s.size); if(s.color && !colors.includes(s.color)) colors.push(s.color); });
             let h = `<table class="st-table"><thead><tr><th>색상</th>${sizes.map(s=>`<th>${s}</th>`).join("")}</tr></thead><tbody>`;
             colors.forEach(c => { h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => `<td>${stock.filter(x=>x.color===c && x.size===s).reduce((a,b)=>a+Number(b.qty),0) || 0}</td>`).join("") + "</tr>"; });
             document.getElementById("v-stock-table").innerHTML = h + "</tbody></table>";
             
-            // 착장 정보 렌더링 (사진2 구조)
             const outfits = allOutfits.filter(o => o.code == i.code);
             document.getElementById("v-outfit-container").innerHTML = outfits.map(o => `
                 <div class="info-item-card">
@@ -292,7 +286,6 @@
                     <span class="info-card-bottom">${o.size}</span>
                 </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">정보 없음</div>';
             
-            // 대여 현황 렌더링 (사진1 구조)
             const rentals = allRentals.filter(r => r.code == i.code);
             document.getElementById("v-rental-list").innerHTML = rentals.map(r => `
                 <div class="info-item-card">
@@ -302,20 +295,13 @@
                 </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">정보 없음</div>';
         }
 
-        // 실시간 추가/삭제
         function addOutfit() {
             const h = prompt("호스트 성함:"), s = prompt("사이즈:");
             if(h && s) { allOutfits.push({ code: curItem.code, host: h, size: s }); saveToGitHub("outfits.json", allOutfits); }
         }
         function addRental() {
             const r = prompt("반출자 성함:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
-            if(r && c && s) { 
-                allRentals.push({ 
-                    code: curItem.code, name: curItem.name, color: c, size: s, qty: q, renter: r, 
-                    date: new Date().toLocaleString() 
-                }); 
-                saveToGitHub("rentals.json", allRentals); 
-            }
+            if(r && c && s) { allRentals.push({ code: curItem.code, name: curItem.name, color: c, size: s, qty: q, renter: r, date: new Date().toLocaleString() }); saveToGitHub("rentals.json", allRentals); }
         }
         function deleteEntry(type, code, key, color, size) {
             if(!confirm("삭제하시겠습니까?")) return;
