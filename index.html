@@ -575,21 +575,23 @@
             margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: space-between;
         }
 
         .notes-area {
             width: 100%;
-            height: 100px;
+            min-height: 42px;
+            height: auto;
             border: 1px solid #f1f3f5;
             border-radius: 10px;
-            padding: 12px;
+            padding: 10px 12px;
             font-size: 14px;
             font-weight: 600;
             outline: none;
-            transition: 0.2s;
+            transition: 0.1s;
             background: #f8f9fa;
             resize: none;
+            overflow: hidden;
         }
 
         .notes-area:focus {
@@ -599,14 +601,12 @@
         }
 
         .notes-save-btn {
-            margin-top: 8px;
-            width: 100%;
-            padding: 10px;
+            padding: 5px 12px;
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 13px;
+            border-radius: 8px;
+            font-size: 11px;
             font-weight: 800;
             cursor: pointer;
             transition: 0.2s;
@@ -675,12 +675,11 @@
                     <!-- 특이사항 입력창 -->
                     <div class="notes-section">
                         <div class="notes-title">
-                            <span class="material-icons-round"
-                                style="font-size: 18px; color: var(--primary);">edit_note</span>
                             상품 특이사항
+                            <button class="notes-save-btn" onclick="saveNote()">저장하기</button>
                         </div>
-                        <textarea id="det-notes" class="notes-area" placeholder="상품에 대한 특이사항이나 메모를 입력하세요."></textarea>
-                        <button class="notes-save-btn" onclick="saveNote()">특이사항 저장하기</button>
+                        <textarea id="det-notes" class="notes-area" placeholder="상품에 대한 특이사항 입력"
+                            oninput="autoExpand(this)" spellcheck="false"></textarea>
                     </div>
                 </div>
                 <!-- 데이터 영역 -->
@@ -877,7 +876,7 @@
                 const key = tm ? tm[1] : "시간미정";
                 if (!groups[key]) groups[key] = []; groups[key].push(item);
             });
-            Object.keys(groups).sort().forEach(tm => {
+            Object.keys(groups).sort((a, b) => parseTime(a) - parseTime(b)).forEach(tm => {
                 const div = document.createElement("div"); div.className = "time-divider"; div.innerHTML = `${tm} 방송`;
                 container.appendChild(div);
                 const grid = document.createElement("div"); grid.className = "product-grid";
@@ -902,7 +901,9 @@
 
             // 특이사항 불러오기
             const noteObj = allNotes.find(n => n.code == i.code);
-            document.getElementById("det-notes").value = noteObj ? noteObj.text : "";
+            const nArea = document.getElementById("det-notes");
+            nArea.value = noteObj ? noteObj.text : "";
+            autoExpand(nArea);
 
             const stock = allStockMap[i.code] || [];
             const sizes = []; const colors = [];
@@ -926,6 +927,11 @@
                     <span class="info-card-top">${r.renter}</span>
                     <span class="info-card-bottom">${r.color}/${r.size}(${r.qty})</span>
                 </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">내역 없음</div>';
+        }
+
+        function autoExpand(el) {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
         }
 
         // 실시간 추가 기능 (+ 버튼 트리거)
