@@ -757,7 +757,10 @@
                     body: JSON.stringify({ message: `Update ${fileName}`, content: content, sha: fileInfo.sha })
                 });
 
-                if (putRes.ok) location.reload();
+                if (putRes.ok) {
+                    // 페이지 전체를 새로고침하는 대신 UI만 즉시 갱신
+                    if (curItem) renderDetailUI(curItem);
+                }
                 else alert("토큰 권한을 확인하세요. (repo 권한 필요)");
             } catch (e) { alert("네트워크 오류"); }
             finally { document.getElementById('loading-overlay').style.display = 'none'; }
