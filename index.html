@@ -704,18 +704,33 @@
         async function initApp() {
             document.getElementById('loading-overlay').style.display = 'flex';
             const ts = new Date().getTime();
+
+            // 깃허브 API로 데이터 불러오는 공통 함수
+            async function fetchWithToken(fileName) {
+                const url = `https://api.github.com/repos/${GH_CONFIG.user}/${GH_CONFIG.repo}/contents/${fileName}`;
+                try {
+                    const res = await fetch(url, {
+                        headers: { Authorization: `token ${GH_CONFIG.token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        // base64 디코딩 (한글 지원을 위해 decodeURIComponent/escape 사용)
+                        return JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                    }
+                } catch (e) { console.error(fileName + " 로드 실패", e); }
+                return [];
+            }
+
             try {
                 // 1. 마스터 데이터 (data.json)
                 const masterRes = await fetch(`data.json?v=${ts}`);
                 const masterData = await masterRes.json();
 
-                // 2. 실시간 대여 정보 (rentals.json)
-                const rentalsRes = await fetch(`https://raw.githubusercontent.com/${GH_CONFIG.user}/${GH_CONFIG.repo}/main/rentals.json?v=${ts}`);
-                allRentals = rentalsRes.ok ? await rentalsRes.json() : [];
+                // 2. 실시간 대여 정보 (GitHub API)
+                allRentals = await fetchWithToken("rentals.json");
 
-                // 3. 실시간 착장 정보 (outfits.json)
-                const outfitsRes = await fetch(`https://raw.githubusercontent.com/${GH_CONFIG.user}/${GH_CONFIG.repo}/main/outfits.json?v=${ts}`);
-                allOutfits = outfitsRes.ok ? await outfitsRes.json() : [];
+                // 3. 실시간 착장 정보 (GitHub API)
+                allOutfits = await fetchWithToken("outfits.json");
 
                 onDataLoad(masterData);
             } catch (err) {
