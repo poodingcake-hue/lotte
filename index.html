@@ -558,6 +558,64 @@
         .m-btn:active {
             transform: translateY(0);
         }
+
+        /* 특이사항 섹션 스타일 */
+        .notes-section {
+            margin-top: 10px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            padding: 15px;
+        }
+
+        .notes-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #444;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notes-area {
+            width: 100%;
+            height: 100px;
+            border: 1px solid #f1f3f5;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            transition: 0.2s;
+            background: #f8f9fa;
+            resize: none;
+        }
+
+        .notes-area:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-soft);
+        }
+
+        .notes-save-btn {
+            margin-top: 8px;
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .notes-save-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -613,6 +671,16 @@
                             </div>
                         </div>
                         <img id="det-img" src="" alt="상품이미지" class="det-main-img">
+                    </div>
+                    <!-- 특이사항 입력창 -->
+                    <div class="notes-section">
+                        <div class="notes-title">
+                            <span class="material-icons-round"
+                                style="font-size: 18px; color: var(--primary);">edit_note</span>
+                            상품 특이사항
+                        </div>
+                        <textarea id="det-notes" class="notes-area" placeholder="상품에 대한 특이사항이나 메모를 입력하세요."></textarea>
+                        <button class="notes-save-btn" onclick="saveNote()">특이사항 저장하기</button>
                     </div>
                 </div>
                 <!-- 데이터 영역 -->
@@ -696,7 +764,7 @@
             token: "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"
         };
 
-        let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], selDate = null, filteredItems = [], curItem = null;
+        let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], allNotes = [], selDate = null, filteredItems = [], curItem = null;
 
         window.onload = () => { initApp(); };
         window.onpopstate = (e) => { if (e.state && e.state.page) renderPageUI(e.state.page, e.state.item); };
@@ -731,6 +799,9 @@
 
                 // 3. 실시간 착장 정보 (GitHub API)
                 allOutfits = await fetchWithToken("outfits.json");
+
+                // 4. 상품 특이사항 (GitHub API)
+                allNotes = await fetchWithToken("notes.json");
 
                 onDataLoad(masterData);
             } catch (err) {
@@ -829,6 +900,10 @@
             document.getElementById("det-loc").innerText = i.location || "-";
             document.getElementById("det-img").src = i.image || "";
 
+            // 특이사항 불러오기
+            const noteObj = allNotes.find(n => n.code == i.code);
+            document.getElementById("det-notes").value = noteObj ? noteObj.text : "";
+
             const stock = allStockMap[i.code] || [];
             const sizes = []; const colors = [];
             stock.forEach(s => { if (s.size && !sizes.includes(s.size)) sizes.push(s.size); if (s.color && !colors.includes(s.color)) colors.push(s.color); });
@@ -877,13 +952,28 @@
                     addedCount++;
                 }
             }
-
             if (addedCount > 0) {
                 closeOutfitModal();
                 saveToGitHub("outfits.json", allOutfits);
             } else {
                 alert("최소 한 명 이상의 성함과 사이즈를 입력해주세요.");
             }
+        }
+
+        // 특이사항 저장 기능
+        async function saveNote() {
+            const text = document.getElementById("det-notes").value.trim();
+            const idx = allNotes.findIndex(n => n.code == curItem.code);
+
+            if (idx > -1) {
+                if (text) allNotes[idx].text = text;
+                else allNotes.splice(idx, 1); // 내용이 없으면 제거
+            } else if (text) {
+                allNotes.push({ code: curItem.code, text: text });
+            }
+
+            await saveToGitHub("notes.json", allNotes);
+            alert("특이사항이 저장되었습니다.");
         }
         function addRental() {
             const r = prompt("대여자 성함:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
