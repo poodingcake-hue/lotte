@@ -777,14 +777,18 @@
                 const url = `https://api.github.com/repos/${GH_CONFIG.user}/${GH_CONFIG.repo}/contents/${fileName}`;
                 try {
                     const res = await fetch(url, {
-                        headers: { Authorization: `token ${GH_CONFIG.token}` }
+                        headers: { Authorization: `token ${GH_CONFIG.token}` },
+                        cache: "no-store" // 캐시 방지 추가
                     });
                     if (res.ok) {
                         const data = await res.json();
-                        // base64 디코딩 (한글 지원을 위해 decodeURIComponent/escape 사용)
-                        return JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                        // 깃허브 base64 데이터의 줄바꿈/공백 제거 후 디코딩 (한글 깨짐 방지 포함)
+                        const cleanContent = data.content.replace(/\s/g, "");
+                        return JSON.parse(decodeURIComponent(escape(atob(cleanContent))));
+                    } else if (res.status !== 404) {
+                        console.warn(`${fileName} 로드 실패: ${res.status}`);
                     }
-                } catch (e) { console.error(fileName + " 로드 실패", e); }
+                } catch (e) { console.error(fileName + " 처리 중 오류", e); }
                 return [];
             }
 
