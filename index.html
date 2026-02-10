@@ -898,8 +898,21 @@
         function createCard(i) {
             const div = document.createElement("div"); div.className = "p-card";
             div.onclick = () => { history.pushState({ page: 'detail', item: i }, '', '#detail'); renderPageUI('detail', i); };
-            div.innerHTML = `<div class="p-img-box"><img src="${i.image || ''}" class="p-img"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
+            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
             return div;
+        }
+
+        // 이미지 주소가 비어있을 경우 롯데홈쇼핑 웹 이미지를 생성하는 헬퍼 함수
+        function getProductImage(i) {
+            if (i.image && i.image.trim() !== "") return i.image;
+            const code = String(i.code);
+            if (code.length < 8) return ""; // 코드가 8자리 미만이면 빈값 반환
+
+            // https://image2.lotteimall.com/goods/'7~8번째'/'5~6번째'/'3~4번째'/'상품코드'_L.jpg
+            const p1 = code.substring(6, 8);
+            const p2 = code.substring(4, 6);
+            const p3 = code.substring(2, 4);
+            return `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${code}_L.jpg`;
         }
 
         function renderDetailUI(i) {
@@ -907,7 +920,7 @@
             document.getElementById("det-name").innerText = `${i.brand} ${i.name}`;
             document.getElementById("det-code").innerText = i.code;
             document.getElementById("det-loc").innerText = i.location || "-";
-            document.getElementById("det-img").src = i.image || "";
+            document.getElementById("det-img").src = getProductImage(i);
 
             // 특이사항 불러오기
             const noteObj = allNotes.find(n => n.code == i.code);
@@ -1005,6 +1018,14 @@
         function resetFilter() {
             const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value, q = document.getElementById("invSearch").value.toLowerCase();
             filteredItems = allItems.filter(i => i.isMaster && (b === 'All' || i.brand === b) && (c === 'All' || i.category === c) && (i.name.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)));
+
+            // 상품코드 높은 순으로 정렬 (내림차순)
+            filteredItems.sort((a, b) => {
+                if (a.code > b.code) return -1;
+                if (a.code < b.code) return 1;
+                return 0;
+            });
+
             document.getElementById("inventoryContainer").innerHTML = ""; renderInventoryChunk();
         }
         function renderInventoryChunk() {
