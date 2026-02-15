@@ -197,6 +197,7 @@
             padding: 5px;
             display: block;
             object-fit: contain;
+            cursor: pointer;
         }
 
         /* 재고 표 */
@@ -898,7 +899,7 @@
         function createCard(i) {
             const div = document.createElement("div"); div.className = "p-card";
             div.onclick = () => { history.pushState({ page: 'detail', item: i }, '', '#detail'); renderPageUI('detail', i); };
-            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
+            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img" onclick="window.open('https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=${i.code}', '_blank'); event.stopPropagation();" title="롯데홈쇼핑 상세페이지 이동"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
             return div;
         }
 
@@ -920,7 +921,9 @@
             document.getElementById("det-name").innerText = `${i.brand} ${i.name}`;
             document.getElementById("det-code").innerText = i.code;
             document.getElementById("det-loc").innerText = i.location || "-";
-            document.getElementById("det-img").src = getProductImage(i);
+            const detImg = document.getElementById("det-img");
+            detImg.src = getProductImage(i);
+            detImg.onclick = () => window.open(`https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=${i.code}`, '_blank');
 
             // 특이사항 불러오기
             const noteObj = allNotes.find(n => n.code == i.code);
