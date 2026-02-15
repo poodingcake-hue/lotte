@@ -242,6 +242,53 @@
             grid-template-columns: repeat(2, 1fr);
         }
 
+        /* 리스트형 테이블 스타일 추가 */
+        .list-table {
+            width: 100%;
+            font-size: 13px;
+            border-collapse: collapse;
+        }
+
+        .list-table th {
+            padding: 10px 5px;
+            border-bottom: 1px solid #eee;
+            color: #666;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .list-table td {
+            padding: 12px 5px;
+            border-bottom: 1px solid #f8f9fa;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .list-product-info {
+            text-align: left !important;
+            line-height: 1.4;
+        }
+
+        .list-product-name {
+            font-weight: 800;
+            display: block;
+        }
+
+        .list-product-desc {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .qty-badge {
+            color: #d63384;
+            font-weight: 800;
+        }
+
+        .date-text {
+            color: #aaa;
+            font-size: 11px;
+        }
+
         @media (min-width: 576px) {
             .info-card-grid {
                 grid-template-columns: repeat(4, 1fr);
@@ -617,6 +664,30 @@
             filter: brightness(1.1);
             transform: translateY(-1px);
         }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-soft);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .cart-item-info {
+            font-weight: 700;
+        }
+
+        .cart-qty-input {
+            width: 45px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            margin-left: 8px;
+            font-weight: 800;
+        }
     </style>
 </head>
 
@@ -633,6 +704,8 @@
             <div class="nav-menu">
                 <button class="nav-item active" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
                 <button class="nav-item" id="nav-inv" onclick="handleNavClick('inventory')">재고관리</button>
+                <button class="nav-item" onclick="initApp()" title="최신 데이터 실시간 동기화"><span class="material-icons-round"
+                        style="font-size: 20px; vertical-align: middle;">sync</span></button>
             </div>
         </div>
     </nav>
@@ -700,10 +773,25 @@
                     <!-- 대여 현황 섹션 -->
                     <div class="dash-card">
                         <div class="dash-title-row">
-                            <span class="dash-title" style="color: var(--primary);">현재 대여 현황</span>
                             <button class="btn-plus" onclick="addRental()">+</button>
                         </div>
-                        <div id="v-rental-list" class="info-card-grid"></div>
+                        <div id="v-rental-list"></div>
+                    </div>
+                    <!-- 대여 바구니 섹션 (숫자 클릭 시 노출) -->
+                    <div id="v-cart-section" class="dash-card"
+                        style="display:none; border: 1.5px solid var(--primary);">
+                        <div class="dash-title-row">
+                            <span class="dash-title" style="color: var(--primary);">대여 바구니 (등록 대기)</span>
+                            <button class="btn-plus" onclick="rentalCart = []; renderCart();"
+                                style="background:#999;">×</button>
+                        </div>
+                        <div id="v-cart-list" class="mb-3"></div>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="cart-renter" class="form-control form-control-sm border-primary"
+                                placeholder="대여자 성함 입력">
+                            <button class="btn btn-primary btn-sm fw-bold px-3" style="white-space:nowrap;"
+                                onclick="submitRentalCart()">대여 완료</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -771,6 +859,8 @@
         };
 
         let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], allNotes = [], selDate = null, filteredItems = [], curItem = null;
+        let rentalCart = []; // 대여 바구니
+
 
         window.onload = () => { initApp(); };
         window.onpopstate = (e) => { if (e.state && e.state.page) renderPageUI(e.state.page, e.state.item); };
@@ -899,7 +989,7 @@
         function createCard(i) {
             const div = document.createElement("div"); div.className = "p-card";
             div.onclick = () => { history.pushState({ page: 'detail', item: i }, '', '#detail'); renderPageUI('detail', i); };
-            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img" onclick="window.open('https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=${i.code}', '_blank'); event.stopPropagation();" title="롯데홈쇼핑 상세페이지 이동"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
+            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
             return div;
         }
 
@@ -935,8 +1025,15 @@
             const sizes = []; const colors = [];
             stock.forEach(s => { if (s.size && !sizes.includes(s.size)) sizes.push(s.size); if (s.color && !colors.includes(s.color)) colors.push(s.color); });
             let h = `<table class="st-table"><thead><tr><th>색상</th>${sizes.map(s => `<th>${s}</th>`).join("")}</tr></thead><tbody>`;
-            colors.forEach(c => { h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => `<td>${stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0) || 0}</td>`).join("") + "</tr>"; });
+            colors.forEach(c => {
+                h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => {
+                    const qty = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0) || 0;
+                    return `<td onclick="addToCart('${i.code}', '${i.brand} ${i.name}', '${c}', '${s}')" style="cursor:pointer; ${qty > 0 ? 'color:var(--primary) !important;' : 'opacity:0.3;'}">${qty}</td>`;
+                }).join("") + "</tr>";
+            });
             document.getElementById("v-stock-table").innerHTML = h + "</tbody></table>";
+            renderCart(); // 카트 상태 초기화
+
 
             const outfits = allOutfits.filter(o => o.code == i.code);
             document.getElementById("v-outfit-container").innerHTML = outfits.map(o => `
@@ -947,12 +1044,41 @@
                 </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">내역 없음</div>';
 
             const rentals = allRentals.filter(r => r.code == i.code);
-            document.getElementById("v-rental-list").innerHTML = rentals.map(r => `
-                <div class="info-item-card">
-                    <button class="delete-btn" onclick="deleteEntry('rental', '${r.code}', '${r.renter}', '${r.color}', '${r.size}')">×</button>
-                    <span class="info-card-top">${r.renter}</span>
-                    <span class="info-card-bottom">${r.color}/${r.size}(${r.qty})</span>
-                </div>`).join("") || '<div class="col-12 py-1 text-muted small text-center">내역 없음</div>';
+            let rentalHtml = `
+                <table class="list-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px">선택</th>
+                            <th style="width:70px">대여자</th>
+                            <th>상품 정보</th>
+                            <th style="width:50px">수량</th>
+                            <th style="width:90px">대여일</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            if (rentals.length === 0) {
+                rentalHtml += '<tr><td colspan="5" class="py-4 text-muted small">현재 대여 중인 내역이 없습니다.</td></tr>';
+            } else {
+                rentals.forEach(r => {
+                    const d = r.date ? r.date.substring(0, 10) : "-";
+                    rentalHtml += `
+                        <tr>
+                            <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+                            <td class="fw-bold">${r.renter}</td>
+                            <td class="list-product-info">
+                                <span class="list-product-name">${i.brand} ${i.name}</span>
+                                <span class="list-product-desc">${r.color} / ${r.size}</span>
+                            </td>
+                            <td><span class="qty-badge">${r.qty}</span></td>
+                            <td>
+                                <span class="date-text">${d}</span>
+                                <button class="delete-btn" style="position:static; margin-left:5px" onclick="deleteEntry('rental', '${r.code}', '${r.renter}', '${r.color}', '${r.size}')">×</button>
+                            </td>
+                        </tr>`;
+                });
+            }
+            document.getElementById("v-rental-list").innerHTML = rentalHtml + "</tbody></table>";
         }
 
         function autoExpand(el) {
@@ -1007,6 +1133,58 @@
             await saveToGitHub("notes.json", allNotes);
             alert("특이사항이 저장되었습니다.");
         }
+
+        // --- 대여 바구니 관련 함수 ---
+        function addToCart(code, name, color, size) {
+            const exists = rentalCart.find(x => x.code === code && x.color === color && x.size === size);
+            if (exists) { exists.qty++; }
+            else { rentalCart.push({ code, name, color, size, qty: 1 }); }
+            renderCart();
+        }
+
+        function renderCart() {
+            const sect = document.getElementById("v-cart-section");
+            const list = document.getElementById("v-cart-list");
+            if (rentalCart.length === 0) {
+                sect.style.display = 'none';
+                return;
+            }
+            sect.style.display = 'block';
+            list.innerHTML = rentalCart.map((item, idx) => `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        ${item.color} / ${item.size}
+                        <input type="number" class="cart-qty-input" value="${item.qty}" min="1" onchange="rentalCart[${idx}].qty = this.value">
+                    </div>
+                    <button class="delete-btn" style="position:static; color:#666;" onclick="rentalCart.splice(${idx}, 1); renderCart();">×</button>
+                </div>
+            `).join("");
+        }
+
+        async function submitRentalCart() {
+            const renter = document.getElementById("cart-renter").value.trim();
+            if (!renter) { alert("대여자 성함을 입력해주세요."); return; }
+            if (rentalCart.length === 0) return;
+
+            // 기존 리스트에 추가
+            rentalCart.forEach(item => {
+                allRentals.push({
+                    code: item.code,
+                    renter: renter,
+                    color: item.color,
+                    size: item.size,
+                    qty: item.qty,
+                    date: new Date().toISOString()
+                });
+            });
+
+            await saveToGitHub("rentals.json", allRentals);
+            rentalCart = [];
+            document.getElementById("cart-renter").value = "";
+            renderCart();
+            alert("대여 등록이 완료되었습니다.");
+        }
+
         function addRental() {
             const r = prompt("대여자 성함:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
             if (r && c && s) { allRentals.push({ code: curItem.code, renter: r, color: c, size: s, qty: q }); saveToGitHub("rentals.json", allRentals); }
