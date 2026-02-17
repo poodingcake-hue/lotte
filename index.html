@@ -772,8 +772,8 @@
                     </div>
                     <!-- 대여 현황 섹션 -->
                     <div class="dash-card">
-                        <div class="dash-title-row">
-                            <button class="btn-plus" onclick="addRental()">+</button>
+                        <div class="dash-title-row" id="rental-btn-container">
+                            <span class="dash-title">실시간 대여 현황</span>
                         </div>
                         <div id="v-rental-list"></div>
                     </div>
@@ -1027,7 +1027,9 @@
             let h = `<table class="st-table"><thead><tr><th>색상</th>${sizes.map(s => `<th>${s}</th>`).join("")}</tr></thead><tbody>`;
             colors.forEach(c => {
                 h += `<tr><td class="bg-light fw-bold">${c}</td>` + sizes.map(s => {
-                    const qty = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0) || 0;
+                    const baseQty = stock.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0) || 0;
+                    const rentedQty = allRentals.filter(r => r.code == i.code && r.color === c && r.size === s).reduce((a, b) => a + Number(b.qty), 0) || 0;
+                    const qty = baseQty - rentedQty;
                     return `<td onclick="addToCart('${i.code}', '${i.brand} ${i.name}', '${c}', '${s}')" style="cursor:pointer; ${qty > 0 ? 'color:var(--primary) !important;' : 'opacity:0.3;'}">${qty}</td>`;
                 }).join("") + "</tr>";
             });
@@ -1061,13 +1063,14 @@
                 rentalHtml += '<tr><td colspan="5" class="py-4 text-muted small">현재 대여 중인 내역이 없습니다.</td></tr>';
             } else {
                 rentals.forEach(r => {
-                    const d = r.date ? r.date.substring(0, 10) : "-";
+                    const d = r.date ? r.date.substring(5, 10) : "-";
                     rentalHtml += `
                         <tr>
-                            <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+                            <td><input type="checkbox" class="rental-check" 
+                                data-code="${r.code}" data-renter="${r.renter}" data-color="${r.color}" data-size="${r.size}" data-date="${r.date}"
+                                onchange="toggleRentalButtons()" onclick="event.stopPropagation()"></td>
                             <td class="fw-bold">${r.renter}</td>
                             <td class="list-product-info">
-                                <span class="list-product-name">${i.brand} ${i.name}</span>
                                 <span class="list-product-desc">${r.color} / ${r.size}</span>
                             </td>
                             <td><span class="qty-badge">${r.qty}</span></td>
@@ -1079,6 +1082,33 @@
                 });
             }
             document.getElementById("v-rental-list").innerHTML = rentalHtml + "</tbody></table>";
+            toggleRentalButtons();
+        }
+
+        function toggleRentalButtons() {
+            const checks = document.querySelectorAll('.rental-check:checked');
+            const container = document.getElementById('rental-btn-container');
+            if (checks.length > 0) {
+                container.innerHTML = `<button class="btn btn-primary btn-sm fw-bold px-3 py-1" onclick="returnSelectedRentals()">반납하기</button>`;
+            } else {
+                container.innerHTML = `<span class="dash-title">실시간 대여 현황</span>`;
+            }
+        }
+
+        async function returnSelectedRentals() {
+            if (!confirm("선택한 항목을 반납 처리하시겠습니까?")) return;
+            const checks = document.querySelectorAll('.rental-check:checked');
+            checks.forEach(chk => {
+                const code = chk.dataset.code;
+                const renter = chk.dataset.renter;
+                const color = chk.dataset.color;
+                const size = chk.dataset.size;
+                const date = chk.dataset.date;
+                allRentals = allRentals.filter(r => !(r.code == code && r.renter == renter && r.color == color && r.size == size && r.date == date));
+            });
+            await saveToGitHub("rentals.json", allRentals);
+            alert("반납 처리가 완료되었습니다.");
+            toggleRentalButtons();
         }
 
         function autoExpand(el) {
@@ -1187,7 +1217,7 @@
 
         function addRental() {
             const r = prompt("대여자 성함:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
-            if (r && c && s) { allRentals.push({ code: curItem.code, renter: r, color: c, size: s, qty: q }); saveToGitHub("rentals.json", allRentals); }
+            if (r && c && s) { allRentals.push({ code: curItem.code, renter: r, color: c, size: s, qty: q, date: new Date().toISOString() }); saveToGitHub("rentals.json", allRentals); }
         }
         function deleteEntry(type, code, key, color, size) {
             if (!confirm("삭제하시겠습니까?")) return;
