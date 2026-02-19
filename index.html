@@ -223,19 +223,27 @@
         /* 재고 표 */
         .compact-table {
             width: 100%;
+        }
+
+        /* 입고 등록 모드에서만 적용될 가로 스크롤 스타일 */
+        .compact-table.scrollable-mode {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
         .compact-table .st-table {
             width: 100%;
-            min-width: 350px;
             font-size: 12.5px;
             border-collapse: separate;
             border-spacing: 0;
             border: 1px solid #eee;
             border-radius: 8px;
             overflow: hidden;
+        }
+
+        .compact-table.scrollable-mode .st-table {
+            min-width: 450px;
+            /* 스크롤이 필요할 만큼의 최소 너비 확보 */
         }
 
         .compact-table th {
@@ -1300,6 +1308,7 @@
             const titleRow = document.getElementById("stock-card-title");
             const toggleBtn = document.getElementById("stock-toggle-btn");
             const actions = document.getElementById("stock-edit-actions");
+            const tableContainer = document.getElementById("v-stock-table");
 
             if (isStockEditMode) {
                 titleRow.innerText = "신규 입고 등록 모드";
@@ -1307,6 +1316,7 @@
                 toggleBtn.innerText = "×";
                 toggleBtn.style.background = "#999";
                 actions.style.display = "flex";
+                tableContainer.classList.add("scrollable-mode"); // 스크롤 모드 활성화
                 renderStockMatrixInPlace();
             } else {
                 titleRow.innerText = "실시간 재고 현황";
@@ -1314,6 +1324,7 @@
                 toggleBtn.innerText = "+";
                 toggleBtn.style.background = "";
                 actions.style.display = "none";
+                tableContainer.classList.remove("scrollable-mode"); // 스크롤 모드 해제
                 renderDetailUI(curItem); // 다시 뷰 모드로 렌더링
             }
         }
