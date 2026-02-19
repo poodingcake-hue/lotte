@@ -1427,20 +1427,24 @@
 
             document.getElementById('loading-overlay').style.display = 'flex';
             try {
-                // 1. GAS에 강제 업데이트 명령 전송 (GitHub Action 트리거)
-                await fetch(GAS_WEB_APP_URL, {
+                const response = await fetch(GAS_WEB_APP_URL, {
                     method: "POST",
                     mode: "cors",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({ action: "forceUpdate" })
                 });
 
-                // 2. 현재 화면 데이터도 새로고침
-                await initApp();
-                alert("서버 업데이트가 시작되었습니다.\n잠시 후 데이터가 반영됩니다.");
+                const result = await response.json();
+
+                if (result.error) {
+                    alert("동기화 실패:\n" + result.error);
+                } else {
+                    await initApp();
+                    alert("서버 업데이트가 시작되었습니다.\n1~2분 뒤에 화면을 다시 새로고침 해주세요.");
+                }
             } catch (e) {
                 console.error(e);
-                alert("동기화 명령 전송 실패");
+                alert("동기화 명령 전송 실패 (네트워크 연결을 확인하세요)");
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
