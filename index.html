@@ -757,7 +757,7 @@
             <div class="nav-menu">
                 <button class="nav-item active" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
                 <button class="nav-item" id="nav-inv" onclick="handleNavClick('inventory')">재고관리</button>
-                <button class="nav-item" onclick="initApp()" title="최신 데이터 실시간 동기화"><span class="material-icons-round"
+                <button class="nav-item" onclick="forceSync()" title="서버 데이터 강제 동기화"><span class="material-icons-round"
                         style="font-size: 20px; vertical-align: middle;">sync</span></button>
             </div>
         </div>
@@ -1422,6 +1422,30 @@
             saveToGitHub(type === 'outfit' ? "outfits.json" : "rentals.json", type === 'outfit' ? allOutfits : allRentals);
         }
 
+        async function forceSync() {
+            if (!confirm("구글 시트의 최신 데이터를 서버로 불러올까요?\n(반영까지 약 1~2분 정도 소요됩니다.)")) return;
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+            try {
+                // 1. GAS에 강제 업데이트 명령 전송 (GitHub Action 트리거)
+                await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    mode: "cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "forceUpdate" })
+                });
+
+                // 2. 현재 화면 데이터도 새로고침
+                await initApp();
+                alert("서버 업데이트가 시작되었습니다.\n잠시 후 데이터가 반영됩니다.");
+            } catch (e) {
+                console.error(e);
+                alert("동기화 명령 전송 실패");
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
         function resetFilter() {
             const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value, q = document.getElementById("invSearch").value.toLowerCase();
             filteredItems = allItems.filter(i => i.isMaster && (b === 'All' || i.brand === b) && (c === 'All' || i.category === c) && (i.name.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)));
@@ -1435,6 +1459,7 @@
 
             document.getElementById("inventoryContainer").innerHTML = ""; renderInventoryChunk();
         }
+
         function renderInventoryChunk() {
             const c = document.getElementById("inventoryContainer"), cur = c.children.length;
             filteredItems.slice(cur, cur + 40).forEach(i => c.appendChild(createCard(i)));
