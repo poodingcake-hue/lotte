@@ -1383,13 +1383,28 @@
                     body: JSON.stringify({ action: "saveInventoryData", payload: payload })
                 });
 
-                const result = await response.json();
-                alert(result || "입고 등록이 완료되었습니다.");
-                toggleStockEditMode(false);
-                initApp();
+                const resText = await response.text();
+
+                // 메모리 즉시 갱신 (Optimistic Update)
+                matrix.forEach(m => {
+                    if (!allStockMap[curItem.code]) allStockMap[curItem.code] = [];
+                    const stockArr = allStockMap[curItem.code];
+                    const existing = stockArr.find(x => x.color === m.color && x.size === m.size);
+                    if (existing) {
+                        existing.qty = Number(existing.qty) + Number(m.qty);
+                    } else {
+                        stockArr.push({ color: m.color, size: m.size, qty: m.qty });
+                    }
+                });
+
+                alert("✅ 입고 등록이 완료되어 재고에 즉시 반영되었습니다.");
+                toggleStockEditMode(false); // 입력 모드 종료
+
+                // 화면 즉시 다시 그리기 (네트워크 대기 없이 메모리 값으로 갱신)
+                if (curItem) renderDetailUI(curItem);
             } catch (e) {
                 console.error("입고 에러 상세:", e);
-                alert("저장 실패: URL이 정확한지, '배포' 설정 시 '모든 사용자'로 권한을 부여했는지 확인해 주세요.");
+                alert("네트워크 오류가 발생했습니다. 입고 데이터가 시트에 저장되었는지 확인해 주세요.");
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
