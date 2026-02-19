@@ -920,8 +920,8 @@
             }
         };
 
-        // 구글 시트 입고 처리를 위한 웹 앱 URL (배포 후 여기에 붙여넣으세요)
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyVnJ6D85m6Y456mN9e8-T38I54p-YByo5nIsjS74_Rk_D98/exec"; // 예시 URL입니다. 실제 배포된 URL로 변경 필요.
+        // 구글 시트 입고 처리를 위한 웹 앱 URL
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec";
 
 
         let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], allNotes = [], selDate = null, filteredItems = [], curItem = null;
@@ -1376,15 +1376,20 @@
 
                 const response = await fetch(GAS_WEB_APP_URL, {
                     method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8"
+                    },
                     body: JSON.stringify({ action: "saveInventoryData", payload: payload })
                 });
+
                 const result = await response.json();
-                alert(result || "입고 완료");
+                alert(result || "입고 등록이 완료되었습니다.");
                 toggleStockEditMode(false);
                 initApp();
             } catch (e) {
-                console.error(e);
-                alert("저장 실패");
+                console.error("입고 에러 상세:", e);
+                alert("저장 실패: URL이 정확한지, '배포' 설정 시 '모든 사용자'로 권한을 부여했는지 확인해 주세요.");
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
