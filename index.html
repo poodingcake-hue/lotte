@@ -81,12 +81,32 @@
         .nav-item {
             border: none;
             background: none;
-            padding: 8px 20px;
+            padding: 8px 12px;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: #444;
             transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 576px) {
+            .nav-logo {
+                font-size: 1.1rem;
+            }
+
+            .nav-item {
+                padding: 6px 8px;
+                font-size: 13px;
+            }
+
+            .nav-container {
+                padding: 0 8px;
+            }
+
+            :root {
+                --nav-height: 56px;
+            }
         }
 
         .nav-item.active {
@@ -258,10 +278,32 @@
         }
 
         .list-table td {
-            padding: 12px 5px;
+            padding: 10px 4px;
             border-bottom: 1px solid #f8f9fa;
             text-align: center;
             vertical-align: middle;
+            font-size: 12px;
+        }
+
+        @media (max-width: 576px) {
+            .list-table {
+                font-size: 11px;
+            }
+
+            .list-table th,
+            .list-table td {
+                padding: 8px 2px;
+            }
+
+            .qty-badge {
+                font-size: 11px;
+            }
+
+            .date-text {
+                font-size: 10px;
+                display: block;
+                margin-bottom: 2px;
+            }
         }
 
         .list-product-info {
@@ -688,6 +730,17 @@
             margin-left: 8px;
             font-weight: 800;
         }
+
+        /* 숫자 입력 화살표 제거 */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 
@@ -758,9 +811,18 @@
                 </div>
                 <!-- 데이터 영역 -->
                 <div class="dash-right">
-                    <div class="dash-card">
-                        <div class="dash-title-row"><span class="dash-title">실시간 재고 현황</span></div>
+                    <div class="dash-card" id="stock-card">
+                        <div class="dash-title-row">
+                            <span class="dash-title" id="stock-card-title">실시간 재고 현황</span>
+                            <button class="btn-plus" id="stock-toggle-btn" onclick="toggleStockEditMode()">+</button>
+                        </div>
                         <div id="v-stock-table" class="compact-table"></div>
+                        <div id="stock-edit-actions" style="display:none; margin-top:10px;" class="gap-2">
+                            <button class="m-btn m-btn-cancel p-2 small" style="font-size:12px;"
+                                onclick="toggleStockEditMode(false)">취소</button>
+                            <button class="m-btn m-btn-confirm p-2 small" style="font-size:12px;"
+                                onclick="submitStockInPlace()">입고 저장</button>
+                        </div>
                     </div>
                     <!-- 착장 정보 섹션 -->
                     <div class="dash-card">
@@ -800,10 +862,10 @@
 
     <!-- 착장 등록 모달 -->
     <div id="outfitModal" class="custom-modal-overlay">
+        <!-- ... 기존 내용 유지 ... -->
         <div class="custom-modal">
             <h5 class="modal-title">착장 정보 일괄 등록</h5>
             <div id="modal-rows">
-                <!-- 3인 기본 입력 필드 -->
                 <div class="input-row">
                     <div class="input-group">
                         <span class="input-label">이름 1</span>
@@ -857,6 +919,10 @@
                 return p1 + p2 + p3;
             }
         };
+
+        // 구글 시트 입고 처리를 위한 웹 앱 URL (배포 후 여기에 붙여넣으세요)
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyVnJ6D85m6Y456mN9e8-T38I54p-YByo5nIsjS74_Rk_D98/exec"; // 예시 URL입니다. 실제 배포된 URL로 변경 필요.
+
 
         let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], allNotes = [], selDate = null, filteredItems = [], curItem = null;
         let rentalCart = []; // 대여 바구니
@@ -1214,6 +1280,116 @@
             renderCart();
             alert("대여 등록이 완료되었습니다.");
         }
+
+        // --- 입고 관리 (In-place Table Switch) 함수 ---
+        let isStockEditMode = false;
+
+        function toggleStockEditMode(forceState) {
+            isStockEditMode = (forceState !== undefined) ? forceState : !isStockEditMode;
+            const titleRow = document.getElementById("stock-card-title");
+            const toggleBtn = document.getElementById("stock-toggle-btn");
+            const actions = document.getElementById("stock-edit-actions");
+
+            if (isStockEditMode) {
+                titleRow.innerText = "신규 입고 등록 모드";
+                titleRow.style.color = "var(--primary)";
+                toggleBtn.innerText = "×";
+                toggleBtn.style.background = "#999";
+                actions.style.display = "flex";
+                renderStockMatrixInPlace();
+            } else {
+                titleRow.innerText = "실시간 재고 현황";
+                titleRow.style.color = "";
+                toggleBtn.innerText = "+";
+                toggleBtn.style.background = "";
+                actions.style.display = "none";
+                renderDetailUI(curItem); // 다시 뷰 모드로 렌더링
+            }
+        }
+
+        function renderStockMatrixInPlace() {
+            if (!curItem) return;
+            const stock = allStockMap[curItem.code] || [];
+            let colors = [], sizes = [];
+
+            if (stock.length > 0) {
+                stock.forEach(s => {
+                    if (s.color && !colors.includes(s.color)) colors.push(s.color);
+                    if (s.size && !sizes.includes(s.size)) sizes.push(s.size);
+                });
+            } else {
+                if (curItem.colors) colors = String(curItem.colors).split(',').map(v => v.trim()).filter(v => v);
+                if (curItem.sizes) sizes = String(curItem.sizes).split(',').map(v => v.trim()).filter(v => v);
+            }
+
+            const container = document.getElementById("v-stock-table");
+            let h = `<table class="st-table" style="table-layout: fixed;">
+                <thead>
+                    <tr>
+                        <th style="width:70px;">색상</th>
+                        ${sizes.map(s => `<th>${s}</th>`).join("")}
+                        <th style="background:#fff3f8; border: 1px solid #ffccd5; width:80px;">
+                            <input type="text" id="new-size-name" placeholder="+사이즈" style="width:100%; font-size:10px; border:none; outline:none; background:transparent; text-align:center; font-weight:800;">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            colors.forEach(c => {
+                h += `<tr><td class="bg-light fw-bold" style="font-size:11px;">${c}</td>`;
+                sizes.forEach(s => {
+                    h += `<td style="padding:0;"><input type="number" class="matrix-input" data-color="${c}" data-size="${s}" style="width:100%; height:32px; border:none; text-align:center; outline:none; font-size:13px; font-weight:800; color:var(--primary);"></td>`;
+                });
+                h += `<td style="background:#fff9fb; padding:0;"><input type="number" class="matrix-input new-size-qty" data-color="${c}" style="width:100%; height:32px; border:none; text-align:center; outline:none; background:transparent; font-size:13px;"></td></tr>`;
+            });
+
+            container.innerHTML = h + "</tbody></table>";
+        }
+
+        async function submitStockInPlace() {
+            const inputs = document.querySelectorAll(".matrix-input");
+            const newSizeName = document.getElementById("new-size-name").value.trim();
+            const matrix = [];
+
+            inputs.forEach(input => {
+                const qty = parseInt(input.value);
+                if (qty && qty !== 0) {
+                    let size = input.dataset.size;
+                    if (!size) {
+                        if (!newSizeName) return;
+                        size = newSizeName;
+                    }
+                    matrix.push({ color: input.dataset.color, size: size, qty: qty });
+                }
+            });
+
+            if (matrix.length === 0) { alert("입력된 수량이 없습니다."); return; }
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+            try {
+                const payload = {
+                    code: curItem.code,
+                    combinedName: `${curItem.brand} ${curItem.name}`,
+                    location: curItem.location || "-",
+                    matrix: matrix
+                };
+
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "saveInventoryData", payload: payload })
+                });
+                const result = await response.json();
+                alert(result || "입고 완료");
+                toggleStockEditMode(false);
+                initApp();
+            } catch (e) {
+                console.error(e);
+                alert("저장 실패");
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
 
         function addRental() {
             const r = prompt("대여자 성함:"), c = prompt("색상:"), s = prompt("사이즈:"), q = prompt("수량:", "1");
