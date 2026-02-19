@@ -223,11 +223,18 @@
         /* 재고 표 */
         .compact-table {
             width: 100%;
+            max-width: 100%;
         }
 
         /* 입고 등록 모드에서만 적용될 가로 스크롤 스타일 */
         .compact-table.scrollable-mode {
+            display: block;
+            /* 컨테이너 성격 부여 */
+            width: 100%;
+            max-width: 100%;
+            /* 부모 카드를 넘지 않도록 제한 */
             overflow-x: auto;
+            /* 내부 스크롤 활성화 */
             -webkit-overflow-scrolling: touch;
         }
 
@@ -242,8 +249,10 @@
         }
 
         .compact-table.scrollable-mode .st-table {
-            min-width: 450px;
-            /* 스크롤이 필요할 만큼의 최소 너비 확보 */
+            width: max-content;
+            /* 내용물에 맞춰 최대한 확장 */
+            min-width: 100%;
+            /* 하지만 부모보다는 작지 않게 */
         }
 
         .compact-table th {
