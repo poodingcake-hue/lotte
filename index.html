@@ -1456,17 +1456,34 @@
         }
 
         function resetFilter() {
-            const b = document.getElementById("brandSel").value, c = document.getElementById("cateSel").value, q = document.getElementById("invSearch").value.toLowerCase();
-            filteredItems = allItems.filter(i => i.isMaster && (b === 'All' || i.brand === b) && (c === 'All' || i.category === c) && (i.name.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)));
+            const b = document.getElementById("brandSel").value;
+            const c = document.getElementById("cateSel").value;
+            const q = document.getElementById("invSearch").value.toLowerCase();
 
-            // 상품코드 높은 순으로 정렬 (내림차순)
+            filteredItems = allItems.filter(i => {
+                if (!i.isMaster) return false;
+
+                const matchBrand = (b === 'All' || i.brand === b);
+                const matchQuery = (i.name.toLowerCase().includes(q) || i.brand.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
+
+                if (c === '반출') {
+                    // '반출' 카테고리가 선택된 경우: 오직 '반출' 아이템만 표시
+                    return i.category === '반출' && matchBrand && matchQuery;
+                } else {
+                    // 그 외 경우: '반출' 아이템은 무조건 제외하고 일반 필터 적용
+                    const matchCategory = (c === 'All' || i.category === c);
+                    return i.category !== '반출' && matchCategory && matchBrand && matchQuery;
+                }
+            });
+
             filteredItems.sort((a, b) => {
                 if (a.code > b.code) return -1;
                 if (a.code < b.code) return 1;
                 return 0;
             });
 
-            document.getElementById("inventoryContainer").innerHTML = ""; renderInventoryChunk();
+            document.getElementById("inventoryContainer").innerHTML = "";
+            renderInventoryChunk();
         }
 
         function renderInventoryChunk() {
