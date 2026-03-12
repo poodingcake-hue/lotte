@@ -787,7 +787,7 @@
                 </div>
             </div>
             <div id="inventoryContainer" class="product-grid"></div>
-            <div id="loadMoreContainer" class="text-center mt-3"></div>
+            <div id="loadMoreContainer" class="text-center mt-3" style="padding-bottom: 20px;"></div>
         </section>
 
         <section id="page-detail" class="page-section">
@@ -934,10 +934,20 @@
 
 
         window.onload = () => { initApp(); };
-        window.onpopstate = (e) => { if (e.state && e.state.page) renderPageUI(e.state.page, e.state.item); };
+        window.onpopstate = (e) => { 
+            const page = (e.state && e.state.page) ? e.state.page : 'schedule';
+            const item = (e.state && e.state.item) ? e.state.item : null;
+            renderPageUI(page, item, false); 
+        };
 
         async function initApp() {
             document.getElementById('loading-overlay').style.display = 'flex';
+            
+            // 초기 히스토리 상태 설정 (뒤로가기 시 튕김 방지)
+            const hash = window.location.hash.replace('#', '');
+            const startPage = ['schedule', 'inventory'].includes(hash) ? hash : 'schedule';
+            history.replaceState({ page: startPage }, '', '#' + startPage);
+
             const ts = new Date().getTime();
 
             // 깃허브 API로 데이터 불러오는 공통 함수
@@ -1024,11 +1034,17 @@
                     scroller.appendChild(btn);
                 });
             }
-            renderPageUI('schedule');
+            renderPageUI(startPage, null, false);
         }
 
-        function handleNavClick(p) { history.pushState({ page: p }, '', '#' + p); renderPageUI(p); }
-        function renderPageUI(t, item = null) {
+        function handleNavClick(p) { renderPageUI(p, null, true); }
+        function renderPageUI(t, item = null, push = true) {
+            if (push) history.pushState({ page: t, item: item }, '', '#' + t);
+            
+            // 타이틀 변경
+            const titleMap = { 'schedule': '편성표', 'inventory': '재고관리', 'detail': '상세정보' };
+            document.title = (titleMap[t] || 'LOTTE PB') + ' - LOTTE PB';
+
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + t).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === (t === 'schedule' ? 'nav-sch' : 'nav-inv')));
@@ -1059,7 +1075,7 @@
 
         function createCard(i) {
             const div = document.createElement("div"); div.className = "p-card";
-            div.onclick = () => { history.pushState({ page: 'detail', item: i }, '', '#detail'); renderPageUI('detail', i); };
+            div.onclick = () => { renderPageUI('detail', i, true); };
             div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
             return div;
         }
@@ -1489,7 +1505,7 @@
         function renderInventoryChunk() {
             const c = document.getElementById("inventoryContainer"), cur = c.children.length;
             filteredItems.slice(cur, cur + 40).forEach(i => c.appendChild(createCard(i)));
-            document.getElementById("loadMoreContainer").innerHTML = filteredItems.length > c.children.length ? `<button class="btn btn-outline-primary rounded-pill px-4 btn-sm" onclick="renderInventoryChunk()">더 보기</button>` : "";
+            document.getElementById("loadMoreContainer").innerHTML = filteredItems.length > c.children.length ? `<button class="btn btn-primary rounded-pill px-4 btn-sm fw-bold" onclick="renderInventoryChunk()">더 보기</button>` : "";
         }
         function parseTime(s) { if (!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : 9999; }
     </script>
