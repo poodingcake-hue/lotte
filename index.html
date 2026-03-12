@@ -235,13 +235,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 25%;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
+            height: 12%;
+            background: rgba(0, 0, 0, 0.6);
             color: white;
             display: flex;
-            align-items: flex-end;
+            align-items: center;
             justify-content: center;
-            padding-bottom: 5px;
             font-size: 11px;
             font-weight: 800;
             pointer-events: none;
@@ -1031,7 +1030,7 @@
                 // 5. 준비물 정보 (GitHub API)
                 allSupplies = await fetchWithToken("supplies.json");
                 
-                onDataLoad(masterData);
+                onDataLoad(masterData, startPage);
             } catch (err) {
                 console.error("동기화 실패:", err);
             } finally {
@@ -1065,7 +1064,7 @@
             finally { document.getElementById('loading-overlay').style.display = 'none'; }
         }
 
-        function onDataLoad(data) {
+        function onDataLoad(data, startPage) {
             allItems = data.items || []; allStockMap = data.stockMap || {};
             const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
             b.innerHTML = '<option value="All">브랜드 전체</option>'; c.innerHTML = '<option value="All">카테고리 전체</option>';
