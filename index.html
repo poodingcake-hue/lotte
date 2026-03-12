@@ -9,6 +9,7 @@
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -1351,7 +1352,7 @@
             if (activePage === 'page-inventory') resetFilter();
         }
 
-        // 재고 데이터 엑셀(CSV) 다운로드 기능
+        // 재고 데이터 엑셀(.xlsx) 다운로드 기능
         function downloadStockExcel() {
             if (!curItem) return;
             const stock = allStockMap[curItem.code] || [];
@@ -1360,34 +1361,24 @@
                 return;
             }
 
-            // UTF-8 BOM (Excel 한글 깨짐 방지)
-            let csvContent = "\ufeff";
-            csvContent += "상품코드,상품명,색상,사이즈,현재재고\n";
-
-            stock.forEach(s => {
+            const data = stock.map(s => {
                 const rentedQty = allRentals.filter(r => r.code == curItem.code && r.color === s.color && r.size === s.size).reduce((a, b) => a + Number(b.qty), 0) || 0;
                 const currentQty = Number(s.qty) - rentedQty;
-                
-                // 데이터 정규화 및 이스케이프
-                const row = [
-                    curItem.code,
-                    `"${curItem.brand} ${curItem.name}"`,
-                    `"${s.color}"`,
-                    `"${s.size}"`,
-                    currentQty
-                ];
-                csvContent += row.join(",") + "\n";
+                return {
+                    "상품코드": curItem.code,
+                    "상품명": `${curItem.brand} ${curItem.name}`,
+                    "색상": s.color,
+                    "사이즈": s.size,
+                    "현재재고": currentQty
+                };
             });
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `${curItem.code}_재고현황_${new Date().toISOString().substring(0, 10)}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "재고현황");
+
+            const fileName = `[${curItem.brand}], ${curItem.name}(${curItem.code}).xlsx`;
+            XLSX.writeFile(workbook, fileName);
         }
 
         // --- 대여 바구니 관련 함수 ---
