@@ -1361,17 +1361,31 @@
                 return;
             }
 
-            const data = stock.map(s => {
-                const rentedQty = allRentals.filter(r => r.code == curItem.code && r.color === s.color && r.size === s.size).reduce((a, b) => a + Number(b.qty), 0) || 0;
-                const currentQty = Number(s.qty) - rentedQty;
-                return {
-                    "상품코드": curItem.code,
-                    "상품명": `${curItem.brand} ${curItem.name}`,
-                    "색상": s.color,
-                    "사이즈": s.size,
-                    "현재재고": currentQty
-                };
+            // 구글 시트 원본 데이터의 컬러 순서 파악
+            const stockRAW = allStockMap[curItem.code] || [];
+            const colorOrder = [];
+            stockRAW.forEach(s => { 
+                if (s.color && !colorOrder.includes(s.color)) colorOrder.push(s.color); 
             });
+
+            // 데이터 필터링 (컬러/사이즈가 있는 항목만) 및 정렬
+            const data = stockRAW
+                .filter(s => s.color && s.size) // 공백 데이터 제거
+                .map(s => {
+                    const rentedQty = allRentals.filter(r => r.code == curItem.code && r.color === s.color && r.size === s.size).reduce((a, b) => a + Number(b.qty), 0) || 0;
+                    const currentQty = Number(s.qty) - rentedQty;
+                    return {
+                        "상품코드": curItem.code,
+                        "상품명": `${curItem.brand} ${curItem.name}`,
+                        "색상": s.color,
+                        "사이즈": s.size,
+                        "현재재고": currentQty
+                    };
+                })
+                .sort((a, b) => {
+                    // 원본 컬러 순서대로 정렬
+                    return colorOrder.indexOf(a["색상"]) - colorOrder.indexOf(b["색상"]);
+                });
 
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
