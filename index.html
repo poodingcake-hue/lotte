@@ -1391,7 +1391,7 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "재고현황");
 
-            const fileName = `[${curItem.brand}], ${curItem.name}(${curItem.code}).xlsx`;
+            const fileName = `[${curItem.brand}] ${curItem.name}(${curItem.code}).xlsx`;
             XLSX.writeFile(workbook, fileName);
         }
 
