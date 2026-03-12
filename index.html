@@ -235,17 +235,20 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 10%;
-            background: rgba(0, 0, 0, 0.6);
+            height: 25%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
             color: white;
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: center;
-            font-size: 13px;
+            padding-bottom: 5px;
+            font-size: 11px;
             font-weight: 800;
             pointer-events: none;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(1px);
             z-index: 10;
+            text-align: center;
+            line-height: 1.2;
         }
 
         /* 재고 표 */
@@ -456,8 +459,10 @@
         }
 
         .p-img-box {
+            position: relative;
             aspect-ratio: 1/1.1;
             background: #fff;
+            overflow: hidden;
         }
 
         .p-img {
@@ -832,7 +837,6 @@
                         </div>
                         <div class="img-container">
                             <img id="det-img" src="" alt="상품이미지" class="det-main-img">
-                            <div id="det-supplies-overlay" class="supplies-overlay" style="display:none;"></div>
                         </div>
                     </div>
                     <!-- 특이사항 입력창 -->
@@ -1119,7 +1123,11 @@
         function createCard(i) {
             const div = document.createElement("div"); div.className = "p-card";
             div.onclick = () => { renderPageUI('detail', i, true); };
-            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img"></div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
+            
+            const supplyObj = allSupplies.find(s => s.code == i.code);
+            const overlay = (supplyObj && supplyObj.text) ? `<div class="supplies-overlay">${supplyObj.text}</div>` : "";
+            
+            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img">${overlay}</div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
             return div;
         }
 
@@ -1145,18 +1153,10 @@
             detImg.src = getProductImage(i);
             detImg.onclick = () => window.open(`https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=${i.code}`, '_blank');
 
-            // 준비물 불러오기 및 오버레이 표시
+            // 준비물 불러오기
             const supplyObj = allSupplies.find(s => s.code == i.code);
             const sInput = document.getElementById("det-supplies");
-            const sOverlay = document.getElementById("det-supplies-overlay");
-            if (supplyObj && supplyObj.text) {
-                sInput.value = supplyObj.text;
-                sOverlay.innerText = supplyObj.text;
-                sOverlay.style.display = "flex";
-            } else {
-                sInput.value = "";
-                sOverlay.style.display = "none";
-            }
+            sInput.value = (supplyObj && supplyObj.text) ? supplyObj.text : "";
 
             // 특이사항 불러오기
             const noteObj = allNotes.find(n => n.code == i.code);
@@ -1321,6 +1321,11 @@
 
             await saveToGitHub("supplies.json", allSupplies);
             alert("준비물이 저장되었습니다.");
+            
+            // 현재 화면 리스트 갱신 (오버레이 즉시 반영)
+            const activePage = document.querySelector('.page-section.active').id;
+            if (activePage === 'page-schedule') renderSchedule();
+            if (activePage === 'page-inventory') resetFilter();
         }
 
         // --- 대여 바구니 관련 함수 ---
