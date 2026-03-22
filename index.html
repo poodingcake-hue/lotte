@@ -1107,8 +1107,11 @@
                 // 6. 날씨 정보 (로컬/서버 파일 직접 호출)
                 try {
                     const weatherRes = await fetch(`weather.json?v=${ts}`);
-                    if (weatherRes.ok) allWeather = await weatherRes.json();
-                } catch (e) { console.warn("날씨 데이터 로드 실패", e); }
+                    if (weatherRes.ok) {
+                        const wData = await weatherRes.json();
+                        if (wData && wData.hourly) allWeather = wData;
+                    }
+                } catch (e) { console.warn("날씨 데이터 로드 실패", e); allWeather = null; }
 
                 onDataLoad(masterData, startPage);
             } catch (err) {
@@ -1204,34 +1207,35 @@
 
         /**
          * 날씨 정보 렌더링 함수 (기상청 KMA 버전)
+         * 날씨 데이터가 없거나 오류가 나도 편성표에는 영향 없이 빈 문자열 반환
          */
         function renderWeatherInfo(date, timeStr) {
-            if (!allWeather || !allWeather.hourly) return "";
+            if (!allWeather || !allWeather.hourly || !allWeather.hourly.time) return "";
+            try {
+                const match = timeStr.match(/(\d{1,2}):(\d{1,2})/);
+                if (!match) return "";
+                let hour = parseInt(match[1]);
+                hour = Math.max(0, hour - 2);
+                const targetTime = `${date}T${String(hour).padStart(2, '0')}:00`;
+                const idx = allWeather.hourly.time.indexOf(targetTime);
+                if (idx === -1) return "";
 
-            const match = timeStr.match(/(\d{1,2}):(\d{1,2})/);
-            if (!match) return "";
-            let hour = parseInt(match[1]);
+                const sky = (allWeather.hourly.sky && allWeather.hourly.sky[idx] !== undefined) ? allWeather.hourly.sky[idx] : 1;
+                const pty = (allWeather.hourly.pty && allWeather.hourly.pty[idx] !== undefined) ? allWeather.hourly.pty[idx] : 0;
+                const pop = (allWeather.hourly.pop && allWeather.hourly.pop[idx] !== undefined) ? allWeather.hourly.pop[idx] : 0;
+                const temp = (allWeather.hourly.temp && allWeather.hourly.temp[idx] !== undefined) ? allWeather.hourly.temp[idx] : '-';
 
-            // "2시간 전"의 기상청 상세 예보 매칭
-            hour = Math.max(0, hour - 2);
-
-            const targetTime = `${date}T${String(hour).padStart(2, '0')}:00`;
-            const idx = allWeather.hourly.time.indexOf(targetTime);
-
-            if (idx === -1) return "";
-
-            const sky = allWeather.hourly.sky[idx];   // 1:맑음, 3:흐림, 4:구름많음
-            const pty = allWeather.hourly.pty[idx];   // 0:없음, 1:비, 2:비/눈, 3:눈, 4:소나기
-            const pop = allWeather.hourly.pop[idx];   // 강수확률
-            const temp = allWeather.hourly.temp[idx]; // 기온
-
-            return `
-                <div class="weather-badge">
-                    <span class="weather-icon">${getWeatherSVG(sky, pty)}</span>
-                    <span>${temp}°</span>
-                    <span class="weather-pop">${pop}%</span>
-                </div>
-            `;
+                return `
+                    <div class="weather-badge">
+                        <span class="weather-icon">${getWeatherSVG(sky, pty)}</span>
+                        <span>${temp}°</span>
+                        <span class="weather-pop">${pop}%</span>
+                    </div>
+                `;
+            } catch (e) {
+                console.warn("날씨 렌더링 중 오류:", e);
+                return "";
+            }
         }
 
         function getWeatherSVG(sky, pty) {
