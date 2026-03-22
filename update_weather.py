@@ -32,7 +32,6 @@ def get_kma_weather():
         search_time = f"{found_time:02d}00"
 
     params = {
-        'serviceKey': SERVICE_KEY,
         'pageNo': '1',
         'numOfRows': '1000',
         'dataType': 'JSON',
@@ -42,12 +41,28 @@ def get_kma_weather():
         'ny': '126'
     }
 
+    # requests의 params로 넘기면 서비스키가 인코딩되면서 거절당하는 경우가 많아, URL에 직접 붙여서 전달합니다.
+    full_url = f"{BASE_URL}?serviceKey={SERVICE_KEY}"
+    for k, v in params.items():
+        full_url += f"&{k}={v}"
+
     try:
-        response = requests.get(BASE_URL, params=params)
+        response = requests.get(full_url, timeout=15)
+        
+        # 기상청 서버가 아직 키를 인식하지 못했을 경우 (동기화 대기 중)
+        if response.status_code == 401:
+            print("⏳ 기상청 API 키 동기화 대기 중입니다. (약 1시간 소요)")
+            return None
+            
+        if '<' in response.text[:100]:
+            print("⚠️ 서버 응답 오류가 발생했습니다. (잠시 후 다시 시도)")
+            return None
+
         res_data = response.json()
         
-        if res_data['response']['header']['resultCode'] != '00':
-            print("KMA API Error:", res_data['response']['header']['resultMsg'])
+        if 'response' not in res_data or res_data['response']['header']['resultCode'] != '00':
+            msg = res_data.get('response', {}).get('header', {}).get('resultMsg', 'Unknown Error')
+            print(f"⚠️ KMA API Error: {msg}")
             return None
 
         items = res_data['response']['body']['items']['item']
