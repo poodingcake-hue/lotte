@@ -31,16 +31,18 @@ jobs:
         run: |
           # 구글 웹앱 주소로 데이터를 가져와 data.json으로 저장합니다.
           curl -L "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec?action=getInitialData" -o data.json
+          # [추가] 오픈 메테오 API로 선유도역 날씨 데이터를 가져와 weather.json으로 저장합니다.
+          curl -L "https://api.open-meteo.com/v1/forecast?latitude=37.538&longitude=126.894&hourly=temperature_2m,weathercode,precipitation_probability&forecast_days=11&timezone=Asia/Seoul" -o weather.json
 
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add data.json
+          git add data.json weather.json
           
           if ! git diff --cached --quiet; then
-            git commit -m "Update data.json via Google Sheet trigger"
+            git commit -m "Update data.json and weather.json via Scheduled trigger"
             git push
           else
             echo "No changes to commit"

@@ -511,6 +511,7 @@
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
         }
 
@@ -798,6 +799,53 @@
 
         input[type=number] {
             -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* 날씨 뱃지 스타일 */
+        .weather-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 3px 8px;
+            margin-left: 10px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #555;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        .weather-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .weather-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .weather-pop {
+            color: #4361ee;
+            font-size: 10px;
+        }
+
+        .time-divider {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 13px;
+            font-weight: 800;
+            color: #444;
+            margin: 15px 0 8px 0;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #eee;
         }
     </style>
 </head>
@@ -909,7 +957,8 @@
                             <span class="dash-title">준비물 (방송/협찬용)</span>
                             <button class="notes-save-btn" onclick="saveSupplies()">저장하기</button>
                         </div>
-                        <input type="text" id="det-supplies" class="form-control form-control-sm border-0 bg-light fw-bold" 
+                        <input type="text" id="det-supplies"
+                            class="form-control form-control-sm border-0 bg-light fw-bold"
                             placeholder="이미지 위에 표시될 준비물 입력">
                     </div>
                     <!-- 대여 바구니 섹션 (숫자 클릭 시 노출) -->
@@ -997,20 +1046,20 @@
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec";
 
 
-        let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], allNotes = [], allSupplies = [], selDate = null, filteredItems = [], curItem = null;
+        let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], allNotes = [], allSupplies = [], allWeather = null, selDate = null, filteredItems = [], curItem = null;
         let rentalCart = []; // 대여 바구니
 
 
         window.onload = () => { initApp(); };
-        window.onpopstate = (e) => { 
+        window.onpopstate = (e) => {
             const page = (e.state && e.state.page) ? e.state.page : 'schedule';
             const item = (e.state && e.state.item) ? e.state.item : null;
-            renderPageUI(page, item, false); 
+            renderPageUI(page, item, false);
         };
 
         async function initApp() {
             document.getElementById('loading-overlay').style.display = 'flex';
-            
+
             // 초기 히스토리 상태 설정 (뒤로가기 시 튕김 방지)
             const hash = window.location.hash.replace('#', '');
             const startPage = ['schedule', 'inventory'].includes(hash) ? hash : 'schedule';
@@ -1054,7 +1103,13 @@
 
                 // 5. 준비물 정보 (GitHub API)
                 allSupplies = await fetchWithToken("supplies.json");
-                
+
+                // 6. 날씨 정보 (로컬/서버 파일 직접 호출)
+                try {
+                    const weatherRes = await fetch(`weather.json?v=${ts}`);
+                    if (weatherRes.ok) allWeather = await weatherRes.json();
+                } catch (e) { console.warn("날씨 데이터 로드 실패", e); }
+
                 onDataLoad(masterData, startPage);
             } catch (err) {
                 console.error("동기화 실패:", err);
@@ -1111,7 +1166,7 @@
         function handleNavClick(p) { renderPageUI(p, null, true); }
         function renderPageUI(t, item = null, push = true) {
             if (push) history.pushState({ page: t, item: item }, '', '#' + t);
-            
+
             // 타이틀 변경
             const titleMap = { 'schedule': '편성표', 'inventory': '재고관리', 'detail': '상세정보' };
             document.title = (titleMap[t] || 'LOTTE PB') + ' - LOTTE PB';
@@ -1136,7 +1191,10 @@
                 if (!groups[key]) groups[key] = []; groups[key].push(item);
             });
             Object.keys(groups).sort((a, b) => parseTime(a) - parseTime(b)).forEach(tm => {
-                const div = document.createElement("div"); div.className = "time-divider"; div.innerHTML = `${tm} 방송`;
+                const weatherInfo = renderWeatherInfo(selDate, tm);
+                const div = document.createElement("div");
+                div.className = "time-divider";
+                div.innerHTML = `<span>${tm} 방송</span> ${weatherInfo}`;
                 container.appendChild(div);
                 const grid = document.createElement("div"); grid.className = "product-grid";
                 groups[tm].forEach(i => grid.appendChild(createCard(i)));
@@ -1144,13 +1202,55 @@
             });
         }
 
+        /**
+         * 날씨 정보 렌더링 함수
+         * "2시간 전"의 정보를 가져와서 SVG 아이콘과 비올 확률을 노출합니다.
+         */
+        function renderWeatherInfo(date, timeStr) {
+            if (!allWeather || !allWeather.hourly) return "";
+
+            const match = timeStr.match(/(\d{1,2}):(\d{1,2})/);
+            if (!match) return "";
+            let hour = parseInt(match[1]);
+
+            // 사용자의 요청: "해당 시간의 두시간전 정보" 적용
+            hour = Math.max(0, hour - 2);
+
+            const targetTime = `${date}T${String(hour).padStart(2, '0')}:00`;
+            const idx = allWeather.hourly.time.indexOf(targetTime);
+
+            if (idx === -1) return "";
+
+            const code = allWeather.hourly.weathercode[idx];
+            const pop = allWeather.hourly.precipitation_probability[idx];
+            const temp = Math.round(allWeather.hourly.temperature_2m[idx]);
+
+            return `
+                <div class="weather-badge">
+                    <span class="weather-icon">${getWeatherSVG(code)}</span>
+                    <span>${temp}°</span>
+                    <span class="weather-pop">${pop}%</span>
+                </div>
+            `;
+        }
+
+        function getWeatherSVG(code) {
+            // Open-Meteo 날씨 코드 기반 SVG 반환
+            // 0: 맑음, 1-3: 소폭 구름, 45-48: 안개, 51-65: 비, 71-77: 눈, 80-82: 소나기, 95: 뇌우
+            if (code <= 1) return '<svg viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="4.22" x2="19.78" y2="5.64"/></svg>';
+            if (code <= 3) return '<svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19c2.5 0 4.5-2 4.5-4.5 0-2.3-1.7-4.2-4-4.5-.6-4.1-4.2-7.3-8.5-6.3-2.9.7-5.1 3.1-5.5 6-.1 0-.2 0-.3 0C1.6 9.7 0 11.3 0 13.3c0 2 1.6 3.7 3.7 3.7h13.8"/></svg>';
+            if (code >= 51 && code <= 67 || code >= 80 && code <= 82) return '<svg viewBox="0 0 24 24" fill="none" stroke="#4361ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 13a4 4 0 0 1-8 0"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19v2"/><path d="M12 19v2"/><path d="M16 19v2"/></svg>';
+            if (code >= 71 && code <= 77 || code >= 85 && code <= 86) return '<svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/><path d="m12 12.01.01-.01"/></svg>';
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 L3 14 L12 14 L11 22 L21 10 L12 10 L13 2 Z"/></svg>';
+        }
+
         function createCard(i) {
             const div = document.createElement("div"); div.className = "p-card";
             div.onclick = () => { renderPageUI('detail', i, true); };
-            
+
             const supplyObj = allSupplies.find(s => s.code == i.code);
             const overlay = (supplyObj && supplyObj.text) ? `<div class="supplies-overlay">${supplyObj.text}</div>` : "";
-            
+
             div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img">${overlay}</div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
             return div;
         }
@@ -1345,7 +1445,7 @@
 
             await saveToGitHub("supplies.json", allSupplies);
             alert("준비물이 저장되었습니다.");
-            
+
             // 현재 화면 리스트 갱신 (오버레이 즉시 반영)
             const activePage = document.querySelector('.page-section.active').id;
             if (activePage === 'page-schedule') renderSchedule();
@@ -1364,8 +1464,8 @@
             // 구글 시트 원본 데이터의 컬러 순서 파악
             const stockRAW = allStockMap[curItem.code] || [];
             const colorOrder = [];
-            stockRAW.forEach(s => { 
-                if (s.color && !colorOrder.includes(s.color)) colorOrder.push(s.color); 
+            stockRAW.forEach(s => {
+                if (s.color && !colorOrder.includes(s.color)) colorOrder.push(s.color);
             });
 
             // 데이터 필터링 (컬러/사이즈가 있는 항목만) 및 정렬
