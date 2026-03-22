@@ -27,12 +27,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install requests pytz
+
       - name: Fetch Data
         run: |
-          # 구글 웹앱 주소로 데이터를 가져와 data.json으로 저장합니다.
+          # 1. 구글 시트 데이터 가져오기 (data.json)
           curl -L "https://script.google.com/macros/s/AKfycbwGGJsflqUqpv4ep9NU8BV_zXpqTDzrcgGER6vKzKOeOBNIVeZFyAJdbSl3pWscSyTA/exec?action=getInitialData" -o data.json
-          # [추가] 오픈 메테오 API로 선유도역 날씨 데이터를 가져와 weather.json으로 저장합니다.
-          curl -L "https://api.open-meteo.com/v1/forecast?latitude=37.538&longitude=126.894&hourly=temperature_2m,weathercode,precipitation_probability&forecast_days=11&timezone=Asia/Seoul" -o weather.json
+          
+          # 2. 기상청 날씨 데이터 업데이트 (weather.json)
+          python update_weather.py
 
       - name: Commit and Push
         run: |
@@ -42,7 +52,7 @@ jobs:
           git add data.json weather.json
           
           if ! git diff --cached --quiet; then
-            git commit -m "Update data.json and weather.json via Scheduled trigger"
+            git commit -m "Update data and weather via KMA API"
             git push
           else
             echo "No changes to commit"
