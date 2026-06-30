@@ -863,6 +863,7 @@
             <div class="nav-menu">
                 <button class="nav-item active" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
                 <button class="nav-item" id="nav-inv" onclick="handleNavClick('inventory')">재고관리</button>
+                <button class="nav-item" id="nav-reg" onclick="handleNavClick('register')">상품등록</button>
                 <button class="nav-item" onclick="forceSync()" title="서버 데이터 강제 동기화"><span class="material-icons-round"
                         style="font-size: 20px; vertical-align: middle;">sync</span></button>
             </div>
@@ -873,6 +874,66 @@
         <section id="page-schedule" class="page-section">
             <div id="dateScroller" class="date-scroller"></div>
             <div id="scheduleContainer"></div>
+        </section>
+
+        <section id="page-register" class="page-section">
+            <div class="dash-layout" style="max-width: 1000px; margin: 0 auto; gap: 20px;">
+                <!-- 왼쪽: 상품 기본 정보 및 이미지 -->
+                <div class="dash-left" style="flex: 1; min-width: 320px;">
+                    <div class="dash-card">
+                        <div class="dash-title-row"><span class="dash-title">상품 기본 정보</span></div>
+                        <div class="input-row" style="margin-top:10px;"><div class="input-group"><span class="input-label">상품코드</span><input type="text" id="reg-code" class="modal-input" placeholder="8자리 숫자 입력" oninput="previewLotteImage()"></div></div>
+                        <div class="input-row"><div class="input-group"><span class="input-label">브랜드</span><input type="text" id="reg-brand" class="modal-input" placeholder="LBL 등"></div></div>
+                        <div class="input-row"><div class="input-group"><span class="input-label">상품명</span><input type="text" id="reg-name" class="modal-input" placeholder="캐시미어 니트"></div></div>
+                        <div class="input-row"><div class="input-group"><span class="input-label">카테고리</span><input type="text" id="reg-cate" class="modal-input" placeholder="니트/스웨터"></div></div>
+                        
+                        <div class="dash-title-row" style="margin-top:20px;"><span class="dash-title">이미지 등록 (Ctrl+V 복사/붙여넣기)</span></div>
+                        <!-- 롯데 공식 이미지 프리뷰 -->
+                        <div id="reg-preview-box" style="display:none; text-align:center; background:#f8f9fa; padding:10px; border-radius:12px; margin-bottom:10px;">
+                            <span style="font-size:11px; font-weight:800; color:#888;">자동 불러오기 이미지 미리보기</span><br>
+                            <img id="reg-preview-img" src="" style="max-width:150px; border-radius:8px; margin-top:5px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                        </div>
+                        
+                        <div class="input-group" style="flex-direction:column; align-items:flex-start; margin-bottom:10px;">
+                            <span class="input-label" style="margin-bottom:8px;">전체 대표 이미지</span>
+                            <div id="drop-main" class="image-dropzone" tabindex="0" style="width:100%; height:120px; border:2px dashed #ccc; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; cursor:pointer; overflow:hidden; position:relative;">
+                                <span style="font-size:12px; font-weight:700; color:#999; pointer-events:none;">여기를 클릭하고 Ctrl+V 로 붙여넣기</span>
+                                <img id="img-main" src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
+                            </div>
+                        </div>
+                        
+                        <div id="color-images-container">
+                            <!-- 색상별 이미지 업로드 영역 동적 추가 -->
+                        </div>
+                        
+                        <button class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; margin-top:15px; border-radius:8px;" onclick="saveProductInfo()">상품 기본 정보 저장</button>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 매트릭스 재고 등록 -->
+                <div class="dash-right" style="flex: 1.5; min-width: 320px;">
+                    <div class="dash-card">
+                        <div class="dash-title-row"><span class="dash-title">매트릭스 재고 등록</span></div>
+                        <div class="input-row" style="margin-top:10px;">
+                            <div class="input-group" style="flex:1;">
+                                <span class="input-label" style="font-size:11px;">색상 (콤마 구분)</span>
+                                <input type="text" id="reg-colors" class="modal-input" placeholder="블랙, 화이트, 레드" oninput="updateColorImages()">
+                            </div>
+                            <div class="input-group" style="flex:1; margin-left:10px;">
+                                <span class="input-label" style="font-size:11px;">사이즈 (콤마 구분)</span>
+                                <input type="text" id="reg-sizes" class="modal-input" placeholder="55, 66, 77">
+                            </div>
+                        </div>
+                        <button class="m-btn p-2 fw-bold" style="width:100%; margin-top:10px; background:#4361ee22; color:var(--primary); border:1px solid var(--primary); border-radius:8px;" onclick="generateMatrix()">매트릭스 표 생성</button>
+                        
+                        <div id="matrix-container" style="margin-top:20px; overflow-x:auto;">
+                            <!-- 동적 표 생성 영역 -->
+                        </div>
+                        
+                        <button id="btn-save-inventory" class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; margin-top:15px; border-radius:8px; display:none;" onclick="saveMatrixInventory()">재고 정보 저장</button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="page-inventory" class="page-section">
@@ -887,9 +948,7 @@
                             onkeyup="resetFilter()"></div>
                 </div>
             </div>
-            <div class="text-center mt-2 mb-3">
-                <button class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(67, 97, 238, 0.2);" onclick="openNewProductModal()">+ 새 상품 추가하기</button>
-            </div>
+            
             <div id="inventoryContainer" class="product-grid"></div>
             <div id="loadMoreContainer" class="text-center mt-3" style="padding-bottom: 20px;"></div>
         </section>
@@ -984,30 +1043,6 @@
             </div>
         </section>
     </main>
-
-    <!-- 새 상품 등록 모달 -->
-    <div id="newProductModal" class="custom-modal-overlay">
-        <div class="custom-modal">
-            <h5 class="modal-title">새 상품 등록</h5>
-            <div id="modal-rows">
-                <div class="input-row"><div class="input-group"><span class="input-label">브랜드</span><input type="text" id="np-brand" class="modal-input" placeholder="LBL 등"></div></div>
-                <div class="input-row"><div class="input-group"><span class="input-label">품명</span><input type="text" id="np-name" class="modal-input" placeholder="캐시미어 니트"></div></div>
-                <div class="input-row"><div class="input-group"><span class="input-label">코드</span><input type="text" id="np-code" class="modal-input" placeholder="12345678"></div></div>
-                <div class="input-row"><div class="input-group"><span class="input-label">카테고리</span><input type="text" id="np-cate" class="modal-input" placeholder="니트/스웨터"></div></div>
-                <div class="input-row" style="margin-top:10px;">
-                    <div class="input-group" style="flex-direction: column; align-items:flex-start;">
-                        <span class="input-label" style="margin-bottom:8px; background:#f1f3f5;">이미지 첨부 (구글 드라이브)</span>
-                        <input type="file" id="np-file" accept="image/*" class="form-control form-control-sm">
-                        <small class="text-muted mt-1" style="font-size:10px;">* 첨부하지 않으면 롯데 공식 이미지 로드</small>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer" style="margin-top:20px;">
-                <button class="m-btn m-btn-cancel" onclick="document.getElementById('newProductModal').style.display='none'">취소</button>
-                <button class="m-btn m-btn-confirm" onclick="submitNewProduct()">등록하기</button>
-            </div>
-        </div>
-    </div>
 
     <!-- 착장 등록 모달 -->
     <div id="outfitModal" class="custom-modal-overlay">
@@ -1157,83 +1192,183 @@
         }
 
 
-        function openNewProductModal() {
-            document.getElementById('np-brand').value = '';
-            document.getElementById('np-name').value = '';
-            document.getElementById('np-code').value = '';
-            document.getElementById('np-cate').value = '';
-            document.getElementById('np-file').value = '';
-            document.getElementById('newProductModal').style.display = 'flex';
+        
+
+        
+
+
+        // -------------------------
+        // 상품 등록(Register) 페이지 로직
+        // -------------------------
+        
+        let uploadedImages = { main: "" }; // "main", "블랙", "화이트" 등
+
+        function previewLotteImage() {
+            const code = document.getElementById('reg-code').value.trim();
+            const box = document.getElementById('reg-preview-box');
+            const img = document.getElementById('reg-preview-img');
+            if (code.length >= 8) {
+                const p1 = code.substring(6, 8);
+                const p2 = code.substring(4, 6);
+                const p3 = code.substring(2, 4);
+                img.src = `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${code}_L.jpg`;
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
         }
 
-        async function submitNewProduct() {
-            const brand = document.getElementById('np-brand').value.trim();
-            const name = document.getElementById('np-name').value.trim();
-            const code = document.getElementById('np-code').value.trim();
-            const cate = document.getElementById('np-cate').value.trim();
-            const fileInput = document.getElementById('np-file');
-            
-            if(!brand || !name || !code) {
-                alert("브랜드, 품명, 코드는 필수입니다!");
+        // Paste Event Setup for Image Upload
+        document.addEventListener('paste', async (e) => {
+            const activeEl = document.activeElement;
+            if (!activeEl || !activeEl.classList.contains('image-dropzone')) return;
+
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file') {
+                    const blob = item.getAsFile();
+                    await handleImageUpload(blob, activeEl);
+                    break;
+                }
+            }
+        });
+
+        async function handleImageUpload(blob, dropzoneEl) {
+            if (GAS_IMAGE_URL === "YOUR_GAS_IMAGE_URL_HERE") {
+                alert("구글 GAS 업로드 URL이 설정되지 않았습니다!");
                 return;
             }
-
-            document.getElementById('newProductModal').style.display = 'none';
-            document.getElementById('loading-overlay').style.display = 'flex';
-
-            let imageUrl = "";
+            
+            // 프리뷰 먼저 보여주기
+            const imgEl = dropzoneEl.querySelector('img');
+            imgEl.src = URL.createObjectURL(blob);
+            imgEl.style.display = 'block';
+            
+            const colorKey = dropzoneEl.getAttribute('data-color') || "main";
+            dropzoneEl.style.opacity = '0.5';
 
             try {
-                // 이미지가 선택된 경우 구글 드라이브(GAS)로 먼저 업로드
-                if (fileInput.files && fileInput.files.length > 0) {
-                    if (GAS_IMAGE_URL === "YOUR_GAS_IMAGE_URL_HERE") {
-                        alert("이미지 업로드용 서버 주소가 아직 설정되지 않았습니다!");
-                        throw new Error("No URL");
-                    }
-                    const file = fileInput.files[0];
-                    const reader = new FileReader();
-                    
-                    const base64Data = await new Promise((resolve, reject) => {
-                        reader.onload = () => resolve(reader.result.split(',')[1]);
-                        reader.onerror = error => reject(error);
-                        reader.readAsDataURL(file);
-                    });
+                const reader = new FileReader();
+                const base64Data = await new Promise((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(blob);
+                });
 
-                    const payload = {
-                        filename: file.name,
-                        mimeType: file.type,
-                        file: base64Data
-                    };
-
-                    const gasRes = await fetch(GAS_IMAGE_URL, {
-                        method: "POST",
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const gasResult = await gasRes.json();
-                    if(gasResult.success) {
-                        imageUrl = gasResult.url;
-                    } else {
-                        alert("이미지 업로드 실패: " + gasResult.error);
-                        throw new Error(gasResult.error);
-                    }
-                }
-
-                // Cloudflare D1 서버로 상품 메타데이터 저장
-                const newProduct = {
-                    code: code,
-                    brand: brand,
-                    name: name,
-                    category: cate,
-                    image: imageUrl,
-                    date: new Date().toISOString().substring(0,10),
-                    isMaster: 1
+                const payload = {
+                    filename: `image_${new Date().getTime()}.png`,
+                    mimeType: blob.type || "image/png",
+                    file: base64Data
                 };
-                
-                // 기존 allItems 에 추가
-                allItems.unshift(newProduct);
 
-                // D1에 Products 배열 전체 덮어쓰기 전송
+                const gasRes = await fetch(GAS_IMAGE_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                
+                const gasResult = await gasRes.json();
+                if(gasResult.success) {
+                    uploadedImages[colorKey] = gasResult.url;
+                } else {
+                    alert("이미지 업로드 실패: " + gasResult.error);
+                }
+            } catch(e) {
+                console.error(e);
+                alert("업로드 중 오류 발생");
+            } finally {
+                dropzoneEl.style.opacity = '1';
+            }
+        }
+
+        function updateColorImages() {
+            const colorsInput = document.getElementById('reg-colors').value;
+            const container = document.getElementById('color-images-container');
+            if(!colorsInput.trim()) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const colors = colorsInput.split(',').map(s => s.trim()).filter(s => s);
+            let html = '';
+            colors.forEach(c => {
+                html += `
+                <div class="input-group" style="flex-direction:column; align-items:flex-start; margin-bottom:10px;">
+                    <span class="input-label" style="margin-bottom:8px; font-size:11px;">[${c}] 색상 이미지</span>
+                    <div data-color="${c}" class="image-dropzone" tabindex="0" style="width:100%; height:100px; border:2px dashed #ddd; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#fff; cursor:pointer; overflow:hidden; position:relative;">
+                        <span style="font-size:11px; font-weight:700; color:#aaa; pointer-events:none;">클릭 후 Ctrl+V</span>
+                        <img src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function generateMatrix() {
+            const colorsStr = document.getElementById('reg-colors').value;
+            const sizesStr = document.getElementById('reg-sizes').value;
+            const code = document.getElementById('reg-code').value.trim();
+            
+            if(!code) return alert("상품코드를 먼저 입력하세요.");
+            if(!colorsStr || !sizesStr) return alert("색상과 사이즈를 모두 입력하세요.");
+            
+            const colors = colorsStr.split(',').map(s=>s.trim()).filter(s=>s);
+            const sizes = sizesStr.split(',').map(s=>s.trim()).filter(s=>s);
+            
+            let html = `<table class="st-table" style="width:100%;"><thead><tr><th>색상\사이즈</th>`;
+            sizes.forEach(s => html += `<th>${s}</th>`);
+            html += `</tr></thead><tbody>`;
+            
+            // 기존 재고값 확인
+            const stockMap = allStockMap[code] || [];
+            
+            colors.forEach(c => {
+                html += `<tr><td class="bg-light fw-bold">${c}</td>`;
+                sizes.forEach(s => {
+                    const existing = stockMap.find(x => x.color === c && x.size === s);
+                    const qty = existing ? existing.qty : "";
+                    html += `<td><input type="number" class="matrix-input" data-color="${c}" data-size="${s}" value="${qty}" style="width:100%; text-align:center; border:1px solid #ddd; padding:4px; border-radius:4px;"></td>`;
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody></table>`;
+            
+            document.getElementById('matrix-container').innerHTML = html;
+            document.getElementById('btn-save-inventory').style.display = 'block';
+        }
+
+        async function saveProductInfo() {
+            const brand = document.getElementById('reg-brand').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            const code = document.getElementById('reg-code').value.trim();
+            const cate = document.getElementById('reg-cate').value.trim();
+            
+            if(!brand || !name || !code) return alert("브랜드, 품명, 코드는 필수입니다!");
+            
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            // 이미지 JSON 문자열화
+            const imageJsonStr = JSON.stringify(uploadedImages);
+
+            const newProduct = {
+                code: code,
+                brand: brand,
+                name: name,
+                category: cate,
+                image: imageJsonStr,
+                date: new Date().toISOString().substring(0,10),
+                isMaster: 1
+            };
+            
+            // allItems 업데이트 (존재하면 덮어쓰기)
+            const existIdx = allItems.findIndex(i => i.code === code);
+            if(existIdx > -1) {
+                allItems[existIdx] = newProduct;
+            } else {
+                allItems.unshift(newProduct);
+            }
+
+            try {
                 const cfRes = await fetch(GAS_WEB_APP_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1241,16 +1376,77 @@
                 });
 
                 if(cfRes.ok) {
-                    alert("새 상품 등록 완료!");
-                    resetFilter(); // 인벤토리 화면 리로드
+                    alert("상품 기본 정보가 저장되었습니다.");
                 } else {
-                    alert("상품 정보 저장에 실패했습니다.");
+                    alert("저장 실패");
                 }
-            } catch(e) {
-                console.error(e);
-            } finally {
-                document.getElementById('loading-overlay').style.display = 'none';
+            } catch(e) { console.error(e); }
+            finally { document.getElementById('loading-overlay').style.display = 'none'; }
+        }
+
+        async function saveMatrixInventory() {
+            const code = document.getElementById('reg-code').value.trim();
+            if(!code) return alert("상품코드가 없습니다.");
+            
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            const inputs = document.querySelectorAll('.matrix-input');
+            if(!allStockMap[code]) allStockMap[code] = [];
+            
+            // 해당 코드의 기존 재고 배열 비우기 (새로 덮어쓰기)
+            allStockMap[code] = [];
+            
+            inputs.forEach(inp => {
+                const qty = parseInt(inp.value) || 0;
+                if(qty > 0) {
+                    allStockMap[code].push({
+                        color: inp.dataset.color,
+                        size: inp.dataset.size,
+                        qty: qty
+                    });
+                }
+            });
+            
+            let flatInventory = [];
+            Object.keys(allStockMap).forEach(c => {
+                allStockMap[c].forEach(item => {
+                    flatInventory.push({ code: c, color: item.color, size: item.size, qty: item.qty });
+                });
+            });
+
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type: "save_inventory", data: flatInventory })
+                });
+
+                if(response.ok) {
+                    alert("재고가 매트릭스에 맞게 저장되었습니다.");
+                } else {
+                    alert("저장 실패");
+                }
+            } catch(e) { console.error(e); }
+            finally { document.getElementById('loading-overlay').style.display = 'none'; }
+        }
+
+        // 이미지 가져오기 헬퍼 함수 (JSON 파싱 지원)
+        function getProductImage(i) {
+            if (i.image && i.image.trim() !== "") {
+                try {
+                    const imgObj = JSON.parse(i.image);
+                    if (imgObj && imgObj.main) return imgObj.main;
+                } catch(e) {
+                    // 구버전 호환 (단순 url 텍스트일 때)
+                    return i.image;
+                }
             }
+            const code = String(i.code);
+            if (code.length < 8) return ""; 
+            const p1 = code.substring(6, 8);
+            const p2 = code.substring(4, 6);
+            const p3 = code.substring(2, 4);
+            return `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${code}_L.jpg`;
         }
 
         // Cloudflare Worker로 저장
@@ -1300,12 +1496,17 @@
             if (push) history.pushState({ page: t, item: item }, '', '#' + t);
 
             // 타이틀 변경
-            const titleMap = { 'schedule': '편성표', 'inventory': '재고관리', 'detail': '상세정보' };
+            const titleMap = { 'schedule': '편성표', 'inventory': '재고관리', 'detail': '상세정보', 'register': '상품등록' };
             document.title = (titleMap[t] || 'LOTTE PB') + ' - LOTTE PB';
 
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + t).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === (t === 'schedule' ? 'nav-sch' : 'nav-inv')));
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.toggle('active', false);
+                if (btn.id === 'nav-sch' && t === 'schedule') btn.classList.add('active');
+                if (btn.id === 'nav-inv' && t === 'inventory') btn.classList.add('active');
+                if (btn.id === 'nav-reg' && t === 'register') btn.classList.add('active');
+            });
             if (t === 'schedule') renderSchedule();
             if (t === 'inventory' && !document.getElementById("inventoryContainer").children.length) resetFilter();
             if (t === 'detail' && item) renderDetailUI(item);
