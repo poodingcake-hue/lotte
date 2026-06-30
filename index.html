@@ -1337,8 +1337,8 @@ function renderProductSearchList() {
     try {
         const q = document.getElementById('productSearchInput').value.toLowerCase().trim();
         let prods = [];
-        if (typeof globalData !== 'undefined' && globalData.products) {
-            prods = globalData.products;
+        if (typeof allItems !== 'undefined') {
+            prods = allItems;
         }
         
         if (q) {
@@ -1392,7 +1392,7 @@ function selectProductToLoad(code) {
 
 function executeLoadProductInfo(code) {
 
-    const product = globalData.products.find(p => p.code === code);
+    const product = allItems.find(p => p.code === code);
     if(product) {
         document.getElementById('reg-brand').value = product.brand || "";
         document.getElementById('reg-name').value = product.name || "";
@@ -1418,7 +1418,7 @@ function executeLoadProductInfo(code) {
             }
         }
         
-        const inv = globalData.inventory[code] || [];
+        const inv = allStockMap[code] || [];
         const colors = new Set();
         const sizes = new Set();
         inv.forEach(i => {
