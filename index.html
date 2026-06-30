@@ -884,7 +884,7 @@
                     <div class="dash-card">
                         <div class="dash-title-row" style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="dash-title">상품 기본 정보</span>
-                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; width:auto;" onclick="saveProductInfo()">저장</button>
+                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; width:auto; flex:none;" onclick="saveProductInfo()">저장</button>
                         </div>
                         
                         <div style="display:flex; align-items:center; margin-top:15px; margin-bottom:10px;">
@@ -922,7 +922,7 @@
                     <div class="dash-card">
                         <div class="dash-title-row" style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="dash-title">이미지 등록</span>
-                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; width:auto;" onclick="saveProductInfo()">저장</button>
+                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; width:auto; flex:none;" onclick="saveProductInfo()">저장</button>
                         </div>
                         
                         <div style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:15px; align-items:flex-start; padding-bottom:10px; width:100%;">
@@ -940,7 +940,7 @@
                                 <div style="font-weight:bold; font-size:12px; margin-bottom:5px; text-align:center; color:#555;">전체이미지</div>
                                 <div id="drop-main" class="image-dropzone" data-color="main" tabindex="0" style="width:100%; height:120px; border:1px dashed #ccc; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; cursor:pointer; overflow:hidden; position:relative;">
                                     <img id="img-main" src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
-                                    <span style="font-size:11px; color:#aaa; font-weight:bold;" id="txt-main">클릭/붙여넣기</span>
+                                    <span style="font-size:11px; color:#aaa; font-weight:bold;" id="txt-main"></span>
                                 </div>
                             </div>
                             
@@ -954,7 +954,7 @@
                     <div class="dash-card">
                         <div class="dash-title-row" style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="dash-title">재고 등록</span>
-                            <button id="btn-save-inventory" class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; display:none;" onclick="saveMatrixInventory()">저장</button>
+                            <button id="btn-save-inventory" class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; display:none; flex:none;" onclick="saveMatrixInventory()">저장</button>
                         </div>
                         
                         <button class="m-btn p-2 fw-bold" style="width:100%; margin-top:10px; background:#4361ee22; color:var(--primary); border:1px solid var(--primary); border-radius:8px;" onclick="generateMatrix()">생성</button>
@@ -1332,7 +1332,7 @@
                     <div style="font-weight:bold; font-size:12px; margin-bottom:5px; text-align:center; color:var(--primary);">${c}</div>
                     <div class="image-dropzone" data-color="${c}" tabindex="0" style="width:100%; height:120px; border:1px dashed var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f0f8ff; cursor:pointer; overflow:hidden; position:relative;">
                         <img id="img-${c}" src="${src}" style="${imgStyle} width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
-                        <span style="font-size:11px; color:var(--primary); font-weight:bold;" id="txt-${c}" style="${txtStyle}">클릭/붙여넣기</span>
+                        <span style="font-size:11px; color:var(--primary); font-weight:bold;" id="txt-${c}" style="${txtStyle}"></span>
                     </div>
                 </div>`;
             });
@@ -1513,7 +1513,7 @@ function generateMatrix() {
             const stockMap = allStockMap[code] || [];
             colors.forEach(c => {
                 html += `<tr style="border-bottom:1px solid #f1f1f1;">
-                            <td style="padding:15px; font-weight:bold; color:#444; border-right:1px solid #f1f1f1; background:#fafafa; text-align:center;">${c}</td>`;
+                            <td style="padding:15px; font-weight:bold; color:#444; border-right:1px solid #f1f1f1; background:#fafafa; text-align:center; white-space:nowrap;">${c}</td>`;
                 sizes.forEach(s => {
                     const existing = stockMap.find(x => x.color === c && x.size === s);
                     const qty = existing ? existing.qty : "";
