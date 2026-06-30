@@ -884,12 +884,13 @@
                     <div class="dash-card">
                         <div class="dash-title-row" style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="dash-title">상품 기본 정보</span>
-                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold;" onclick="saveProductInfo()">저장</button>
+                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; width:auto;" onclick="saveProductInfo()">저장</button>
                         </div>
                         
                         <div style="display:flex; align-items:center; margin-top:15px; margin-bottom:10px;">
                             <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">상품코드</span>
-                            <input type="text" id="reg-code" class="modal-input" placeholder="" oninput="previewLotteImage()" style="flex:1; margin:0;">
+                            <input type="text" id="reg-code" class="modal-input" placeholder="" oninput="previewLotteImage()" style="flex:1; margin:0; border-top-right-radius:0; border-bottom-right-radius:0;">
+                            <button onclick="loadProductInfo()" style="padding: 0 10px; height: 38px; background: #e9ecef; border: 1px solid #ced4da; border-left: none; border-top-right-radius: 4px; border-bottom-right-radius: 4px; cursor:pointer; font-size:12px; font-weight:bold; color:#495057; width:auto;">불러오기</button>
                         </div>
                         <div style="display:flex; align-items:center; margin-bottom:10px;">
                             <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">브랜드</span>
@@ -921,7 +922,7 @@
                     <div class="dash-card">
                         <div class="dash-title-row" style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="dash-title">이미지 등록</span>
-                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold;" onclick="saveProductInfo()">저장</button>
+                            <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; width:auto;" onclick="saveProductInfo()">저장</button>
                         </div>
                         
                         <div id="reg-preview-box" style="display:none; text-align:center; background:#f8f9fa; padding:10px; border-radius:12px; margin-bottom:15px; margin-top:15px;">
@@ -1324,7 +1325,91 @@
             container.innerHTML = html;
         }
 
-        function generateMatrix() {
+        
+function loadProductInfo() {
+    const code = document.getElementById('reg-code').value.trim();
+    if(!code) {
+        alert("상품코드를 먼저 입력해주세요.");
+        return;
+    }
+    const product = globalData.products.find(p => p.code === code);
+    if(product) {
+        document.getElementById('reg-brand').value = product.brand || "";
+        document.getElementById('reg-name').value = product.name || "";
+        document.getElementById('reg-cate').value = product.category || "";
+        
+        let imgData = {};
+        if (product.image) {
+            try {
+                if (product.image.startsWith("{")) {
+                    imgData = JSON.parse(product.image);
+                } else {
+                    imgData = { main: product.image };
+                }
+            } catch(e) {}
+        }
+        
+        if (imgData.main) {
+            uploadedImages["main"] = imgData.main;
+            const mainImg = document.getElementById('img-main');
+            if(mainImg) {
+                mainImg.src = imgData.main;
+                mainImg.style.display = 'block';
+            }
+        }
+        
+        const inv = globalData.inventory[code] || [];
+        const colors = new Set();
+        const sizes = new Set();
+        inv.forEach(i => {
+            if(i.color) colors.add(i.color);
+            if(i.size) sizes.add(i.size);
+        });
+        
+        if (colors.size > 0) {
+            document.getElementById('reg-colors').value = Array.from(colors).join(", ");
+            updateColorImages();
+            
+            Array.from(colors).forEach(c => {
+                if(imgData[c]) {
+                    uploadedImages[c] = imgData[c];
+                    const cImg = document.getElementById('img-' + c);
+                    if(cImg) {
+                        cImg.src = imgData[c];
+                        cImg.style.display = 'block';
+                    }
+                }
+            });
+        }
+        if (sizes.size > 0) {
+            document.getElementById('reg-sizes').value = Array.from(sizes).join(", ");
+        }
+        
+        if(colors.size > 0 && sizes.size > 0) {
+            generateMatrix();
+            const tbody = document.querySelector('#matrix-table tbody');
+            if(tbody) {
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(r => {
+                    const c = r.getAttribute('data-color');
+                    const s = r.getAttribute('data-size');
+                    const found = inv.find(i => i.color === c && i.size === s);
+                    if(found) {
+                        const input = r.querySelector('input');
+                        if(input) input.value = found.qty;
+                    }
+                });
+            }
+            document.getElementById('btn-save-inventory').style.display = 'inline-block';
+        }
+        
+        alert("기존 정보를 불러왔습니다.");
+    } else {
+        alert("해당 코드로 등록된 상품이 없습니다.");
+    }
+}
+
+function generateMatrix() {
             const colorsStr = document.getElementById('reg-colors').value;
             const sizesStr = document.getElementById('reg-sizes').value;
             const code = document.getElementById('reg-code').value.trim();
