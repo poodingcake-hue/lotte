@@ -1,0 +1,4 @@
+playwright
+playwright-stealth
+gspread
+oauth2client
