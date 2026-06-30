@@ -1481,6 +1481,7 @@ function executeLoadProductInfo(code) {
             document.getElementById('btn-save-inventory').style.display = 'inline-block';
         }
         
+        previewLotteImage();
         alert("기존 정보를 불러왔습니다.");
     } else {
         alert("해당 코드로 등록된 상품이 없습니다.");
@@ -1498,23 +1499,30 @@ function generateMatrix() {
             const colors = colorsStr.split(',').map(s=>s.trim()).filter(s=>s);
             const sizes = sizesStr.split(',').map(s=>s.trim()).filter(s=>s);
             
-            let html = `<table class="st-table" style="width:100%;"><thead><tr><th>색상\사이즈</th>`;
-            sizes.forEach(s => html += `<th>${s}</th>`);
-            html += `</tr></thead><tbody>`;
+            let html = `<div style="border:1px solid #eee; border-radius:12px; overflow:hidden;"><table id="matrix-table" style="width:100%; border-collapse:collapse; text-align:center; font-size:14px; background:white;">`;
             
-            // 기존 재고값 확인
+            // Header
+            html += `<tr style="background:#f8f9fa; border-bottom:1px solid #eee;">
+                        <th style="padding:15px; font-weight:bold; color:#333; text-align:center;">색상</th>`;
+            sizes.forEach(s => {
+                html += `<th style="padding:15px; font-weight:bold; color:#333; text-align:center;">${s}</th>`;
+            });
+            html += `</tr>`;
+            
+            // Body
             const stockMap = allStockMap[code] || [];
-            
             colors.forEach(c => {
-                html += `<tr><td class="bg-light fw-bold">${c}</td>`;
+                html += `<tr style="border-bottom:1px solid #f1f1f1;">
+                            <td style="padding:15px; font-weight:bold; color:#444; border-right:1px solid #f1f1f1; background:#fafafa; text-align:center;">${c}</td>`;
                 sizes.forEach(s => {
                     const existing = stockMap.find(x => x.color === c && x.size === s);
                     const qty = existing ? existing.qty : "";
-                    html += `<td><input type="number" class="matrix-input" data-color="${c}" data-size="${s}" value="${qty}" style="width:100%; text-align:center; border:1px solid #ddd; padding:4px; border-radius:4px;"></td>`;
+                    html += `<td style="padding:0; vertical-align:middle;"><input type="number" class="matrix-input" data-color="${c}" data-size="${s}" value="${qty}" style="width:100%; height:50px; border:none; text-align:center; font-size:16px; font-weight:bold; color:#2563eb; background:transparent; outline:none;" placeholder="-"></td>`;
                 });
                 html += `</tr>`;
             });
-            html += `</tbody></table>`;
+            
+            html += `</table></div>`;
             
             document.getElementById('matrix-container').innerHTML = html;
             document.getElementById('btn-save-inventory').style.display = 'block';
