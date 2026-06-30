@@ -1156,6 +1156,103 @@
             }
         }
 
+
+        function openNewProductModal() {
+            document.getElementById('np-brand').value = '';
+            document.getElementById('np-name').value = '';
+            document.getElementById('np-code').value = '';
+            document.getElementById('np-cate').value = '';
+            document.getElementById('np-file').value = '';
+            document.getElementById('newProductModal').style.display = 'flex';
+        }
+
+        async function submitNewProduct() {
+            const brand = document.getElementById('np-brand').value.trim();
+            const name = document.getElementById('np-name').value.trim();
+            const code = document.getElementById('np-code').value.trim();
+            const cate = document.getElementById('np-cate').value.trim();
+            const fileInput = document.getElementById('np-file');
+            
+            if(!brand || !name || !code) {
+                alert("브랜드, 품명, 코드는 필수입니다!");
+                return;
+            }
+
+            document.getElementById('newProductModal').style.display = 'none';
+            document.getElementById('loading-overlay').style.display = 'flex';
+
+            let imageUrl = "";
+
+            try {
+                // 이미지가 선택된 경우 구글 드라이브(GAS)로 먼저 업로드
+                if (fileInput.files && fileInput.files.length > 0) {
+                    if (GAS_IMAGE_URL === "YOUR_GAS_IMAGE_URL_HERE") {
+                        alert("이미지 업로드용 서버 주소가 아직 설정되지 않았습니다!");
+                        throw new Error("No URL");
+                    }
+                    const file = fileInput.files[0];
+                    const reader = new FileReader();
+                    
+                    const base64Data = await new Promise((resolve, reject) => {
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = error => reject(error);
+                        reader.readAsDataURL(file);
+                    });
+
+                    const payload = {
+                        filename: file.name,
+                        mimeType: file.type,
+                        file: base64Data
+                    };
+
+                    const gasRes = await fetch(GAS_IMAGE_URL, {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const gasResult = await gasRes.json();
+                    if(gasResult.success) {
+                        imageUrl = gasResult.url;
+                    } else {
+                        alert("이미지 업로드 실패: " + gasResult.error);
+                        throw new Error(gasResult.error);
+                    }
+                }
+
+                // Cloudflare D1 서버로 상품 메타데이터 저장
+                const newProduct = {
+                    code: code,
+                    brand: brand,
+                    name: name,
+                    category: cate,
+                    image: imageUrl,
+                    date: new Date().toISOString().substring(0,10),
+                    isMaster: 1
+                };
+                
+                // 기존 allItems 에 추가
+                allItems.unshift(newProduct);
+
+                // D1에 Products 배열 전체 덮어쓰기 전송
+                const cfRes = await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type: "save_products", data: allItems })
+                });
+
+                if(cfRes.ok) {
+                    alert("새 상품 등록 완료!");
+                    resetFilter(); // 인벤토리 화면 리로드
+                } else {
+                    alert("상품 정보 저장에 실패했습니다.");
+                }
+            } catch(e) {
+                console.error(e);
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
         // Cloudflare Worker로 저장
         async function saveToGitHub(fileName, data) {
             document.getElementById('loading-overlay').style.display = 'flex';
