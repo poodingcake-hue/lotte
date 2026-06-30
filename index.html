@@ -55,7 +55,7 @@
 
             .nav-container,
             .main-content {
-                width: 74%;
+                width: 90%;
                 max-width: 1800px;
             }
         }
@@ -916,7 +916,7 @@
                 </div>
 
                 <!-- 오른쪽 열: 이미지 등록 및 매트릭스 재고 -->
-                <div style="flex: 1.5; min-width: 320px; display: flex; flex-direction: column; gap: 20px;">
+                <div style="flex: 2.5; min-width: 320px; display: flex; flex-direction: column; gap: 20px;">
                     
                     <!-- 오른쪽 상단: 이미지 등록 -->
                     <div class="dash-card">
@@ -925,24 +925,35 @@
                             <button class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; width:auto;" onclick="saveProductInfo()">저장</button>
                         </div>
                         
-                        <div id="reg-preview-box" style="display:none; text-align:center; background:#f8f9fa; padding:10px; border-radius:12px; margin-bottom:15px; margin-top:15px;">
-                            <div style="font-size:12px; font-weight:bold; margin-bottom:5px;">웹 이미지 (자동)</div>
-                            <img id="reg-preview-img" src="" style="max-width:120px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        </div>
-                        
-                        <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#555;">전체 이미지</div>
-                        <div id="drop-main" class="image-dropzone" data-color="main" tabindex="0" style="width:100%; height:120px; border:2px dashed #ccc; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; cursor:pointer; overflow:hidden; position:relative; margin-bottom:15px;">
-                            <img id="img-main" src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
-                        </div>
-                        
-                        <div id="color-images-container" style="display:flex; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:15px; align-items:flex-start; padding-bottom:10px; width:100%;">
+                            
+                            <!-- 웹 이미지 -->
+                            <div id="reg-preview-box" style="display:none; text-align:center; width:120px; flex-shrink:0;">
+                                <div style="font-size:12px; font-weight:bold; margin-bottom:5px; color:#555;">웹이미지</div>
+                                <div style="width:120px; height:120px; background:#f8f9fa; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #eee;">
+                                    <img id="reg-preview-img" src="" style="width:100%; height:100%; object-fit:contain;">
+                                </div>
+                            </div>
+                            
+                            <!-- 전체 이미지 -->
+                            <div style="width:120px; flex-shrink:0;">
+                                <div style="font-weight:bold; font-size:12px; margin-bottom:5px; text-align:center; color:#555;">전체이미지</div>
+                                <div id="drop-main" class="image-dropzone" data-color="main" tabindex="0" style="width:100%; height:120px; border:1px dashed #ccc; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; cursor:pointer; overflow:hidden; position:relative;">
+                                    <img id="img-main" src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
+                                    <span style="font-size:11px; color:#aaa; font-weight:bold;" id="txt-main">클릭/붙여넣기</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 컬러 이미지들 -->
+                            <div id="color-images-container" style="display:flex; gap:15px; flex-shrink:0;"></div>
+                            
                         </div>
                     </div>
 
                     <!-- 오른쪽 하단: 매트릭스 재고 등록 -->
                     <div class="dash-card">
                         <div class="dash-title-row" style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="dash-title">매트릭스 재고 등록</span>
+                            <span class="dash-title">재고 등록</span>
                             <button id="btn-save-inventory" class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; display:none;" onclick="saveMatrixInventory()">저장</button>
                         </div>
                         
@@ -1313,12 +1324,15 @@
             const colors = colorsInput.split(',').map(s => s.trim()).filter(s => s);
             let html = '';
             colors.forEach(c => {
+                let src = uploadedImages[c] || '';
+                let imgStyle = src ? "display:block;" : "display:none;";
+                let txtStyle = src ? "display:none;" : "display:block;";
                 html += `
-                <div class="input-group" style="flex-direction:column; align-items:flex-start; margin-bottom:10px;">
-                    <span class="input-label" style="margin-bottom:8px; font-size:11px;">[${c}] 색상 이미지</span>
-                    <div data-color="${c}" class="image-dropzone" tabindex="0" style="width:100%; height:100px; border:2px dashed #ddd; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#fff; cursor:pointer; overflow:hidden; position:relative;">
-                        <span style="font-size:11px; font-weight:700; color:#aaa; pointer-events:none;">클릭 후 Ctrl+V</span>
-                        <img src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
+                <div style="width:120px; flex-shrink:0;">
+                    <div style="font-weight:bold; font-size:12px; margin-bottom:5px; text-align:center; color:var(--primary);">${c}</div>
+                    <div class="image-dropzone" data-color="${c}" tabindex="0" style="width:100%; height:120px; border:1px dashed var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f0f8ff; cursor:pointer; overflow:hidden; position:relative;">
+                        <img id="img-${c}" src="${src}" style="${imgStyle} width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
+                        <span style="font-size:11px; color:var(--primary); font-weight:bold;" id="txt-${c}" style="${txtStyle}">클릭/붙여넣기</span>
                     </div>
                 </div>`;
             });
