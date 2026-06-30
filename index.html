@@ -887,6 +887,9 @@
                             onkeyup="resetFilter()"></div>
                 </div>
             </div>
+            <div class="text-center mt-2 mb-3">
+                <button class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(67, 97, 238, 0.2);" onclick="openNewProductModal()">+ 새 상품 추가하기</button>
+            </div>
             <div id="inventoryContainer" class="product-grid"></div>
             <div id="loadMoreContainer" class="text-center mt-3" style="padding-bottom: 20px;"></div>
         </section>
@@ -982,6 +985,30 @@
         </section>
     </main>
 
+    <!-- 새 상품 등록 모달 -->
+    <div id="newProductModal" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <h5 class="modal-title">새 상품 등록</h5>
+            <div id="modal-rows">
+                <div class="input-row"><div class="input-group"><span class="input-label">브랜드</span><input type="text" id="np-brand" class="modal-input" placeholder="LBL 등"></div></div>
+                <div class="input-row"><div class="input-group"><span class="input-label">품명</span><input type="text" id="np-name" class="modal-input" placeholder="캐시미어 니트"></div></div>
+                <div class="input-row"><div class="input-group"><span class="input-label">코드</span><input type="text" id="np-code" class="modal-input" placeholder="12345678"></div></div>
+                <div class="input-row"><div class="input-group"><span class="input-label">카테고리</span><input type="text" id="np-cate" class="modal-input" placeholder="니트/스웨터"></div></div>
+                <div class="input-row" style="margin-top:10px;">
+                    <div class="input-group" style="flex-direction: column; align-items:flex-start;">
+                        <span class="input-label" style="margin-bottom:8px; background:#f1f3f5;">이미지 첨부 (구글 드라이브)</span>
+                        <input type="file" id="np-file" accept="image/*" class="form-control form-control-sm">
+                        <small class="text-muted mt-1" style="font-size:10px;">* 첨부하지 않으면 롯데 공식 이미지 로드</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:20px;">
+                <button class="m-btn m-btn-cancel" onclick="document.getElementById('newProductModal').style.display='none'">취소</button>
+                <button class="m-btn m-btn-confirm" onclick="submitNewProduct()">등록하기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 착장 등록 모달 -->
     <div id="outfitModal" class="custom-modal-overlay">
         <!-- ... 기존 내용 유지 ... -->
@@ -1042,8 +1069,9 @@
             }
         };
 
-        // 구글 시트 입고 처리를 위한 웹 앱 URL
+        // Cloudflare Worker URL
         const GAS_WEB_APP_URL = "https://lotte-backend.poodingcake.workers.dev";
+        const GAS_IMAGE_URL = "https://script.google.com/macros/s/AKfycbwhu--oAtYoa7Y0ywszHkJMRGGN6xWTb5XP6jBsyIyI5PM5ErvnZUsh70X4LxkOnlI1/exec";
 
 
         let allItems = [], allStockMap = {}, allRentals = [], allOutfits = [], allNotes = [], allSupplies = [], allWeather = null, selDate = null, filteredItems = [], curItem = null;
@@ -1100,6 +1128,11 @@
                 allOutfits = backendData.outfits || [];
                 allNotes = backendData.notes || [];
                 allSupplies = backendData.supplies || [];
+                
+                // 백엔드에서 products 배열을 가져와서 items 덮어쓰기
+                if (backendData.products && backendData.products.length > 0) {
+                    masterData.items = backendData.products;
+                }
 
                 // 재고 덮어쓰기
                 if (backendData.inventory && Object.keys(backendData.inventory).length > 0) {
