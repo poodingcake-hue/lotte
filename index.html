@@ -1164,9 +1164,10 @@
                 allNotes = backendData.notes || [];
                 allSupplies = backendData.supplies || [];
                 
-                // 백엔드에서 products 배열을 가져와서 items 덮어쓰기
+                // 백엔드에서 products 배열을 가져와서 items 덮어쓰기 하되, 편성표(스케줄) 항목은 유지
                 if (backendData.products && backendData.products.length > 0) {
-                    masterData.items = backendData.products;
+                    const schedules = (masterData.items || []).filter(i => !i.isMaster);
+                    masterData.items = [...backendData.products, ...schedules];
                 }
 
                 // 재고 덮어쓰기
