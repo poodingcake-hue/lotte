@@ -878,75 +878,83 @@
 
         <section id="page-register" class="page-section">
             <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
-                <!-- 왼쪽: 상품 기본 정보 -->
-                <div class="dash-card" style="flex: 1; min-width: 320px;">
-                    <div class="dash-title-row"><span class="dash-title">상품 기본 정보</span></div>
-                    
-                    <div style="display:flex; align-items:center; margin-top:15px; margin-bottom:10px;">
-                        <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">상품코드</span>
-                        <input type="text" id="reg-code" class="modal-input" placeholder="8자리 숫자 입력" oninput="previewLotteImage()" style="flex:1; margin:0;">
+                
+                <!-- 왼쪽 열: 상품 기본 정보 -->
+                <div style="flex: 1; min-width: 320px;">
+                    <div class="dash-card">
+                        <div class="dash-title-row"><span class="dash-title">상품 기본 정보</span></div>
+                        
+                        <div style="display:flex; align-items:center; margin-top:15px; margin-bottom:10px;">
+                            <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">상품코드</span>
+                            <input type="text" id="reg-code" class="modal-input" placeholder="8자리 숫자 입력" oninput="previewLotteImage()" style="flex:1; margin:0;">
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">브랜드</span>
+                            <input type="text" id="reg-brand" class="modal-input" placeholder="LBL 등" style="flex:1; margin:0;">
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">상품명</span>
+                            <input type="text" id="reg-name" class="modal-input" placeholder="캐시미어 니트" style="flex:1; margin:0;">
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">카테고리</span>
+                            <input type="text" id="reg-cate" class="modal-input" placeholder="니트/스웨터" style="flex:1; margin:0;">
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">색상 (콤마)</span>
+                            <input type="text" id="reg-colors" class="modal-input" placeholder="블랙, 화이트, 레드" oninput="updateColorImages()" style="flex:1; margin:0;">
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">사이즈 (콤마)</span>
+                            <input type="text" id="reg-sizes" class="modal-input" placeholder="55, 66, 77" style="flex:1; margin:0;">
+                        </div>
+                        
+                        <button class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; margin-top:20px; border-radius:8px;" onclick="saveProductInfo()">기본 정보 저장</button>
                     </div>
-                    <div style="display:flex; align-items:center; margin-bottom:10px;">
-                        <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">브랜드</span>
-                        <input type="text" id="reg-brand" class="modal-input" placeholder="LBL 등" style="flex:1; margin:0;">
-                    </div>
-                    <div style="display:flex; align-items:center; margin-bottom:10px;">
-                        <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">상품명</span>
-                        <input type="text" id="reg-name" class="modal-input" placeholder="캐시미어 니트" style="flex:1; margin:0;">
-                    </div>
-                    <div style="display:flex; align-items:center; margin-bottom:10px;">
-                        <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">카테고리</span>
-                        <input type="text" id="reg-cate" class="modal-input" placeholder="니트/스웨터" style="flex:1; margin:0;">
-                    </div>
-                    <div style="display:flex; align-items:center; margin-bottom:10px;">
-                        <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">색상 (콤마)</span>
-                        <input type="text" id="reg-colors" class="modal-input" placeholder="블랙, 화이트, 레드" oninput="updateColorImages()" style="flex:1; margin:0;">
-                    </div>
-                    <div style="display:flex; align-items:center; margin-bottom:10px;">
-                        <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">사이즈 (콤마)</span>
-                        <input type="text" id="reg-sizes" class="modal-input" placeholder="55, 66, 77" style="flex:1; margin:0;">
-                    </div>
-                    
-                    <button class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; margin-top:20px; border-radius:8px;" onclick="saveProductInfo()">기본 정보 저장</button>
                 </div>
 
-                <!-- 오른쪽: 이미지 등록 -->
-                <div class="dash-card" style="flex: 1.5; min-width: 320px;">
-                    <div class="dash-title-row"><span class="dash-title">이미지 등록 (Ctrl+V 복사/붙여넣기)</span></div>
+                <!-- 오른쪽 열: 이미지 등록 및 매트릭스 재고 -->
+                <div style="flex: 1.5; min-width: 320px; display: flex; flex-direction: column; gap: 20px;">
                     
-                    <!-- 롯데 공식 이미지 프리뷰 -->
-                    <div id="reg-preview-box" style="display:none; text-align:center; background:#f8f9fa; padding:10px; border-radius:12px; margin-bottom:15px; margin-top:15px;">
-                        <span style="font-size:11px; font-weight:800; color:#888;">자동 불러오기 이미지 미리보기 (저장 전 우선 보임)</span><br>
-                        <img id="reg-preview-img" src="" style="max-width:120px; border-radius:8px; margin-top:5px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                    <!-- 오른쪽 상단: 이미지 등록 -->
+                    <div class="dash-card">
+                        <div class="dash-title-row"><span class="dash-title">이미지 등록 (Ctrl+V 복사/붙여넣기)</span></div>
+                        
+                        <!-- 롯데 공식 이미지 프리뷰 -->
+                        <div id="reg-preview-box" style="display:none; text-align:center; background:#f8f9fa; padding:10px; border-radius:12px; margin-bottom:15px; margin-top:15px;">
+                            <span style="font-size:11px; font-weight:800; color:#888;">자동 불러오기 이미지 미리보기 (저장 전 우선 보임)</span><br>
+                            <img id="reg-preview-img" src="" style="max-width:120px; border-radius:8px; margin-top:5px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                        </div>
+                        
+                        <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#555;">전체 대표 이미지</div>
+                        <div id="drop-main" class="image-dropzone" data-color="main" tabindex="0" style="width:100%; height:120px; border:2px dashed #ccc; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; cursor:pointer; overflow:hidden; position:relative; margin-bottom:15px;">
+                            <span style="font-size:12px; font-weight:700; color:#999; pointer-events:none;">여기를 클릭하고 Ctrl+V 로 붙여넣기</span>
+                            <img id="img-main" src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
+                        </div>
+                        
+                        <div id="color-images-container" style="display:flex; flex-wrap:wrap; gap:10px;">
+                            <!-- 색상별 이미지 업로드 영역 동적 추가 -->
+                        </div>
                     </div>
-                    
-                    <div style="font-weight:bold; font-size:13px; margin-bottom:8px; color:#555;">전체 대표 이미지</div>
-                    <div id="drop-main" class="image-dropzone" data-color="main" tabindex="0" style="width:100%; height:120px; border:2px dashed #ccc; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#f8f9fa; cursor:pointer; overflow:hidden; position:relative; margin-bottom:15px;">
-                        <span style="font-size:12px; font-weight:700; color:#999; pointer-events:none;">여기를 클릭하고 Ctrl+V 로 붙여넣기</span>
-                        <img id="img-main" src="" style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0; background:white;">
-                    </div>
-                    
-                    <div id="color-images-container" style="display:flex; flex-wrap:wrap; gap:10px;">
-                        <!-- 색상별 이미지 업로드 영역 동적 추가 -->
-                    </div>
-                </div>
-            </div>
 
-            <!-- 하단: 매트릭스 재고 등록 -->
-            <div class="dash-card" style="margin-bottom: 30px;">
-                <div class="dash-title-row"><span class="dash-title">매트릭스 재고 등록</span></div>
-                <div style="font-size:12px; color:#666; margin-top:10px;">기본 정보의 '색상'과 '사이즈'를 모두 입력한 후 버튼을 눌러주세요.</div>
-                <button class="m-btn p-2 fw-bold" style="width:100%; margin-top:10px; background:#4361ee22; color:var(--primary); border:1px solid var(--primary); border-radius:8px;" onclick="generateMatrix()">매트릭스 표 생성</button>
-                
-                <div id="matrix-container" style="margin-top:20px; overflow-x:auto;">
-                    <!-- 동적 표 생성 영역 -->
+                    <!-- 오른쪽 하단: 매트릭스 재고 등록 -->
+                    <div class="dash-card">
+                        <div class="dash-title-row"><span class="dash-title">매트릭스 재고 등록</span></div>
+                        <div style="font-size:12px; color:#666; margin-top:10px;">왼쪽 기본 정보의 '색상'과 '사이즈'를 먼저 입력한 후 버튼을 눌러주세요.</div>
+                        <button class="m-btn p-2 fw-bold" style="width:100%; margin-top:10px; background:#4361ee22; color:var(--primary); border:1px solid var(--primary); border-radius:8px;" onclick="generateMatrix()">매트릭스 표 생성</button>
+                        
+                        <div id="matrix-container" style="margin-top:20px; overflow-x:auto;">
+                            <!-- 동적 표 생성 영역 -->
+                        </div>
+                        
+                        <button id="btn-save-inventory" class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; margin-top:15px; border-radius:8px; display:none;" onclick="saveMatrixInventory()">재고 정보 저장</button>
+                    </div>
+
                 </div>
-                
-                <button id="btn-save-inventory" class="m-btn m-btn-confirm p-2 fw-bold" style="width:100%; margin-top:15px; border-radius:8px; display:none;" onclick="saveMatrixInventory()">재고 정보 저장</button>
             </div>
         </section>
 
-        <section id="page-inventory" > class="page-section">
+        <section id="page-inventory" > > class="page-section">
             <div class="card border-0 shadow-sm p-2 mb-2 rounded-3">
                 <div class="row g-2">
                     <div class="col-6"><select id="brandSel" class="form-select form-select-sm border-0 bg-light"
