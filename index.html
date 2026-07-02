@@ -2578,12 +2578,14 @@ function generateMatrix(silent = false) {
             const container = document.getElementById('taskContainer');
             if(!container) return;
             container.innerHTML = '';
-            // Update container style to a responsive grid for vertical cards
+            // Update container style to a horizontal scrollable navigation
             container.className = '';
-            container.style.display = 'grid';
-            container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
+            container.style.display = 'flex';
+            container.style.overflowX = 'auto';
             container.style.gap = '15px';
-            container.style.alignItems = 'start';
+            container.style.paddingBottom = '10px';
+            container.style.alignItems = 'stretch';
+            // Custom scrollbar styling can be handled in CSS, but inline is fine for basic functionality
             
             const targetPrefix = currentTaskDate + " " + currentTaskTime;
             // Get ALL scheduled items for this specific time slot
@@ -2610,8 +2612,9 @@ function generateMatrix(silent = false) {
                 // Image border style for OUR products (thin pink border)
                 const imgBorderStyle = isOurs ? 'border: 2px solid #ff66a3;' : 'border: 1px solid #eee;';
 
+                // Fixed width for horizontal navigation items
                 const cardHTML = `
-                    <div class="dash-card" style="display:flex; flex-direction:column; padding:10px; cursor:pointer; align-items: stretch; margin-bottom:0;" onclick="selectProductToLoad('${item.code}')">
+                    <div class="dash-card" style="display:flex; flex-direction:column; padding:10px; cursor:pointer; align-items: stretch; margin-bottom:0; min-width: 120px; max-width: 120px; flex-shrink: 0;" onclick="selectProductToLoad('${item.code}')">
                         <div style="width:100%; aspect-ratio: 1/1; border-radius:8px; overflow:hidden; background:#fff; position:relative; ${imgBorderStyle} box-sizing: border-box; margin-bottom: 10px;">
                             <img src="${imgSrc}" style="width:100%; height:100%; object-fit:contain;">
                         </div>
