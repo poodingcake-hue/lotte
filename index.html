@@ -1824,24 +1824,24 @@ function generateMatrix() {
             const div = document.createElement("div"); div.className = "p-card";
             div.onclick = () => { renderPageUI('detail', i, true); };
 
-            const supplyObj = allSupplies.find(s => s.code == i.code);
+            let displayItem = i;
+            if (!i.isMaster) {
+                const master = allItems.find(m => m.isMaster && String(m.code) === String(i.code));
+                if (master) {
+                    displayItem = {
+                        ...i,
+                        brand: master.brand || i.brand,
+                        name: master.name || i.name,
+                        image: master.image || i.image
+                    };
+                }
+            }
+
+            const supplyObj = allSupplies.find(s => s.code == displayItem.code);
             const overlay = (supplyObj && supplyObj.text) ? `<div class="supplies-overlay">${supplyObj.text}</div>` : "";
 
-            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(i)}" class="p-img">${overlay}</div><div class="p-info"><div class="p-brand">${i.brand}</div><div class="p-name">${i.name}</div></div>`;
+            div.innerHTML = `<div class="p-img-box"><img src="${getProductImage(displayItem)}" class="p-img">${overlay}</div><div class="p-info"><div class="p-brand">${displayItem.brand}</div><div class="p-name">${displayItem.name}</div></div>`;
             return div;
-        }
-
-        // 이미지 주소가 비어있을 경우 롯데홈쇼핑 웹 이미지를 생성하는 헬퍼 함수
-        function getProductImage(i) {
-            if (i.image && i.image.trim() !== "") return i.image;
-            const code = String(i.code);
-            if (code.length < 8) return ""; // 코드가 8자리 미만이면 빈값 반환
-
-            // https://image2.lotteimall.com/goods/'7~8번째'/'5~6번째'/'3~4번째'/'상품코드'_L.jpg
-            const p1 = code.substring(6, 8);
-            const p2 = code.substring(4, 6);
-            const p3 = code.substring(2, 4);
-            return `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${code}_L.jpg`;
         }
 
         function renderDetailUI(i) {
