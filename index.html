@@ -1640,6 +1640,38 @@ function generateMatrix() {
                 return alert("마스터 정보(브랜드, 상품명)를 먼저 입력해야 재고를 저장할 수 있습니다.");
             }
             
+            // 0. 새로 입력한 색상/사이즈를 마스터 정보에 자동 추가
+            const extraSizeHeaders = document.querySelectorAll('.extra-size-header');
+            const extraSize1 = extraSizeHeaders[0] ? extraSizeHeaders[0].value.trim() : "";
+            const extraSize2 = extraSizeHeaders[1] ? extraSizeHeaders[1].value.trim() : "";
+            const extraColorHeader = document.getElementById('extra-color-header');
+            const extraColor = extraColorHeader ? extraColorHeader.value.trim() : "";
+            
+            const colorInput = document.getElementById('reg-colors');
+            const sizeInput = document.getElementById('reg-sizes');
+            
+            let currentColors = colorInput.value.split(',').map(s=>s.trim()).filter(s=>s);
+            let currentSizes = sizeInput.value.split(',').map(s=>s.trim()).filter(s=>s);
+            
+            let masterUpdated = false;
+            if(extraColor && !currentColors.includes(extraColor)) {
+                currentColors.push(extraColor);
+                masterUpdated = true;
+            }
+            if(extraSize1 && !currentSizes.includes(extraSize1)) {
+                currentSizes.push(extraSize1);
+                masterUpdated = true;
+            }
+            if(extraSize2 && !currentSizes.includes(extraSize2)) {
+                currentSizes.push(extraSize2);
+                masterUpdated = true;
+            }
+            
+            if(masterUpdated) {
+                colorInput.value = currentColors.join(', ');
+                sizeInput.value = currentSizes.join(', ');
+            }
+            
             // 1. 마스터 정보 먼저 조용히 저장
             const masterSaved = await saveProductInfo(true);
             if(!masterSaved) {
