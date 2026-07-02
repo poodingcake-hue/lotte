@@ -1516,6 +1516,8 @@ function generateMatrix() {
             sizes.forEach(s => {
                 html += `<th style="padding:15px; font-weight:bold; color:#333; text-align:center;">${s}</th>`;
             });
+            html += `<th style="padding:0; width:80px;"><input type="text" class="extra-size-header" placeholder="+사이즈" style="width:100%; height:50px; border:none; text-align:center; font-weight:bold; color:#d97706; background:#fef3c7; outline:none;"></th>`;
+            html += `<th style="padding:0; width:80px;"><input type="text" class="extra-size-header" placeholder="+사이즈" style="width:100%; height:50px; border:none; text-align:center; font-weight:bold; color:#d97706; background:#fef3c7; outline:none;"></th>`;
             html += `</tr>`;
             
             // Body
@@ -1540,14 +1542,8 @@ function generateMatrix() {
                     const existingQty = existing ? existing.qty : 0;
                     
                     if(isAdditional) {
-                        html += `<td style="padding:10px; vertical-align:middle; font-size:12px; color:#666;">
-                                    <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">
-                                        <span style="font-size:11px;">기존: <b style="color:#222; font-size:13px;">${existingQty}</b></span>
-                                        <div style="display:flex; align-items:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:2px 6px;">
-                                            <span style="color:#166534; font-weight:bold; margin-right:2px;">+</span>
-                                            <input type="number" class="matrix-input" data-color="${c}" data-size="${s}" data-existing="${existingQty}" style="width:40px; border:none; text-align:center; font-size:14px; font-weight:bold; color:#16a34a; background:transparent; outline:none;" placeholder="0">
-                                        </div>
-                                    </div>
+                        html += `<td style="padding:15px; vertical-align:middle; font-size:14px; color:#555; text-align:center;">
+                                    기존: <b style="color:#111;">${existingQty}</b>
                                  </td>`;
                     } else {
                         html += `<td style="padding:0; vertical-align:middle;">
@@ -1555,8 +1551,24 @@ function generateMatrix() {
                                  </td>`;
                     }
                 });
+                
+                // Extra columns for this color
+                html += `<td style="padding:0; vertical-align:middle; border-left:2px solid #fef3c7;"><input type="number" class="matrix-extra-input" data-color="${c}" data-extra-col="0" style="width:100%; height:50px; border:none; text-align:center; font-size:16px; font-weight:bold; color:#d97706; background:#fffbeb; outline:none;" placeholder="+"></td>`;
+                html += `<td style="padding:0; vertical-align:middle; border-left:1px solid #fef3c7;"><input type="number" class="matrix-extra-input" data-color="${c}" data-extra-col="1" style="width:100%; height:50px; border:none; text-align:center; font-size:16px; font-weight:bold; color:#d97706; background:#fffbeb; outline:none;" placeholder="+"></td>`;
+                
                 html += `</tr>`;
             });
+            
+            // Extra Row for new color
+            html += `<tr style="border-top:2px solid #fef3c7; background:#fffbeb;">
+                        <td style="padding:0;"><input type="text" id="extra-color-header" placeholder="+색상입력" style="width:100%; height:50px; border:none; text-align:center; font-weight:bold; color:#d97706; background:transparent; outline:none;"></td>`;
+            sizes.forEach(s => {
+                html += `<td style="padding:0; vertical-align:middle;"><input type="number" class="matrix-extra-input" data-extra-row="1" data-size="${s}" style="width:100%; height:50px; border:none; text-align:center; font-size:16px; font-weight:bold; color:#d97706; background:transparent; outline:none;" placeholder="+"></td>`;
+            });
+            // Extra cols intersection
+            html += `<td style="padding:0; vertical-align:middle; border-left:2px solid #fef3c7;"><input type="number" class="matrix-extra-input" data-extra-row="1" data-extra-col="0" style="width:100%; height:50px; border:none; text-align:center; font-size:16px; font-weight:bold; color:#d97706; background:transparent; outline:none;" placeholder="+"></td>`;
+            html += `<td style="padding:0; vertical-align:middle; border-left:1px solid #fef3c7;"><input type="number" class="matrix-extra-input" data-extra-row="1" data-extra-col="1" style="width:100%; height:50px; border:none; text-align:center; font-size:16px; font-weight:bold; color:#d97706; background:transparent; outline:none;" placeholder="+"></td>`;
+            html += `</tr>`;
             
             html += `</table></div>`;
             
@@ -1640,20 +1652,55 @@ function generateMatrix() {
             const inputs = document.querySelectorAll('.matrix-input');
             if(!allStockMap[code]) allStockMap[code] = [];
             
-            // 해당 코드의 기존 재고 배열 비우기 (새로 덮어쓰기)
-            allStockMap[code] = [];
+            // 2. Add quantities from normal matrix inputs (for New Intake mode)
+            const currentStock = allStockMap[code] || [];
+            let stockDict = {};
+            currentStock.forEach(i => {
+                stockDict[`${i.color}::${i.size}`] = i.qty;
+            });
             
-            inputs.forEach(inp => {
-                const existingQty = parseInt(inp.dataset.existing) || 0;
-                const inputQty = parseInt(inp.value) || 0;
-                const totalQty = existingQty + inputQty;
-                
-                if(totalQty > 0) {
-                    allStockMap[code].push({
-                        color: inp.dataset.color,
-                        size: inp.dataset.size,
-                        qty: totalQty
-                    });
+            const normalInputs = document.querySelectorAll('.matrix-input');
+            normalInputs.forEach(inp => {
+                const qty = parseInt(inp.value) || 0;
+                if(qty > 0) {
+                    const c = inp.dataset.color;
+                    const s = inp.dataset.size;
+                    stockDict[`${c}::${s}`] = (stockDict[`${c}::${s}`] || 0) + qty;
+                }
+            });
+            
+            // 3. Add quantities from extra inputs (for Additional Intake mode)
+            const extraSizeHeaders = document.querySelectorAll('.extra-size-header');
+            const extraSize1 = extraSizeHeaders[0] ? extraSizeHeaders[0].value.trim() : "";
+            const extraSize2 = extraSizeHeaders[1] ? extraSizeHeaders[1].value.trim() : "";
+            
+            const extraColorHeader = document.getElementById('extra-color-header');
+            const extraColor = extraColorHeader ? extraColorHeader.value.trim() : "";
+            
+            const extraInputs = document.querySelectorAll('.matrix-extra-input');
+            extraInputs.forEach(inp => {
+                const qty = parseInt(inp.value) || 0;
+                if(qty > 0) {
+                    let c = inp.dataset.color;
+                    if(inp.dataset.extraRow === "1") c = extraColor;
+                    
+                    let s = inp.dataset.size;
+                    if(inp.dataset.extraCol === "0") s = extraSize1;
+                    if(inp.dataset.extraCol === "1") s = extraSize2;
+                    
+                    if(c && s) {
+                        stockDict[`${c}::${s}`] = (stockDict[`${c}::${s}`] || 0) + qty;
+                    }
+                }
+            });
+            
+            // 4. Rebuild allStockMap[code]
+            allStockMap[code] = [];
+            Object.keys(stockDict).forEach(key => {
+                const [c, s] = key.split("::");
+                const q = stockDict[key];
+                if(q > 0) {
+                    allStockMap[code].push({ color: c, size: s, qty: q });
                 }
             });
             
