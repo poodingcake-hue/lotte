@@ -28,7 +28,7 @@ async function seed() {
         console.log("Seeded supplies");
     }
     
-    // inventory (from data.json)
+    // inventory and products (from data.json)
     if (fs.existsSync('data.json')) {
         const master = JSON.parse(fs.readFileSync('data.json', 'utf8'));
         let flatInventory = [];
@@ -41,6 +41,11 @@ async function seed() {
         }
         await fetch(workerUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "save_inventory", data: flatInventory }) });
         console.log("Seeded inventory");
+
+        if (master.items && master.items.length > 0) {
+            await fetch(workerUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "save_products", data: master.items }) });
+            console.log("Seeded products");
+        }
     }
 }
 seed();

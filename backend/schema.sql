@@ -39,3 +39,15 @@ CREATE TABLE supplies (
     code TEXT NOT NULL,
     text TEXT NOT NULL
 );
+
+DROP TABLE IF EXISTS products;
+CREATE TABLE products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL,
+    brand TEXT,
+    name TEXT,
+    category TEXT,
+    image TEXT,
+    date TEXT,
+    isMaster INTEGER DEFAULT 1
+);

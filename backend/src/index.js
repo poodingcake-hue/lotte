@@ -17,6 +17,7 @@ export default {
         const { results: outfitsResults } = await env.DB.prepare("SELECT * FROM outfits").all();
         const { results: notesResults } = await env.DB.prepare("SELECT * FROM notes").all();
         const { results: suppliesResults } = await env.DB.prepare("SELECT * FROM supplies").all();
+        const { results: productsResults } = await env.DB.prepare("SELECT * FROM products").all();
 
         const formattedInventory = {};
         inventoryResults.forEach(item => {
@@ -35,7 +36,8 @@ export default {
           rentals: rentalsResults,
           outfits: outfitsResults,
           notes: notesResults,
-          supplies: suppliesResults
+          supplies: suppliesResults,
+          products: productsResults
         };
 
         return new Response(JSON.stringify(responseData), {
@@ -87,6 +89,22 @@ export default {
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO inventory (code, color, size, qty) VALUES (?, ?, ?, ?)");
                const batch = data.map(item => stmt.bind(item.code, item.color, item.size, item.qty));
+               await env.DB.batch(batch);
+           }
+        }
+        else if (type === "save_products") {
+           await env.DB.prepare("DELETE FROM products").run();
+           if (data && data.length > 0) {
+               const stmt = env.DB.prepare("INSERT INTO products (code, brand, name, category, image, date, isMaster) VALUES (?, ?, ?, ?, ?, ?, ?)");
+               const batch = data.map(item => stmt.bind(
+                   item.code,
+                   item.brand || "",
+                   item.name || "",
+                   item.category || "",
+                   item.image || "",
+                   item.date || "",
+                   item.isMaster ? 1 : 0
+               ));
                await env.DB.batch(batch);
            }
         }
