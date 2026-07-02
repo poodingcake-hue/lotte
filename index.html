@@ -1702,13 +1702,6 @@ function generateMatrix() {
             });
             
             // 3. Add quantities from extra inputs (for Additional Intake mode)
-            const extraSizeHeaders = document.querySelectorAll('.extra-size-header');
-            const extraSize1 = extraSizeHeaders[0] ? extraSizeHeaders[0].value.trim() : "";
-            const extraSize2 = extraSizeHeaders[1] ? extraSizeHeaders[1].value.trim() : "";
-            
-            const extraColorHeader = document.getElementById('extra-color-header');
-            const extraColor = extraColorHeader ? extraColorHeader.value.trim() : "";
-            
             const extraInputs = document.querySelectorAll('.matrix-extra-input');
             extraInputs.forEach(inp => {
                 const qty = parseInt(inp.value) || 0;
