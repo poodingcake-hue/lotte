@@ -1878,6 +1878,8 @@ function generateMatrix(silent = false) {
                 if (btn.id === 'nav-reg' && t === 'register') btn.classList.add('active');
             });
             if (t === 'schedule') renderSchedule();
+            if (t === 'task') initTaskScrollers();
+
             if (t === 'inventory' && !document.getElementById("inventoryContainer").children.length) resetFilter();
             if (t === 'detail' && item) renderDetailUI(item);
             window.scrollTo(0, 0);
