@@ -4,6 +4,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- 브라우저 캐싱 방지 (강력 새로고침 효과 강제) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>LOTTE PB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" as="style" crossorigin
@@ -1154,9 +1158,8 @@
         async function initApp() {
             document.getElementById('loading-overlay').style.display = 'flex';
 
-            // 초기 히스토리 상태 설정 (뒤로가기 시 튕김 방지)
-            const hash = window.location.hash.replace('#', '');
-            const startPage = ['schedule', 'inventory'].includes(hash) ? hash : 'schedule';
+            // 초기 시작화면은 편성표('schedule')로 고정
+            const startPage = 'schedule';
             history.replaceState({ page: startPage }, '', '#' + startPage);
 
             const ts = new Date().getTime();
@@ -1186,8 +1189,8 @@
                 const masterRes = await fetch(`data.json?v=${ts}`);
                 const masterData = await masterRes.json();
 
-                // 2. 백엔드(Cloudflare)에서 모든 동적 데이터 호출
-                const backendRes = await fetch(GAS_WEB_APP_URL + "?action=getAll");
+                // 2. 백엔드(Cloudflare)에서 모든 동적 데이터 호출 (캐싱 방지 파라미터 추가)
+                const backendRes = await fetch(GAS_WEB_APP_URL + `?action=getAll&v=${ts}`);
                 const backendData = await backendRes.json();
 
                 allRentals = backendData.rentals || [];
@@ -1668,16 +1671,48 @@ function generateMatrix() {
             const b = document.getElementById("brandSel"), c = document.getElementById("cateSel");
             b.innerHTML = '<option value="All">브랜드 전체</option>'; c.innerHTML = '<option value="All">카테고리 전체</option>';
             data.brands.forEach(v => b.add(new Option(v, v))); data.categories.forEach(v => c.add(new Option(v, v)));
+            
+            // Build masterCodes (both isMaster products and products with stock entries)
+            const masterCodes = new Set(allItems.filter(i => i.isMaster).map(i => String(i.code)));
+            if (typeof allStockMap !== 'undefined') {
+                Object.keys(allStockMap).forEach(code => masterCodes.add(String(code)));
+            }
+
+            // Get today in KST
+            const formatter = new Intl.DateTimeFormat('sv-SE', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            const todayKst = formatter.format(new Date());
+
+            // Collect unique dates on/after today that have broadcasts for our products
+            const activeDatesSet = new Set();
+            allItems.forEach(i => {
+                if (!i.isMaster && i.dateKey && i.dateKey >= todayKst && masterCodes.has(String(i.code))) {
+                    activeDatesSet.add(i.dateKey);
+                }
+            });
+            
+            // Sort active dates
+            const dates = Array.from(activeDatesSet).sort();
+
             const scroller = document.getElementById("dateScroller"); scroller.innerHTML = "";
-            if (data.dates && data.dates.length > 0) {
-                if (!selDate) selDate = data.dates[0];
-                data.dates.forEach(d => {
-                    const dateObj = new Date(d); const btn = document.createElement("div");
+            if (dates.length > 0) {
+                if (!selDate || !dates.includes(selDate)) selDate = dates[0];
+                dates.forEach(d => {
+                    const parts = d.split('-');
+                    const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    const btn = document.createElement("div");
                     btn.className = `date-btn ${d === selDate ? 'active' : ''}`;
+                    btn.dataset.date = d;
                     btn.innerHTML = `<span class="dow">${"일월화수목금토"[dateObj.getDay()]}</span><span class="day">${dateObj.getDate()}</span>`;
                     btn.onclick = () => { selDate = d; renderSchedule(); };
                     scroller.appendChild(btn);
                 });
+            } else {
+                selDate = null;
             }
             renderPageUI(startPage, null, false);
         }
@@ -1706,8 +1741,17 @@ function generateMatrix() {
 
         function renderSchedule() {
             const container = document.getElementById("scheduleContainer"); container.innerHTML = "";
-            document.querySelectorAll('.date-btn').forEach(btn => btn.classList.toggle('active', parseInt(btn.querySelector('.day').innerText) === new Date(selDate).getDate()));
-            const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate).sort((a, b) => parseTime(a.date) - parseTime(b.date));
+            document.querySelectorAll('.date-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.date === selDate));
+            
+            // Get master product codes for filtering our items
+            const masterCodes = new Set(allItems.filter(i => i.isMaster).map(i => String(i.code)));
+            // Also include codes that exist in our stock map (inventory)
+            if (typeof allStockMap !== 'undefined') {
+                Object.keys(allStockMap).forEach(code => masterCodes.add(String(code)));
+            }
+            
+            const filtered = allItems.filter(i => !i.isMaster && i.dateKey === selDate && masterCodes.has(String(i.code))).sort((a, b) => parseTime(a.date) - parseTime(b.date));
+            
             const groups = {};
             filtered.forEach(item => {
                 const tm = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
