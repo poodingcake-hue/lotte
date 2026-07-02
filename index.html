@@ -1496,13 +1496,22 @@ function executeLoadProductInfo(code) {
     }
 }
 
-function generateMatrix() {
+function generateMatrix(silent = false) {
             const colorsStr = document.getElementById('reg-colors').value;
             const sizesStr = document.getElementById('reg-sizes').value;
             const code = document.getElementById('reg-code').value.trim();
             
-            if(!code) return alert("상품코드를 먼저 입력하세요.");
-            if(!colorsStr || !sizesStr) return alert("색상과 사이즈를 모두 입력하세요.");
+            if(!code || !colorsStr || !sizesStr) {
+                if(!silent) {
+                    if(!code) alert("상품코드를 먼저 입력하세요");
+                    else alert("색상과 사이즈를 모두 입력하세요");
+                }
+                const container = document.getElementById('matrix-container');
+                if(container) container.innerHTML = '';
+                const btn = document.getElementById('btn-save-inventory');
+                if(btn) btn.style.display = 'none';
+                return;
+            }
             
             const colors = colorsStr.split(',').map(s=>s.trim()).filter(s=>s);
             const sizes = sizesStr.split(',').map(s=>s.trim()).filter(s=>s);
