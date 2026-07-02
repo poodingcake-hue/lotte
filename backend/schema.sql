@@ -41,13 +41,14 @@ CREATE TABLE supplies (
 );
 
 DROP TABLE IF EXISTS products;
-CREATE TABLE products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    brand TEXT,
-    name TEXT,
-    category TEXT,
-    image TEXT,
-    date TEXT,
-    isMaster INTEGER DEFAULT 1
+CREATE TABLE IF NOT EXISTS products (
+  code TEXT PRIMARY KEY,
+  brand TEXT,
+  name TEXT,
+  category TEXT,
+  image TEXT,
+  date TEXT,
+  isMaster INTEGER DEFAULT 0,
+  colors TEXT,
+  sizes TEXT
 );

@@ -102,7 +102,7 @@ export default {
         else if (type === "save_products") {
            const statements = [env.DB.prepare("DELETE FROM products")];
            if (data && data.length > 0) {
-               const stmt = env.DB.prepare("INSERT INTO products (code, brand, name, category, image, date, isMaster) VALUES (?, ?, ?, ?, ?, ?, ?)");
+               const stmt = env.DB.prepare("INSERT INTO products (code, brand, name, category, image, date, isMaster, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                data.forEach(item => {
                    statements.push(stmt.bind(
                        item.code,
@@ -111,7 +111,9 @@ export default {
                        item.category || "",
                        item.image || "",
                        item.date || "",
-                       item.isMaster ? 1 : 0
+                       item.isMaster ? 1 : 0,
+                       item.colors || "",
+                       item.sizes || ""
                    ));
                });
            }
