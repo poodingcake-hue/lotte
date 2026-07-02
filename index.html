@@ -1576,17 +1576,37 @@ function generateMatrix() {
                 });
 
                 if(cfRes.ok) {
-                    alert("상품 기본 정보가 저장되었습니다.");
+                    if(!silent) alert("상품 기본 정보가 저장되었습니다.");
+                    return true;
                 } else {
                     alert("저장 실패");
+                    return false;
                 }
-            } catch(e) { console.error(e); }
-            finally { document.getElementById('loading-overlay').style.display = 'none'; }
+            } catch(e) { 
+                console.error(e); 
+                return false;
+            }
+            finally { 
+                if(!silent) document.getElementById('loading-overlay').style.display = 'none'; 
+            }
         }
 
         async function saveMatrixInventory() {
             const code = document.getElementById('reg-code').value.trim();
             if(!code) return alert("상품코드가 없습니다.");
+            
+            const brand = document.getElementById('reg-brand').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            if(!brand || !name) {
+                return alert("마스터 정보(브랜드, 상품명)를 먼저 입력해야 재고를 저장할 수 있습니다.");
+            }
+            
+            // 1. 마스터 정보 먼저 조용히 저장
+            const masterSaved = await saveProductInfo(true);
+            if(!masterSaved) {
+                document.getElementById('loading-overlay').style.display = 'none';
+                return;
+            }
             
             document.getElementById('loading-overlay').style.display = 'flex';
             
