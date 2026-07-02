@@ -50,63 +50,72 @@ export default {
         const { type, data } = body;
 
         if (type === "save_rentals") {
-           await env.DB.prepare("DELETE FROM rentals").run();
+           const statements = [env.DB.prepare("DELETE FROM rentals")];
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO rentals (code, renter, color, size, qty, date) VALUES (?, ?, ?, ?, ?, ?)");
-               const batch = data.map(item => stmt.bind(item.code, item.renter, item.color || "", item.size || "", item.qty || 1, item.date || ""));
-               await env.DB.batch(batch);
+               data.forEach(item => {
+                   statements.push(stmt.bind(item.code, item.renter, item.color || "", item.size || "", item.qty || 1, item.date || ""));
+               });
            }
+           await env.DB.batch(statements);
         } 
         else if (type === "save_outfits") {
-           await env.DB.prepare("DELETE FROM outfits").run();
+           const statements = [env.DB.prepare("DELETE FROM outfits")];
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO outfits (code, host, size) VALUES (?, ?, ?)");
-               const batch = data.map(item => stmt.bind(item.code, item.host, item.size || ""));
-               await env.DB.batch(batch);
+               data.forEach(item => {
+                   statements.push(stmt.bind(item.code, item.host, item.size || ""));
+               });
            }
+           await env.DB.batch(statements);
         }
         else if (type === "save_notes") {
-           await env.DB.prepare("DELETE FROM notes").run();
+           const statements = [env.DB.prepare("DELETE FROM notes")];
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO notes (code, text) VALUES (?, ?)");
-               const batch = data.map(item => stmt.bind(item.code, item.text));
-               await env.DB.batch(batch);
+               data.forEach(item => {
+                   statements.push(stmt.bind(item.code, item.text));
+               });
            }
+           await env.DB.batch(statements);
         }
         else if (type === "save_supplies") {
-           await env.DB.prepare("DELETE FROM supplies").run();
+           const statements = [env.DB.prepare("DELETE FROM supplies")];
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO supplies (code, text) VALUES (?, ?)");
-               const batch = data.map(item => stmt.bind(item.code, item.text));
-               await env.DB.batch(batch);
+               data.forEach(item => {
+                   statements.push(stmt.bind(item.code, item.text));
+               });
            }
+           await env.DB.batch(statements);
         }
         else if (type === "save_inventory") {
-           // We need to completely replace the inventory or update it.
-           // Since the UI might send the whole stock map or just add an item.
-           // Let's assume it sends an array of all stock.
-           await env.DB.prepare("DELETE FROM inventory").run();
+           const statements = [env.DB.prepare("DELETE FROM inventory")];
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO inventory (code, color, size, qty) VALUES (?, ?, ?, ?)");
-               const batch = data.map(item => stmt.bind(item.code, item.color, item.size, item.qty));
-               await env.DB.batch(batch);
+               data.forEach(item => {
+                   statements.push(stmt.bind(item.code, item.color, item.size, item.qty));
+               });
            }
+           await env.DB.batch(statements);
         }
         else if (type === "save_products") {
-           await env.DB.prepare("DELETE FROM products").run();
+           const statements = [env.DB.prepare("DELETE FROM products")];
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO products (code, brand, name, category, image, date, isMaster) VALUES (?, ?, ?, ?, ?, ?, ?)");
-               const batch = data.map(item => stmt.bind(
-                   item.code,
-                   item.brand || "",
-                   item.name || "",
-                   item.category || "",
-                   item.image || "",
-                   item.date || "",
-                   item.isMaster ? 1 : 0
-               ));
-               await env.DB.batch(batch);
+               data.forEach(item => {
+                   statements.push(stmt.bind(
+                       item.code,
+                       item.brand || "",
+                       item.name || "",
+                       item.category || "",
+                       item.image || "",
+                       item.date || "",
+                       item.isMaster ? 1 : 0
+                   ));
+               });
            }
+           await env.DB.batch(statements);
         }
 
         return new Response(JSON.stringify({ success: true }), {
