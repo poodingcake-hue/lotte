@@ -2578,6 +2578,12 @@ function generateMatrix(silent = false) {
             const container = document.getElementById('taskContainer');
             if(!container) return;
             container.innerHTML = '';
+            // Update container style to a responsive grid for vertical cards
+            container.className = '';
+            container.style.display = 'grid';
+            container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
+            container.style.gap = '15px';
+            container.style.alignItems = 'start';
             
             const targetPrefix = currentTaskDate + " " + currentTaskTime;
             // Get ALL scheduled items for this specific time slot
@@ -2592,37 +2598,28 @@ function generateMatrix(silent = false) {
                 const isOurs = isOurProduct(item.code);
                 // Find master product to get details
                 const master = allItems.find(p => p.isMaster && p.code === item.code) || {};
-                const brand = master.brand || item.brand || '';
-                const name = master.name || item.name || '';
-                const colors = master.colors || item.colors || '';
-                const sizes = master.sizes || item.sizes || '';
                 
-                let imgSrc = 'https://via.placeholder.com/100?text=No+Image';
-                let imgData = {};
-                try {
-                    if (master.image && master.image.startsWith("{")) imgData = JSON.parse(master.image);
-                    else if (master.image) imgData = { main: master.image };
-                } catch(e) {}
-                if (imgData.main) imgSrc = imgData.main;
+                // For OUR products, use master data. For others, use schedule item data.
+                const brand = isOurs ? (master.brand || item.brand || '') : (item.brand || '');
+                const name = isOurs ? (master.name || item.name || '') : (item.name || '');
+                
+                // Get Image (getProductImage handles lotte url generation for non-image items)
+                const targetItemForImage = isOurs && master.image ? master : item;
+                const imgSrc = getProductImage(targetItemForImage) || 'https://via.placeholder.com/100?text=No+Image';
 
-                // Highlight our products slightly
-                const borderStyle = isOurs ? 'border: 2px solid var(--primary);' : 'border: 1px solid #eee;';
-                const badgeHTML = isOurs ? `<span style="background:var(--primary); color:white; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:bold; margin-bottom:5px; display:inline-block;">우리상품</span>` : '';
+                // Image border style for OUR products (thin pink border)
+                const imgBorderStyle = isOurs ? 'border: 2px solid #ff66a3;' : 'border: 1px solid #eee;';
 
                 const cardHTML = `
-                    <div class="dash-card" style="display:flex; gap:15px; align-items:center; padding:15px; cursor:pointer; ${borderStyle}" onclick="selectProductToLoad('${item.code}')">
-                        <div style="width:80px; height:80px; border-radius:8px; overflow:hidden; background:#f8f9fa; flex-shrink:0; position:relative;">
+                    <div class="dash-card" style="display:flex; flex-direction:column; padding:10px; cursor:pointer; align-items: stretch; margin-bottom:0;" onclick="selectProductToLoad('${item.code}')">
+                        <div style="width:100%; aspect-ratio: 1/1; border-radius:8px; overflow:hidden; background:#fff; position:relative; ${imgBorderStyle} box-sizing: border-box; margin-bottom: 10px;">
                             <img src="${imgSrc}" style="width:100%; height:100%; object-fit:contain;">
                         </div>
-                        <div style="flex:1;">
-                            ${badgeHTML}
-                            <div style="font-size:12px; color:#6b7280; font-weight:bold;">${brand}</div>
-                            <div style="font-size:15px; font-weight:bold; color:#111; margin-bottom:5px; line-height:1.3;">${name}</div>
-                            <div style="font-size:12px; color:#4b5563; background:#f3f4f6; display:inline-block; padding:3px 8px; border-radius:4px;">${item.code}</div>
-                        </div>
-                        <div style="text-align:right; font-size:12px; color:#555;">
-                            <div><strong style="color:#000;">색상:</strong> ${colors ? colors : '-'}</div>
-                            <div style="margin-top:4px;"><strong style="color:#000;">사이즈:</strong> ${sizes ? sizes : '-'}</div>
+                        <div style="flex:1; min-width:0; text-align:center;">
+                            <div style="font-size:11px; color:#6b7280; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px;">${brand}</div>
+                            <div style="font-size:13px; font-weight:bold; color:#111; line-height:1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-break: keep-all;">
+                                ${name}
+                            </div>
                         </div>
                     </div>
                 `;
