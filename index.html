@@ -1873,6 +1873,7 @@ function generateMatrix(silent = false) {
             document.querySelectorAll('.nav-item').forEach(btn => {
                 btn.classList.toggle('active', false);
                 if (btn.id === 'nav-sch' && t === 'schedule') btn.classList.add('active');
+                if (btn.id === 'nav-task' && t === 'task') btn.classList.add('active');
                 if (btn.id === 'nav-inv' && t === 'inventory') btn.classList.add('active');
                 if (btn.id === 'nav-reg' && t === 'register') btn.classList.add('active');
             });
@@ -2449,7 +2450,161 @@ function generateMatrix(silent = false) {
             document.getElementById("loadMoreContainer").innerHTML = filteredItems.length > c.children.length ? `<button class="btn btn-primary rounded-pill px-4 btn-sm fw-bold" onclick="renderInventoryChunk()">더 보기</button>` : "";
         }
         function parseTime(s) { if (!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : 9999; }
-    </script>
+    
+        // --- Task Order (작업수행서) Logic ---
+        let currentTaskDate = null;
+        let currentTaskTime = null;
+
+        function initTaskScrollers() {
+            const scroller = document.getElementById('taskDateScroller');
+            if(!scroller) return;
+            scroller.innerHTML = '';
+            
+            const schedules = allItems.filter(i => !i.isMaster);
+            const dateSet = new Set();
+            schedules.forEach(s => {
+                if(s.dateKey) dateSet.add(s.dateKey);
+            });
+            const uniqueDates = Array.from(dateSet).sort();
+            
+            if(uniqueDates.length === 0) {
+                scroller.innerHTML = '<div style="padding:20px; text-align:center; color:#999; width:100%;">예정된 일정이 없습니다.</div>';
+                document.getElementById('taskTimeScroller').innerHTML = '';
+                document.getElementById('taskContainer').innerHTML = '';
+                return;
+            }
+            
+            if(!currentTaskDate || !uniqueDates.includes(currentTaskDate)) {
+                const today = new Date().toISOString().substring(0,10);
+                if(uniqueDates.includes(today)) currentTaskDate = today;
+                else currentTaskDate = uniqueDates[0];
+            }
+            
+            uniqueDates.forEach(d => {
+                const btn = document.createElement('button');
+                btn.className = 'date-btn ' + (d === currentTaskDate ? 'active' : '');
+                
+                const parts = d.split('-');
+                const month = parseInt(parts[1], 10);
+                const day = parseInt(parts[2], 10);
+                const dateObj = new Date(d);
+                const weekStr = ['일','월','화','수','목','금','토'][dateObj.getDay()];
+                
+                btn.innerHTML = `<span style="font-size:12px; opacity:0.8; margin-bottom:2px;">${month}.${day}</span><span style="font-weight:bold; font-size:16px;">${weekStr}</span>`;
+                btn.onclick = () => {
+                    currentTaskDate = d;
+                    initTaskScrollers();
+                };
+                scroller.appendChild(btn);
+            });
+            
+            renderTaskTimeScroller();
+        }
+
+        function renderTaskTimeScroller() {
+            const timeScroller = document.getElementById('taskTimeScroller');
+            if(!timeScroller) return;
+            timeScroller.innerHTML = '';
+            
+            const itemsForDate = allItems.filter(i => !i.isMaster && i.dateKey === currentTaskDate);
+            const timeSet = new Set();
+            itemsForDate.forEach(item => {
+                const timePart = parseTimeFromDateString(item.date);
+                if(timePart) timeSet.add(timePart);
+            });
+            
+            const uniqueTimes = Array.from(timeSet).sort();
+            
+            if(uniqueTimes.length === 0) {
+                timeScroller.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center; width:100%;">해당 날짜에 등록된 시간이 없습니다.</div>';
+                document.getElementById('taskContainer').innerHTML = '';
+                return;
+            }
+            
+            if(!currentTaskTime || !uniqueTimes.includes(currentTaskTime)) {
+                currentTaskTime = uniqueTimes[0];
+            }
+            
+            uniqueTimes.forEach(t => {
+                const btn = document.createElement('button');
+                btn.className = 'date-btn ' + (t === currentTaskTime ? 'active' : '');
+                btn.style.height = '40px';
+                btn.style.minWidth = '70px';
+                btn.style.borderRadius = '20px';
+                btn.style.fontWeight = 'bold';
+                btn.innerHTML = t;
+                btn.onclick = () => {
+                    currentTaskTime = t;
+                    renderTaskTimeScroller(); // Refresh times (active state) and items
+                };
+                timeScroller.appendChild(btn);
+            });
+            
+            renderTaskItems();
+        }
+        
+        function parseTimeFromDateString(dateStr) {
+            if(!dateStr) return null;
+            // Expected format: "YYYY-MM-DD HH:mm" or similar
+            const parts = dateStr.trim().split(' ');
+            if(parts.length > 1) {
+                return parts[1];
+            }
+            return null; // fallback if no time
+        }
+
+        function renderTaskItems() {
+            const container = document.getElementById('taskContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            const targetPrefix = currentTaskDate + " " + currentTaskTime;
+            const items = allItems.filter(i => !i.isMaster && i.date && i.date.startsWith(targetPrefix));
+            
+            if(items.length === 0) {
+                container.innerHTML = '<div style="padding:30px; text-align:center; color:#999; width:100%; grid-column:1/-1;">해당 시간에 등록된 아이템이 없습니다.</div>';
+                return;
+            }
+            
+            items.forEach(item => {
+                // Find master product to get details
+                const master = allItems.find(p => p.isMaster && p.code === item.code) || {};
+                const brand = master.brand || item.brand || '';
+                const name = master.name || item.name || '';
+                const colors = master.colors || item.colors || '';
+                const sizes = master.sizes || item.sizes || '';
+                
+                let imgSrc = 'https://via.placeholder.com/100?text=No+Image';
+                let imgData = {};
+                try {
+                    if (master.image && master.image.startsWith("{")) imgData = JSON.parse(master.image);
+                    else if (master.image) imgData = { main: master.image };
+                } catch(e) {}
+                if (imgData.main) imgSrc = imgData.main;
+
+                const cardHTML = `
+                    <div class="dash-card" style="display:flex; gap:15px; align-items:center; padding:15px; cursor:pointer;" onclick="selectProductToLoad('${item.code}')">
+                        <div style="width:80px; height:80px; border-radius:8px; overflow:hidden; background:#f8f9fa; flex-shrink:0;">
+                            <img src="${imgSrc}" style="width:100%; height:100%; object-fit:contain;">
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:12px; color:#6b7280; font-weight:bold;">${brand}</div>
+                            <div style="font-size:15px; font-weight:bold; color:#111; margin-bottom:5px; line-height:1.3;">${name}</div>
+                            <div style="font-size:12px; color:#4b5563; background:#f3f4f6; display:inline-block; padding:3px 8px; border-radius:4px;">${item.code}</div>
+                        </div>
+                        <div style="text-align:right; font-size:12px; color:#555;">
+                            <div><strong style="color:#000;">색상:</strong> ${colors ? colors : '-'}</div>
+                            <div style="margin-top:4px;"><strong style="color:#000;">사이즈:</strong> ${sizes ? sizes : '-'}</div>
+                        </div>
+                    </div>
+                `;
+                const div = document.createElement('div');
+                div.innerHTML = cardHTML.trim();
+                container.appendChild(div.firstChild);
+            });
+        }
+
+</script>
 
 <!-- 상품 검색 팝업 (불러오기) -->
 <div id="searchProductModal" class="modal" tabindex="-1" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
