@@ -877,7 +877,20 @@
         <section id="page-task" class="page-section">
             <div id="taskDateScroller" class="date-scroller" style="margin-bottom:10px;"></div>
             <div id="taskTimeScroller" class="date-scroller" style="margin-bottom:15px; padding:5px 0; border-bottom:1px solid #eee;"></div>
+            
+            <div id="taskBroadcastInfo" style="display:none; background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #e5e7eb;">
+                <h3 style="font-size:14px; margin:0 0 10px 0; color:#374151;">방송 기본 정보 설정</h3>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <input type="text" id="taskHost1" placeholder="호스트 1" style="flex:1; min-width:100px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    <input type="text" id="taskHost2" placeholder="호스트 2" style="flex:1; min-width:100px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    <input type="number" id="taskSectionsCount" placeholder="구간 수 (예: 2)" value="2" style="width:120px; padding:8px; border:1px solid #ccc; border-radius:4px;" min="1" max="10">
+                    <button onclick="generateTaskSections()" style="padding:8px 15px; background:var(--primary); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">적용</button>
+                </div>
+            </div>
+
             <div id="taskContainer" class="dash-layout"></div>
+            
+            <div id="taskSectionsArea" style="margin-top:20px; display:flex; flex-direction:column; gap:20px;"></div>
         </section>
 
         <section id="page-schedule" class="page-section">
@@ -2453,27 +2466,103 @@ function generateMatrix(silent = false) {
         }
         function parseTime(s) { if (!s) return 9999; const m = s.match(/(\d{1,2}):(\d{1,2})/); return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : 9999; }
     
-        // --- Task Order (작업수행서) Logic ---
-        let currentTaskDate = null;
-        let currentTaskTime = null;
+        
+// --- Task Order (작업수행서) Logic ---
+let currentTaskDate = null;
+let currentTaskTime = null;
 
-        // Helper to check if a schedule item is "our product"
-        function isOurProduct(code) {
-            return allItems.some(m => m.isMaster && m.code === code);
+let draggedItemCode = null;
+let draggedItemEl = null;
+
+function handleDragStart(e, code) {
+    draggedItemCode = code;
+    draggedItemEl = e.currentTarget;
+    e.dataTransfer.setData('text/plain', code);
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => { draggedItemEl.style.opacity = '0.5'; }, 0);
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.style.opacity = '1';
+    draggedItemCode = null;
+    draggedItemEl = null;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.style.borderColor = 'var(--primary)';
+    e.currentTarget.style.background = '#eff6ff';
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.style.borderColor = '#d1d5db';
+    e.currentTarget.style.background = '#f9fafb';
+}
+
+function handleDrop(e, sectionId) {
+    e.preventDefault();
+    const dropZone = e.currentTarget;
+    dropZone.style.borderColor = '#d1d5db';
+    dropZone.style.background = '#f9fafb';
+    
+    if (draggedItemCode && draggedItemEl) {
+        // Remove from navigation if it's there
+        if(draggedItemEl.parentNode.id === 'taskContainer') {
+            draggedItemEl.parentNode.removeChild(draggedItemEl);
         }
+        
+        // Remove placeholder if it exists
+        const placeholder = dropZone.querySelector('.drop-placeholder');
+        if(placeholder) placeholder.remove();
+        
+        // Re-style the dropped element for vertical stacking (row layout)
+        draggedItemEl.style.minWidth = 'auto';
+        draggedItemEl.style.maxWidth = '100%';
+        draggedItemEl.style.flexDirection = 'row';
+        draggedItemEl.style.alignItems = 'center';
+        draggedItemEl.style.marginBottom = '10px';
+        draggedItemEl.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        
+        const imgContainer = draggedItemEl.children[0];
+        imgContainer.style.width = '60px';
+        imgContainer.style.height = '60px';
+        imgContainer.style.aspectRatio = 'auto';
+        imgContainer.style.marginBottom = '0';
+        
+        const textContainer = draggedItemEl.children[1];
+        textContainer.style.textAlign = 'left';
+        
+        dropZone.appendChild(draggedItemEl);
+    }
+}
 
-        // Get all time slots (YYYY-MM-DD HH:mm) where OUR product is scheduled
-        function getOurTimeSlots() {
-            const ourSlots = new Set();
-            allItems.forEach(i => {
-                if(!i.isMaster && i.date && isOurProduct(i.code)) {
-                    ourSlots.add(i.date.trim()); // e.g., "2026-07-02 01:00"
-                }
-            });
-            return ourSlots;
-        }
+function generateTaskSections() {
+    const count = parseInt(document.getElementById('taskSectionsCount').value) || 0;
+    const area = document.getElementById('taskSectionsArea');
+    area.innerHTML = '';
+    
+    for(let i=1; i<=count; i++) {
+        const sectionHTML = `
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:15px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <h4 style="margin:0 0 15px 0; font-size:15px; color:#111; border-bottom:2px solid var(--primary); display:inline-block; padding-bottom:5px;">구간 ${i}</h4>
+                <div class="task-section-dropzone" data-section="${i}" 
+                    ondragover="handleDragOver(event)" 
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${i})"
+                    style="min-height:100px; border:2px dashed #d1d5db; border-radius:8px; padding:10px; display:flex; flex-direction:column; background:#f9fafb; transition: all 0.2s;">
+                    <div class="drop-placeholder" style="text-align:center; color:#9ca3af; font-size:12px; margin-top:35px; pointer-events:none;">이곳으로 상품을 드래그하세요</div>
+                </div>
+            </div>
+        `;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = sectionHTML.trim();
+        area.appendChild(wrapper.firstChild);
+    }
+}
 
-        function initTaskScrollers() {
+function initTaskScrollers() {
+
             const scroller = document.getElementById('taskDateScroller');
             if(!scroller) return;
             scroller.innerHTML = '';
@@ -2576,49 +2665,49 @@ function generateMatrix(silent = false) {
 
         function renderTaskItems() {
             const container = document.getElementById('taskContainer');
+            const infoBox = document.getElementById('taskBroadcastInfo');
+            const sectionsArea = document.getElementById('taskSectionsArea');
             if(!container) return;
+            
             container.innerHTML = '';
-            // Update container style to a horizontal scrollable navigation
+            sectionsArea.innerHTML = ''; // Reset sections when changing time
+            
             container.className = '';
             container.style.display = 'flex';
             container.style.overflowX = 'auto';
             container.style.gap = '15px';
             container.style.paddingBottom = '10px';
             container.style.alignItems = 'stretch';
-            // Custom scrollbar styling can be handled in CSS, but inline is fine for basic functionality
             
             const targetPrefix = currentTaskDate + " " + currentTaskTime;
-            // Get ALL scheduled items for this specific time slot
             const items = allItems.filter(i => !i.isMaster && i.date && i.date.startsWith(targetPrefix));
             
             if(items.length === 0) {
                 container.innerHTML = '<div style="padding:30px; text-align:center; color:#999; width:100%; grid-column:1/-1;">해당 시간에 편성된 아이템이 없습니다.</div>';
+                infoBox.style.display = 'none';
                 return;
             }
             
+            infoBox.style.display = 'block'; // Show broadcast info
+            
             items.forEach(item => {
                 const isOurs = isOurProduct(item.code);
-                // Find master product to get details
                 const master = allItems.find(p => p.isMaster && p.code === item.code) || {};
                 
-                // For OUR products, use master data. For others, use schedule item data.
                 const brand = isOurs ? (master.brand || item.brand || '') : (item.brand || '');
                 const name = isOurs ? (master.name || item.name || '') : (item.name || '');
                 
-                // Get Image (getProductImage handles lotte url generation for non-image items)
                 const targetItemForImage = isOurs && master.image ? master : item;
                 const imgSrc = getProductImage(targetItemForImage) || 'https://via.placeholder.com/100?text=No+Image';
 
-                // Image border style for OUR products (thin pink border)
                 const imgBorderStyle = isOurs ? 'border: 2px solid #ff66a3;' : 'border: 1px solid #eee;';
 
-                // Fixed width for horizontal navigation items
                 const cardHTML = `
-                    <div class="dash-card" style="display:flex; flex-direction:column; padding:10px; cursor:pointer; align-items: stretch; margin-bottom:0; min-width: 120px; max-width: 120px; flex-shrink: 0;" onclick="selectProductToLoad('${item.code}')">
-                        <div style="width:100%; aspect-ratio: 1/1; border-radius:8px; overflow:hidden; background:#fff; position:relative; ${imgBorderStyle} box-sizing: border-box; margin-bottom: 10px;">
-                            <img src="${imgSrc}" style="width:100%; height:100%; object-fit:contain;">
+                    <div class="dash-card" draggable="true" ondragstart="handleDragStart(event, '${item.code}')" ondragend="handleDragEnd(event)" style="display:flex; flex-direction:column; padding:10px; cursor:grab; align-items: stretch; margin-bottom:0; min-width: 120px; max-width: 120px; flex-shrink: 0;" onclick="if(!draggedItemCode) selectProductToLoad('${item.code}')">
+                        <div style="width:100%; aspect-ratio: 1/1; border-radius:8px; overflow:hidden; background:#fff; position:relative; ${imgBorderStyle} box-sizing: border-box; margin-bottom: 10px; pointer-events:none;">
+                            <img src="${imgSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
                         </div>
-                        <div style="flex:1; min-width:0; text-align:center;">
+                        <div style="flex:1; min-width:0; text-align:center; pointer-events:none;">
                             <div style="font-size:11px; color:#6b7280; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px;">${brand}</div>
                             <div style="font-size:13px; font-weight:bold; color:#111; line-height:1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-break: keep-all;">
                                 ${name}
