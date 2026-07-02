@@ -2720,7 +2720,7 @@ function initTaskScrollers() {
                 const imgBorderStyle = isOurs ? 'border: 2px solid #ff66a3;' : 'border: 1px solid #eee;';
 
                 const cardHTML = `
-                    <div class="dash-card" draggable="true" ondragstart="handleDragStart(event, '${item.code}')" ondragend="handleDragEnd(event)" style="display:flex; flex-direction:column; padding:10px; cursor:grab; align-items: stretch; margin-bottom:0; min-width: 120px; max-width: 120px; flex-shrink: 0;" onclick="if(!draggedItemCode) selectProductToLoad('${item.code}')">
+                    <div class="dash-card" draggable="true" ondragstart="handleDragStart(event, '${item.code}')" ondragend="handleDragEnd(event)" style="display:flex; flex-direction:column; padding:10px; cursor:grab; align-items: stretch; margin-bottom:0; min-width: 120px; max-width: 120px; flex-shrink: 0;" >
                         <div style="width:100%; aspect-ratio: 1/1; border-radius:8px; overflow:hidden; background:#fff; position:relative; ${imgBorderStyle} box-sizing: border-box; margin-bottom: 10px; pointer-events:none;">
                             <img src="${imgSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
                         </div>
