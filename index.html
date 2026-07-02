@@ -2561,6 +2561,23 @@ function generateTaskSections() {
     }
 }
 
+
+        // Helper to check if a schedule item is "our product"
+        function isOurProduct(code) {
+            return allItems.some(m => m.isMaster && m.code === code);
+        }
+
+        // Get all time slots (YYYY-MM-DD HH:mm) where OUR product is scheduled
+        function getOurTimeSlots() {
+            const ourSlots = new Set();
+            allItems.forEach(i => {
+                if(!i.isMaster && i.date && isOurProduct(i.code)) {
+                    ourSlots.add(i.date.trim()); // e.g., "2026-07-02 01:00"
+                }
+            });
+            return ourSlots;
+        }
+
 function initTaskScrollers() {
 
             const scroller = document.getElementById('taskDateScroller');
