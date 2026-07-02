@@ -891,7 +891,7 @@
                         
                         <div style="display:flex; align-items:center; margin-top:15px; margin-bottom:10px;">
                             <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">상품코드</span>
-                            <input type="text" id="reg-code" class="modal-input" placeholder="" oninput="previewLotteImage()" style="flex:1; margin:0; border-top-right-radius:0; border-bottom-right-radius:0;">
+                            <input type="text" id="reg-code" class="modal-input" placeholder="" oninput="previewLotteImage(); generateMatrix(true)" style="flex:1; margin:0; border-top-right-radius:0; border-bottom-right-radius:0;">
                             <button onclick="openProductSearchModal()" style="padding: 0 10px; height: 38px; background: #e9ecef; border: 1px solid #ced4da; border-left: none; border-top-right-radius: 4px; border-bottom-right-radius: 4px; cursor:pointer; font-size:12px; font-weight:bold; color:#495057; width:auto;">불러오기</button>
                         </div>
                         <div style="display:flex; align-items:center; margin-bottom:10px;">
@@ -908,11 +908,11 @@
                         </div>
                         <div style="display:flex; align-items:center; margin-bottom:10px;">
                             <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">색상 (콤마)</span>
-                            <input type="text" id="reg-colors" class="modal-input" placeholder="" oninput="updateColorImages()" style="flex:1; margin:0;">
+                            <input type="text" id="reg-colors" class="modal-input" placeholder="" oninput="updateColorImages(); generateMatrix(true)" style="flex:1; margin:0;">
                         </div>
                         <div style="display:flex; align-items:center; margin-bottom:10px;">
                             <span style="width:100px; font-weight:bold; font-size:13px; color:#333;">사이즈 (콤마)</span>
-                            <input type="text" id="reg-sizes" class="modal-input" placeholder="" style="flex:1; margin:0;">
+                            <input type="text" id="reg-sizes" class="modal-input" placeholder="" oninput="generateMatrix(true)" style="flex:1; margin:0;">
                         </div>
                     </div>
                 </div>
@@ -958,8 +958,7 @@
                             <span class="dash-title">재고 등록</span>
                             <button id="btn-save-inventory" class="m-btn m-btn-confirm" style="padding: 4px 12px; font-size:12px; border-radius:4px; font-weight:bold; display:none; flex:none;" onclick="saveMatrixInventory()">저장</button>
                         </div>
-                        
-                        <button class="m-btn p-2 fw-bold" style="width:100%; margin-top:10px; background:#4361ee22; color:var(--primary); border:1px solid var(--primary); border-radius:8px;" onclick="generateMatrix()">생성</button>
+                        <!-- Removed Generate Button as per UX request -->
                         
                         <div id="matrix-container" style="margin-top:10px; overflow-x:auto;">
                         </div>
@@ -1473,7 +1472,7 @@ function executeLoadProductInfo(code) {
         }
         
         if(colorsArray.length > 0 && sizesStr.trim().length > 0) {
-            generateMatrix();
+            generateMatrix(true);
             const tbody = document.querySelector('#matrix-table tbody');
             if(tbody) {
                 const rows = tbody.querySelectorAll('tr');
