@@ -2488,46 +2488,85 @@ function handleDragEnd(e) {
     draggedItemEl = null;
 }
 
+
+let taskRowCounter = 0;
+
 function handleDragOver(e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    e.currentTarget.style.borderColor = 'var(--primary)';
-    e.currentTarget.style.background = '#eff6ff';
+    if(e.currentTarget.classList.contains('row-creator-dropzone')) {
+        e.currentTarget.style.background = '#f3f4f6';
+    } else {
+        e.currentTarget.style.background = '#f9fafb';
+    }
 }
 
 function handleDragLeave(e) {
-    e.currentTarget.style.borderColor = '#d1d5db';
-    e.currentTarget.style.background = '#f9fafb';
+    if(e.currentTarget.classList.contains('row-creator-dropzone')) {
+        e.currentTarget.style.background = '#f9fafb';
+    } else {
+        e.currentTarget.style.background = '#fff';
+    }
 }
 
-function handleDrop(e, sectionId) {
+function handleRowCreateDrop(e, sectionId) {
     e.preventDefault();
     const dropZone = e.currentTarget;
-    dropZone.style.borderColor = '#e5e7eb';
-    dropZone.style.background = '#fff';
+    dropZone.style.background = '#f9fafb';
     
     if (draggedItemCode && draggedItemEl) {
         if(draggedItemEl.parentNode.id === 'taskContainer') {
             draggedItemEl.parentNode.removeChild(draggedItemEl);
         }
         
-        const placeholder = dropZone.querySelector('.drop-placeholder');
-        if(placeholder) placeholder.remove();
+        taskRowCounter++;
+        const rowId = `task-row-${taskRowCounter}`;
+        
+        const host1 = document.getElementById('taskHost1').value || '호스트1';
+        const host2 = document.getElementById('taskHost2').value || '호스트2';
+        
+        const columns = ['main', 'hanger', 'h1_hand', 'h2_hand', 'h1_wear', 'h2_wear'];
+        
+        let cellsHTML = '';
+        columns.forEach(col => {
+            cellsHTML += `
+                <div class="matrix-cell dropzone" data-row="${rowId}" data-col="${col}"
+                    ondragover="handleDragOver(event)" 
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleCellDrop(event)"
+                    style="flex:1; min-width:140px; border-left:1px solid #e5e7eb; padding:10px; display:flex; flex-direction:column; background:#fff; transition: all 0.2s; min-height:80px;">
+                </div>
+            `;
+        });
+        
+        const rowHTML = `
+            <div id="${rowId}" class="task-matrix-row" style="display:flex; border-bottom:1px solid #e5e7eb; min-height:80px; align-items:stretch;">
+                <div class="matrix-cell product-cell" style="width:200px; min-width:200px; padding:15px 10px; background:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative;">
+                    <div onclick="this.closest('.task-matrix-row').remove()" style="position:absolute; top:5px; right:5px; cursor:pointer; color:#ef4444; font-size:12px; font-weight:bold; padding:2px 6px; border-radius:4px; background:#fee2e2;">X</div>
+                </div>
+                ${cellsHTML}
+            </div>
+        `;
+        
+        const sectionContainer = document.getElementById(`section-${sectionId}-rows`);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = rowHTML.trim();
+        const newRow = wrapper.firstChild;
+        sectionContainer.appendChild(newRow);
         
         draggedItemEl.style.minWidth = 'auto';
         draggedItemEl.style.maxWidth = '100%';
         draggedItemEl.style.flexDirection = 'row';
         draggedItemEl.style.alignItems = 'center';
-        draggedItemEl.style.marginBottom = '10px';
-        draggedItemEl.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-        draggedItemEl.style.border = '1px solid #eee';
+        draggedItemEl.style.marginBottom = '0';
+        draggedItemEl.style.boxShadow = 'none';
+        draggedItemEl.style.border = 'none';
         
         const imgContainer = draggedItemEl.children[0];
-        imgContainer.style.width = '45px';
-        imgContainer.style.height = '45px';
-        imgContainer.style.aspectRatio = 'auto';
+        imgContainer.style.width = '40px';
+        imgContainer.style.height = '40px';
         imgContainer.style.marginBottom = '0';
         imgContainer.style.marginRight = '8px';
+        imgContainer.style.borderRadius = '4px';
         
         const textContainer = draggedItemEl.children[1];
         textContainer.style.textAlign = 'left';
@@ -2537,6 +2576,46 @@ function handleDrop(e, sectionId) {
         
         const nameDiv = textContainer.children[1];
         if(nameDiv) nameDiv.style.fontSize = '11px';
+        
+        newRow.querySelector('.product-cell').appendChild(draggedItemEl);
+    }
+}
+
+function handleCellDrop(e) {
+    e.preventDefault();
+    const dropZone = e.currentTarget;
+    dropZone.style.background = '#fff';
+    
+    if (draggedItemCode && draggedItemEl) {
+        if(draggedItemEl.parentNode.id === 'taskContainer') {
+            draggedItemEl.parentNode.removeChild(draggedItemEl);
+        }
+        
+        draggedItemEl.style.minWidth = 'auto';
+        draggedItemEl.style.maxWidth = '100%';
+        draggedItemEl.style.flexDirection = 'row';
+        draggedItemEl.style.alignItems = 'center';
+        draggedItemEl.style.marginBottom = '8px';
+        draggedItemEl.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+        draggedItemEl.style.border = '1px solid #e5e7eb';
+        draggedItemEl.style.padding = '6px';
+        draggedItemEl.style.borderRadius = '6px';
+        
+        const imgContainer = draggedItemEl.children[0];
+        imgContainer.style.width = '35px';
+        imgContainer.style.height = '35px';
+        imgContainer.style.marginBottom = '0';
+        imgContainer.style.marginRight = '8px';
+        imgContainer.style.borderRadius = '4px';
+        
+        const textContainer = draggedItemEl.children[1];
+        textContainer.style.textAlign = 'left';
+        
+        const brandDiv = textContainer.children[0];
+        if(brandDiv) brandDiv.style.fontSize = '9px';
+        
+        const nameDiv = textContainer.children[1];
+        if(nameDiv) nameDiv.style.fontSize = '10px';
         
         dropZone.appendChild(draggedItemEl);
     }
@@ -2550,35 +2629,47 @@ function generateTaskSections() {
     area.innerHTML = '';
     
     const columns = [
-        { key: 'main', name: '메인' },
-        { key: 'hanger', name: '행거' },
-        { key: 'h1_hand', name: `${host1} 핸들링` },
-        { key: 'h2_hand', name: `${host2} 핸들링` },
-        { key: 'h1_wear', name: `${host1} 착장` },
-        { key: 'h2_wear', name: `${host2} 착장` }
+        { key: 'product', name: '상품', width: '200px' },
+        { key: 'main', name: '메인', width: '140px' },
+        { key: 'hanger', name: '행거', width: '140px' },
+        { key: 'h1_hand', name: `${host1} 핸들링`, width: '140px' },
+        { key: 'h2_hand', name: `${host2} 핸들링`, width: '140px' },
+        { key: 'h1_wear', name: `${host1} 착장`, width: '140px' },
+        { key: 'h2_wear', name: `${host2} 착장`, width: '140px' }
     ];
     
     for(let i=1; i<=count; i++) {
-        let colsHTML = '';
+        let headerHTML = '';
         columns.forEach(col => {
-            colsHTML += `
-                <div style="flex:1; min-width:140px; display:flex; flex-direction:column;">
-                    <div style="font-size:12px; font-weight:bold; color:#4b5563; text-align:center; padding:8px; background:#f3f4f6; border-radius:6px 6px 0 0; border:1px solid #e5e7eb; border-bottom:none;">${col.name}</div>
-                    <div class="task-section-dropzone" data-section="${i}" data-col="${col.key}"
-                        ondragover="handleDragOver(event)" 
-                        ondragleave="handleDragLeave(event)"
-                        ondrop="handleDrop(event, ${i})"
-                        style="flex:1; min-height:120px; border:1px solid #e5e7eb; border-top:none; border-radius:0 0 6px 6px; padding:10px; display:flex; flex-direction:column; background:#fff; transition: all 0.2s;">
-                    </div>
+            const widthStyle = col.key === 'product' ? `width:${col.width}; min-width:${col.width};` : `flex:1; min-width:${col.width}; border-left:1px solid #e5e7eb;`;
+            headerHTML += `
+                <div style="${widthStyle} padding:10px; font-size:12px; font-weight:bold; color:#4b5563; text-align:center; background:#f3f4f6;">
+                    ${col.name}
                 </div>
             `;
         });
         
         const sectionHTML = `
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:15px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <h4 style="margin:0 0 15px 0; font-size:15px; color:#111; border-bottom:2px solid var(--primary); display:inline-block; padding-bottom:5px;">구간 ${i}</h4>
-                <div style="display:flex; gap:10px; overflow-x:auto;">
-                    ${colsHTML}
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:15px; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h4 style="margin:0; font-size:15px; color:#111; border-bottom:2px solid var(--primary); padding-bottom:5px;">구간 ${i}</h4>
+                </div>
+                
+                <div style="overflow-x:auto; border:1px solid #e5e7eb; border-radius:6px;">
+                    <div style="display:flex; border-bottom:1px solid #e5e7eb;">
+                        ${headerHTML}
+                    </div>
+                    
+                    <div id="section-${i}-rows" style="display:flex; flex-direction:column; background:#f9fafb;">
+                    </div>
+                    
+                    <div class="row-creator-dropzone" 
+                        ondragover="handleDragOver(event)" 
+                        ondragleave="handleDragLeave(event)"
+                        ondrop="handleRowCreateDrop(event, ${i})"
+                        style="min-height:70px; background:#fff; display:flex; justify-content:center; align-items:center; transition: background 0.2s; cursor:pointer;">
+                        <span style="color:#6b7280; font-size:13px; font-weight:500;">➕ 이곳에 상품을 드래그하여 새로운 행 생성</span>
+                    </div>
                 </div>
             </div>
         `;
