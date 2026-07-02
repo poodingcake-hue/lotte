@@ -865,7 +865,8 @@
         <div class="nav-container">
             <a href="javascript:void(0)" class="nav-logo" onclick="handleNavClick('schedule')">LOTTE PB</a>
             <div class="nav-menu">
-                <button class="nav-item active" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
+                <button class="nav-item" id="nav-sch" onclick="handleNavClick('schedule')">편성표</button>
+                <button class="nav-item" id="nav-task" onclick="handleNavClick('task')">작업수행서</button>
                 <button class="nav-item" id="nav-inv" onclick="handleNavClick('inventory')">재고관리</button>
                 <button class="nav-item" id="nav-reg" onclick="handleNavClick('register')">상품등록</button>
             </div>
@@ -873,6 +874,12 @@
     </nav>
 
     <main class="main-content">
+        <section id="page-task" class="page-section">
+            <div id="taskDateScroller" class="date-scroller" style="margin-bottom:10px;"></div>
+            <div id="taskTimeScroller" class="date-scroller" style="margin-bottom:15px; padding:5px 0; border-bottom:1px solid #eee;"></div>
+            <div id="taskContainer" class="dash-layout"></div>
+        </section>
+
         <section id="page-schedule" class="page-section">
             <div id="dateScroller" class="date-scroller"></div>
             <div id="scheduleContainer"></div>
