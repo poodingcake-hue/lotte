@@ -1804,15 +1804,32 @@ function generateMatrix(silent = false) {
 
         // 이미지 가져오기 헬퍼 함수 (JSON 파싱 지원)
         function getProductImage(i) {
+            let resultUrl = "";
             if (i.image && i.image.trim() !== "") {
                 try {
                     const imgObj = JSON.parse(i.image);
-                    if (imgObj && imgObj.main) return imgObj.main;
+                    if (imgObj && imgObj.main) resultUrl = imgObj.main;
+                    
+                    if(!resultUrl) {
+                        const keys = Object.keys(imgObj).filter(k => k !== 'main');
+                        if (keys.length > 0 && imgObj[keys[0]]) resultUrl = imgObj[keys[0]];
+                    }
                 } catch(e) {
-                    // 구버전 호환 (단순 url 텍스트일 때)
-                    return i.image;
+                    resultUrl = i.image;
                 }
             }
+            
+            if (resultUrl) {
+                // 구글 드라이브 이미지 호환성 패치
+                if (resultUrl.includes('drive.google.com/uc')) {
+                    const idMatch = resultUrl.match(/id=([^&]+)/);
+                    if (idMatch) {
+                        return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
+                    }
+                }
+                return resultUrl;
+            }
+            
             const code = String(i.code);
             if (code.length < 8) return ""; 
             const p1 = code.substring(6, 8);
