@@ -1270,7 +1270,8 @@
         // 상품 등록(Register) 페이지 로직
         // -------------------------
         
-        let uploadedImages = { main: "" }; // "main", "블랙", "화이트" 등
+        let uploadedImages = { main: "" };
+        let isUploadingImage = false; // "main", "블랙", "화이트" 등
 
         function previewLotteImage() {
             const code = document.getElementById('reg-code').value.trim();
@@ -1347,6 +1348,7 @@
                 alert("업로드 중 오류 발생");
             } finally {
                 dropzoneEl.style.opacity = '1';
+                isUploadingImage = false;
             }
         }
 
@@ -1612,6 +1614,10 @@ function generateMatrix(silent = false) {
         }
 
         async function saveProductInfo(silent = false) {
+            if (isUploadingImage) {
+                alert("이미지 업로드가 진행 중입니다. 잠시 후 다시 저장해주세요.");
+                return;
+            }
             const brand = document.getElementById('reg-brand').value.trim();
             const name = document.getElementById('reg-name').value.trim();
             const code = document.getElementById('reg-code').value.trim();
