@@ -1643,7 +1643,7 @@ function generateMatrix(silent = false) {
                 const cfRes = await fetch(GAS_WEB_APP_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ type: "save_products", data: allItems })
+                    body: JSON.stringify({ type: "save_products", data: allItems.filter(i => i.isMaster) })
                 });
 
                 if(cfRes.ok) {

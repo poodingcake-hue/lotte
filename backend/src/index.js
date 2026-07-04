@@ -57,7 +57,9 @@ export default {
                    statements.push(stmt.bind(item.code, item.renter, item.color || "", item.size || "", item.qty || 1, item.date || ""));
                });
            }
-           await env.DB.batch(statements);
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
         } 
         else if (type === "save_outfits") {
            const statements = [env.DB.prepare("DELETE FROM outfits")];
@@ -67,7 +69,9 @@ export default {
                    statements.push(stmt.bind(item.code, item.host, item.size || ""));
                });
            }
-           await env.DB.batch(statements);
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
         }
         else if (type === "save_notes") {
            const statements = [env.DB.prepare("DELETE FROM notes")];
@@ -77,7 +81,9 @@ export default {
                    statements.push(stmt.bind(item.code, item.text));
                });
            }
-           await env.DB.batch(statements);
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
         }
         else if (type === "save_supplies") {
            const statements = [env.DB.prepare("DELETE FROM supplies")];
@@ -87,7 +93,9 @@ export default {
                    statements.push(stmt.bind(item.code, item.text));
                });
            }
-           await env.DB.batch(statements);
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
         }
         else if (type === "save_inventory") {
            const statements = [env.DB.prepare("DELETE FROM inventory")];
@@ -97,7 +105,9 @@ export default {
                    statements.push(stmt.bind(item.code, item.color, item.size, item.qty));
                });
            }
-           await env.DB.batch(statements);
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
         }
         else if (type === "save_products") {
            const statements = [env.DB.prepare("DELETE FROM products")];
@@ -117,7 +127,9 @@ export default {
                    ));
                });
            }
-           await env.DB.batch(statements);
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
         }
 
         return new Response(JSON.stringify({ success: true }), {
