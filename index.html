@@ -1401,6 +1401,9 @@ function renderProductSearchList() {
             prods = allItems;
         }
         
+        // 크롤링 데이터 제외 (기존 마스터 상품 및 재고 있는 상품만 표시)
+        prods = prods.filter(p => p.isMaster);
+        
         prods = prods.filter(p => (p.name||'').toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q) || (p.code||'').toLowerCase().includes(q));
         prods = [...prods].reverse().slice(0, 50);
         
