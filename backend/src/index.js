@@ -12,12 +12,22 @@ export default {
 
     try {
       if (request.method === "GET") {
-        const { results: inventoryResults } = await env.DB.prepare("SELECT * FROM inventory").all();
-        const { results: rentalsResults } = await env.DB.prepare("SELECT * FROM rentals").all();
-        const { results: outfitsResults } = await env.DB.prepare("SELECT * FROM outfits").all();
-        const { results: notesResults } = await env.DB.prepare("SELECT * FROM notes").all();
-        const { results: suppliesResults } = await env.DB.prepare("SELECT * FROM supplies").all();
-        const { results: productsResults } = await env.DB.prepare("SELECT * FROM products").all();
+        // Optimize reads by batching them into a single roundtrip!
+        const batchResults = await env.DB.batch([
+            env.DB.prepare("SELECT * FROM inventory"),
+            env.DB.prepare("SELECT * FROM rentals"),
+            env.DB.prepare("SELECT * FROM outfits"),
+            env.DB.prepare("SELECT * FROM notes"),
+            env.DB.prepare("SELECT * FROM supplies"),
+            env.DB.prepare("SELECT * FROM products")
+        ]);
+
+        const inventoryResults = batchResults[0].results;
+        const rentalsResults = batchResults[1].results;
+        const outfitsResults = batchResults[2].results;
+        const notesResults = batchResults[3].results;
+        const suppliesResults = batchResults[4].results;
+        const productsResults = batchResults[5].results;
 
         const formattedInventory = {};
         inventoryResults.forEach(item => {
@@ -127,6 +137,7 @@ export default {
                    ));
                });
            }
+           // Use maximum chunk size of 100 allowed by D1
            for (let i = 0; i < statements.length; i += 100) {
                await env.DB.batch(statements.slice(i, i + 100));
            }
