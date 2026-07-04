@@ -1451,6 +1451,8 @@ function executeLoadProductInfo(code) {
         document.getElementById('reg-brand').value = product.brand || "";
         document.getElementById('reg-name').value = product.name || "";
         document.getElementById('reg-cate').value = product.category || "";
+        const cEl = document.getElementById('reg-colors'); if(cEl) cEl.value = product.colors || "";
+        const sEl = document.getElementById('reg-sizes'); if(sEl) sEl.value = product.sizes || "";
         
         let imgData = {};
         if (product.image) {
@@ -1613,6 +1615,10 @@ function generateMatrix(silent = false) {
             const name = document.getElementById('reg-name').value.trim();
             const code = document.getElementById('reg-code').value.trim();
             const cate = document.getElementById('reg-cate').value.trim();
+            const colorsEl = document.getElementById(\'reg-colors\');
+            const sizesEl = document.getElementById(\'reg-sizes\');
+            const colors = colorsEl ? colorsEl.value.trim() : "";
+            const sizes = sizesEl ? sizesEl.value.trim() : "";
             
             if(!brand || !name || !code) return alert("브랜드, 품명, 코드는 필수입니다!");
             
@@ -1626,6 +1632,8 @@ function generateMatrix(silent = false) {
                 brand: brand,
                 name: name,
                 category: cate,
+                colors: colors,
+                sizes: sizes,
                 image: imageJsonStr,
                 date: new Date().toISOString().substring(0,10),
                 isMaster: 1
