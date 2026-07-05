@@ -64,7 +64,7 @@
             }
             
             #page-task {
-                zoom: 0.65;
+                zoom: 1;
             }
         }
 
@@ -879,22 +879,53 @@
 
     <main class="main-content">
         <section id="page-task" class="page-section">
-            <div id="taskDateScroller" class="date-scroller" style="margin-bottom:10px;"></div>
-            <div id="taskTimeScroller" class="date-scroller" style="margin-bottom:15px; padding:5px 0; border-bottom:1px solid #eee;"></div>
-            
-            <div id="taskBroadcastInfo" style="display:none; background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #e5e7eb;">
-                <h3 style="font-size:14px; margin:0 0 10px 0; color:#374151;">방송 기본 정보 설정</h3>
-                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                    <input type="text" id="taskHost1" placeholder="호스트 1" style="flex:1; min-width:100px; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                    <input type="text" id="taskHost2" placeholder="호스트 2" style="flex:1; min-width:100px; padding:8px; border:1px solid #ccc; border-radius:4px;">
-                    <input type="number" id="taskSectionsCount" placeholder="구간 수 (예: 2)" value="2" style="width:120px; padding:8px; border:1px solid #ccc; border-radius:4px;" min="1" max="10">
-                    <button onclick="generateTaskSections()" style="padding:8px 15px; background:var(--primary); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">적용</button>
+            <!-- 좌우 2컬럼 메인 레이아웃 -->
+            <div style="display:flex; gap:16px; height:calc(100vh - var(--nav-height) - 40px); min-height:540px;">
+
+                <!-- ====== 좌측: 일정 선택 + 설정 + 상품 풀 ====== -->
+                <div style="width:390px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; overflow:hidden;">
+
+                    <!-- 일정 선택 카드 -->
+                    <div class="dash-card" style="padding:14px; flex-shrink:0;">
+                        <div class="dash-title" style="margin-bottom:12px; font-size:14px;">일정 선택</div>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <!-- 날짜 (가로 스크롤) -->
+                            <div id="taskDateScroller" style="display:flex; overflow-x:auto; gap:8px; padding-bottom:4px;"></div>
+                            
+                            <!-- 시간 (가로 스크롤) -->
+                            <div id="taskTimeScroller" style="display:flex; overflow-x:auto; gap:8px; padding-bottom:4px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 방송 설정 카드 -->
+                    <div class="dash-card" style="padding:16px; flex-shrink:0;">
+                        <div class="dash-title" style="margin-bottom:14px; font-size:14px;">방송 설정</div>
+                        <input type="text" id="taskHosts" placeholder="호스트명 (쉼표로 구분)"
+                            style="width:100%; padding:9px 12px; border:1px solid #e0e0e0; border-radius:8px; font-size:14px; font-weight:700; margin-bottom:14px; box-sizing:border-box; outline:none;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="number" id="taskSectionsCount" value="2" min="1" max="10"
+                                style="width:54px; padding:9px 4px; border:1px solid #e0e0e0; border-radius:8px; font-size:15px; font-weight:800; text-align:center; outline:none;">
+                            <span style="font-size:13px; color:#888; font-weight:700;">구간</span>
+                            <button onclick="generateTaskSections()"
+                                style="flex:1; padding:9px 0; background:var(--primary); color:white; border:none; border-radius:8px; font-size:14px; font-weight:800; cursor:pointer;">적용</button>
+                        </div>
+                    </div>
+
+                    <!-- 상품 풀 카드 -->
+                    <div class="dash-card" style="padding:14px; flex:1; overflow-y:auto; display:flex; flex-direction:column;">
+                        <div class="dash-title" style="margin-bottom:12px; flex-shrink:0; font-size:14px;">상품 풀</div>
+                        <div id="taskContainer" style="display:flex; flex-direction:column; gap:10px; flex:1;"></div>
+                    </div>
+                </div>
+
+                <!-- ====== 우측: 구간 매트릭스 ====== -->
+                <div style="flex:1; overflow-y:auto; overflow-x:auto;">
+                    <div id="taskSectionsArea" style="display:flex; flex-direction:column; gap:20px;"></div>
                 </div>
             </div>
 
-            <div id="taskContainer" class="dash-layout" style="position: sticky; top: 110px; z-index: 999; background: var(--bg); padding: 10px; border-bottom: 2px solid #e5e7eb; margin-bottom: 15px; max-height: 250px; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);"></div>
-            
-            <div id="taskSectionsArea" style="margin-top:20px; display:flex; flex-direction:column; gap:20px;"></div>
+            <!-- JS 호환용 (숨김) -->
+            <div id="taskBroadcastInfo" style="display:none;"></div>
         </section>
 
         <section id="page-schedule" class="page-section">
@@ -1507,6 +1538,7 @@ function executeLoadProductInfo(code) {
             generateMatrix(true);
             const tbody = document.querySelector('#matrix-table tbody');
             if(tbody) {
+                const inv = allStockMap[code] || [];
                 const rows = tbody.querySelectorAll('tr');
                 rows.forEach(r => {
                     const c = r.getAttribute('data-color');
@@ -2440,7 +2472,6 @@ function generateMatrix(silent = false) {
                 });
 
                 const result = await response.json();
-
                 alert("✅ 입고 등록이 완료되어 재고에 즉시 반영되었습니다.");
                 toggleStockEditMode(false); // 입력 모드 종료
 
@@ -2512,27 +2543,216 @@ let currentTaskTime = null;
 
 let draggedItemCode = null;
 let draggedItemEl = null;
+let taskRowCounter = 0;
+let draggedRowEl = null;
+
+function handleRowDragStart(e) {
+    draggedRowEl = e.currentTarget;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', 'row');
+}
+
+function handleRowDragEnd(e) {
+    draggedRowEl = null;
+}
+
+function updateSectionPlaceholder(sectionId) {
+    const container = document.getElementById(`section-${sectionId}-rows`);
+    if(!container) return;
+    const placeholder = container.querySelector('.section-placeholder');
+    const hasRows = container.querySelectorAll('.task-matrix-row').length > 0;
+    if(placeholder) placeholder.style.display = hasRows ? 'none' : 'flex';
+}
+
+function handleSectionDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.style.background = '#f3f4f6';
+}
+
+function handleSectionDragLeave(e) {
+    e.currentTarget.style.background = '#f9fafb';
+}
+
+function handleSectionDrop(e, sectionId) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.style.background = '#f9fafb';
+    
+    if (draggedRowEl) {
+        const container = document.getElementById(`section-${sectionId}-rows`);
+        const targetRow = e.target.closest('.task-matrix-row');
+        if (targetRow && targetRow !== draggedRowEl && targetRow.parentNode === container) {
+            const rect = targetRow.getBoundingClientRect();
+            const offset = e.clientY - rect.top;
+            if (offset > rect.height / 2) {
+                targetRow.after(draggedRowEl);
+            } else {
+                targetRow.before(draggedRowEl);
+            }
+        } else if (!targetRow) {
+            container.appendChild(draggedRowEl);
+        }
+        updateSectionPlaceholder(sectionId);
+        return;
+    }
+    
+    if (draggedItemCode && draggedItemEl) {
+        appendNewRowToSection(sectionId, draggedItemCode, draggedItemEl);
+        draggedItemCode = null;
+        draggedItemEl = null;
+    }
+}
+
+function addUsageBadge(itemCode, sectionId) {
+    const originalCard = document.getElementById(`pool-item-${itemCode}`);
+    if (originalCard) {
+        const badgesContainer = originalCard.querySelector('.usage-badges');
+        if (badgesContainer) {
+            const badge = document.createElement('div');
+            badge.className = `usage-badge section-${sectionId}`;
+            badge.style.cssText = 'background:var(--primary); color:#fff; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:10px; line-height:1; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.15); display:inline-block;';
+            badge.innerText = `${sectionId}`;
+            badgesContainer.appendChild(badge);
+        }
+    }
+}
+
+function removeUsageBadge(itemCode, sectionId) {
+    const originalCard = document.getElementById(`pool-item-${itemCode}`);
+    if (originalCard) {
+        const badgesContainer = originalCard.querySelector('.usage-badges');
+        if (badgesContainer) {
+            const badge = badgesContainer.querySelector(`.section-${sectionId}`);
+            if (badge) badge.remove();
+        }
+    }
+}
+
+function removeTaskRow(rowEl, sectionId, itemCode) {
+    rowEl.remove();
+    updateSectionPlaceholder(sectionId);
+    removeUsageBadge(itemCode, sectionId);
+}
+
+function rebuildUsageBadges() {
+    document.querySelectorAll('.usage-badges').forEach(b => b.innerHTML = '');
+    const rows = document.querySelectorAll('.task-matrix-row');
+    rows.forEach(row => {
+        const itemCode = row.getAttribute('data-code');
+        const container = row.closest('[id$="-rows"]');
+        if (itemCode && container) {
+            const sectionIdMatch = container.id.match(/section-(\d+)-rows/);
+            if (sectionIdMatch) {
+                addUsageBadge(itemCode, sectionIdMatch[1]);
+            }
+        }
+    });
+}
+
+function appendNewRowToSection(sectionId, itemCode, itemEl) {
+    let newProductEl = itemEl;
+    if(itemEl.parentNode && itemEl.parentNode.id === 'taskContainer') {
+        newProductEl = itemEl.cloneNode(true);
+        newProductEl.removeAttribute('id');
+        newProductEl.removeAttribute('draggable');
+        newProductEl.removeAttribute('ondragstart');
+        newProductEl.removeAttribute('ondragend');
+        addUsageBadge(itemCode, sectionId);
+    }
+    
+    taskRowCounter++;
+    const rowId = `task-row-${taskRowCounter}`;
+    
+    const hostsInput = document.getElementById('taskHosts').value || '호스트1, 호스트2';
+    const hostsArr = hostsInput.split(',').map(s => s.trim());
+    const host1 = hostsArr[0] || '호스트1';
+    const host2 = hostsArr[1] || '호스트2';
+    
+    const columns = ['main', 'hanger', 'h1_hand', 'h2_hand', 'h1_wear', 'h2_wear'];
+    
+    let cellsHTML = '';
+    columns.forEach(col => {
+        cellsHTML += `
+            <div class="matrix-cell dropzone" data-row="${rowId}" data-col="${col}"
+                ondragover="handleDragOver(event)" 
+                ondragleave="handleDragLeave(event)"
+                ondrop="handleCellDrop(event)"
+                style="flex:1; min-width:140px; border-left:1px solid #e5e7eb; padding:10px; display:flex; flex-direction:column; background:#fff; transition: all 0.2s; min-height:80px;">
+                <textarea style="width:100%; flex:1; min-height:60px; border:1px solid #e5e7eb; border-radius:4px; padding:18px 8px; box-sizing:border-box; resize:vertical; font-size:15px; font-weight:bold; font-family:inherit; background-color:#f9fafb; outline:none; text-align:center;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+            </div>
+        `;
+    });
+    
+    const rowHTML = `
+        <div id="${rowId}" data-code="${itemCode}" class="task-matrix-row" draggable="true" ondragstart="handleRowDragStart(event)" ondragend="handleRowDragEnd(event)" style="display:flex; border-bottom:1px solid #e5e7eb; min-height:80px; align-items:stretch; position:relative; background:#fff; margin-bottom:5px;">
+            <div class="drag-handle" style="position:absolute; top:2px; left:2px; cursor:grab; color:#9ca3af; font-size:16px; padding:2px; z-index:10;" title="드래그하여 순서 변경">≡</div>
+            <div class="matrix-cell product-cell" style="width:300px; min-width:300px; padding:4px 8px; background:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative; border-top-left-radius:6px; border-bottom-left-radius:6px;">
+            </div>
+            ${cellsHTML}
+        </div>
+    `;
+    
+    const sectionContainer = document.getElementById(`section-${sectionId}-rows`);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = rowHTML.trim();
+    const newRow = wrapper.firstChild;
+    sectionContainer.appendChild(newRow);
+    
+    newProductEl.style.minWidth = 'auto';
+    newProductEl.style.maxWidth = '100%';
+    newProductEl.style.flexDirection = 'row';
+    newProductEl.style.alignItems = 'center';
+    newProductEl.style.marginBottom = '0';
+    newProductEl.style.boxShadow = 'none';
+    newProductEl.style.border = 'none';
+    newProductEl.style.flex = '1';
+    
+    const imgContainer = newProductEl.children[0];
+    imgContainer.style.width = '140px';
+    imgContainer.style.height = '140px';
+    imgContainer.style.marginBottom = '0';
+    imgContainer.style.marginRight = '8px';
+    imgContainer.style.borderRadius = '6px';
+    imgContainer.style.flexShrink = '0';
+    const badges = imgContainer.querySelector('.usage-badges');
+    if (badges) badges.style.display = 'none';
+    
+    const textContainer = newProductEl.children[1];
+    textContainer.style.textAlign = 'left';
+    textContainer.style.display = 'flex';
+    textContainer.style.flexDirection = 'column';
+    
+    const nameDiv = textContainer.children[1];
+    if(nameDiv) {
+        nameDiv.style.fontSize = '13px';
+        nameDiv.style.whiteSpace = 'normal';
+        nameDiv.style.overflow = 'visible';
+        nameDiv.style.textOverflow = 'clip';
+        nameDiv.style.display = 'block'; 
+        nameDiv.style.wordBreak = 'keep-all';
+        nameDiv.style.lineHeight = '1.3';
+    }
+    
+    newRow.querySelector('.product-cell').appendChild(newProductEl);
+    updateSectionPlaceholder(sectionId);
+}
 
 function handleDragStart(e, code) {
     draggedItemCode = code;
     draggedItemEl = e.currentTarget;
     e.dataTransfer.setData('text/plain', code);
     e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => { draggedItemEl.style.opacity = '0.5'; }, 0);
 }
 
 function handleDragEnd(e) {
-    e.currentTarget.style.opacity = '1';
     draggedItemCode = null;
     draggedItemEl = null;
 }
 
-
-let taskRowCounter = 0;
-
 function handleDragOver(e) {
     e.preventDefault();
-    if(e.currentTarget.classList.contains('row-creator-dropzone')) {
+    if(e.currentTarget.classList.contains('dropzone')) {
         e.currentTarget.style.background = '#f3f4f6';
     } else {
         e.currentTarget.style.background = '#f9fafb';
@@ -2540,58 +2760,31 @@ function handleDragOver(e) {
 }
 
 function handleDragLeave(e) {
-    if(e.currentTarget.classList.contains('row-creator-dropzone')) {
-        e.currentTarget.style.background = '#f9fafb';
-    } else {
+    if(e.currentTarget.classList.contains('dropzone')) {
         e.currentTarget.style.background = '#fff';
+    } else {
+        e.currentTarget.style.background = '#f9fafb';
     }
 }
 
-function handleRowCreateDrop(e, sectionId) {
+function handleProductCellDrop(e) {
     e.preventDefault();
     const dropZone = e.currentTarget;
-    dropZone.style.background = '#f9fafb';
+    dropZone.style.background = '#fff';
     
     if (draggedItemCode && draggedItemEl) {
         if(draggedItemEl.parentNode.id === 'taskContainer') {
             draggedItemEl.parentNode.removeChild(draggedItemEl);
+        } else if(draggedItemEl.parentNode.classList.contains('product-cell')) {
+            // 다른 셀에서 가져오는 경우 원래 셀은 비워둠
+            draggedItemEl.parentNode.innerHTML = '드래그하여 상품 배치';
         }
         
-        taskRowCounter++;
-        const rowId = `task-row-${taskRowCounter}`;
-        
-        const host1 = document.getElementById('taskHost1').value || '호스트1';
-        const host2 = document.getElementById('taskHost2').value || '호스트2';
-        
-        const columns = ['main', 'hanger', 'h1_hand', 'h2_hand', 'h1_wear', 'h2_wear'];
-        
-        let cellsHTML = '';
-        columns.forEach(col => {
-            cellsHTML += `
-                <div class="matrix-cell dropzone" data-row="${rowId}" data-col="${col}"
-                    ondragover="handleDragOver(event)" 
-                    ondragleave="handleDragLeave(event)"
-                    ondrop="handleCellDrop(event)"
-                    style="flex:1; min-width:140px; border-left:1px solid #e5e7eb; padding:10px; display:flex; flex-direction:column; background:#fff; transition: all 0.2s; min-height:80px;">
-                    <textarea placeholder="내용 입력..." style="width:100%; flex:1; min-height:60px; border:1px solid #e5e7eb; border-radius:4px; padding:8px; box-sizing:border-box; resize:vertical; font-size:12px; font-family:inherit; background-color:#f9fafb; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
-                </div>
-            `;
-        });
-        
-        const rowHTML = `
-            <div id="${rowId}" class="task-matrix-row" style="display:flex; border-bottom:1px solid #e5e7eb; min-height:80px; align-items:stretch;">
-                <div class="matrix-cell product-cell" style="width:200px; min-width:200px; padding:4px 8px; background:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative;">
-                    <div onclick="this.closest('.task-matrix-row').remove()" style="position:absolute; top:5px; right:5px; cursor:pointer; color:#ef4444; font-size:12px; font-weight:bold; padding:2px 6px; border-radius:4px; background:#fee2e2; z-index:10;">X</div>
-                </div>
-                ${cellsHTML}
-            </div>
+        // 대상 셀 비우기
+        dropZone.innerHTML = `
+            <div onclick="this.parentNode.innerHTML='드래그하여 상품 배치'; window.renderTaskItems();" style="position:absolute; top:5px; right:5px; cursor:pointer; color:#ef4444; font-size:12px; font-weight:bold; padding:2px 6px; border-radius:4px; background:#fee2e2; z-index:10;">X</div>
         `;
-        
-        const sectionContainer = document.getElementById(`section-${sectionId}-rows`);
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = rowHTML.trim();
-        const newRow = wrapper.firstChild;
-        sectionContainer.appendChild(newRow);
+        dropZone.appendChild(draggedItemEl);
         
         draggedItemEl.style.minWidth = 'auto';
         draggedItemEl.style.maxWidth = '100%';
@@ -2603,8 +2796,8 @@ function handleRowCreateDrop(e, sectionId) {
         draggedItemEl.style.flex = '1';
         
         const imgContainer = draggedItemEl.children[0];
-        imgContainer.style.width = '85px';
-        imgContainer.style.height = '85px';
+        imgContainer.style.width = '50px';
+        imgContainer.style.height = '50px';
         imgContainer.style.marginBottom = '0';
         imgContainer.style.marginRight = '8px';
         imgContainer.style.borderRadius = '4px';
@@ -2621,8 +2814,6 @@ function handleRowCreateDrop(e, sectionId) {
         
         const nameDiv = textContainer.children[1];
         if(nameDiv) nameDiv.style.fontSize = '11px';
-        
-        newRow.querySelector('.product-cell').appendChild(draggedItemEl);
     }
 }
 
@@ -2667,20 +2858,23 @@ function handleCellDrop(e) {
 }
 
 function generateTaskSections() {
-    const host1 = document.getElementById('taskHost1').value || '호스트1';
-    const host2 = document.getElementById('taskHost2').value || '호스트2';
+    const hostsInput = document.getElementById('taskHosts').value || '호스트1, 호스트2';
+    const hostsArr = hostsInput.split(',').map(s => s.trim());
+    const host1 = hostsArr[0] || '호스트1';
+    const host2 = hostsArr[1] || '호스트2';
+    
     const count = parseInt(document.getElementById('taskSectionsCount').value) || 0;
     const area = document.getElementById('taskSectionsArea');
     area.innerHTML = '';
     
     const columns = [
-        { key: 'product', name: '상품', width: '200px' },
-        { key: 'main', name: '메인', width: '140px' },
-        { key: 'hanger', name: '행거', width: '140px' },
-        { key: 'h1_hand', name: `${host1} 핸들링`, width: '140px' },
-        { key: 'h2_hand', name: `${host2} 핸들링`, width: '140px' },
-        { key: 'h1_wear', name: `${host1} 착장`, width: '140px' },
-        { key: 'h2_wear', name: `${host2} 착장`, width: '140px' }
+        { key: 'product', name: '상품', width: '300px' },
+        { key: 'main', name: '메인', width: '110px' },
+        { key: 'hanger', name: '행거', width: '110px' },
+        { key: 'h1_hand', name: `${host1} 핸들링`, width: '110px' },
+        { key: 'h2_hand', name: `${host2} 핸들링`, width: '110px' },
+        { key: 'h1_wear', name: `${host1} 착장`, width: '110px' },
+        { key: 'h2_wear', name: `${host2} 착장`, width: '110px' }
     ];
     
     for(let i=1; i<=count; i++) {
@@ -2693,7 +2887,7 @@ function generateTaskSections() {
                 </div>
             `;
         });
-        
+
         const sectionHTML = `
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:15px; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin-bottom:20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -2705,15 +2899,14 @@ function generateTaskSections() {
                         ${headerHTML}
                     </div>
                     
-                    <div id="section-${i}-rows" style="display:flex; flex-direction:column; background:#f9fafb;">
-                    </div>
-                    
-                    <div class="row-creator-dropzone" 
-                        ondragover="handleDragOver(event)" 
-                        ondragleave="handleDragLeave(event)"
-                        ondrop="handleRowCreateDrop(event, ${i})"
-                        style="min-height:70px; background:#fff; display:flex; justify-content:center; align-items:center; transition: background 0.2s; cursor:pointer;">
-                        <span style="color:#6b7280; font-size:13px; font-weight:500;">➕ 이곳에 상품을 드래그하여 새로운 행 생성</span>
+                    <div id="section-${i}-rows" 
+                        ondragover="handleSectionDragOver(event)"
+                        ondragleave="handleSectionDragLeave(event)"
+                        ondrop="handleSectionDrop(event, ${i})"
+                        style="display:flex; flex-direction:column; background:#f9fafb; min-height:80px; padding:10px 0; position:relative; transition: background 0.2s; border-bottom-left-radius:6px; border-bottom-right-radius:6px;">
+                        <div class="section-placeholder" style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; color:#6b7280; font-size:13px; font-weight:500; pointer-events:none;">
+                            ➕ 이곳에 상품을 드래그하여 상품 추가
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2721,6 +2914,25 @@ function generateTaskSections() {
         const wrapper = document.createElement('div');
         wrapper.innerHTML = sectionHTML.trim();
         area.appendChild(wrapper.firstChild);
+    }
+
+    // 하단 저장/인쇄 버튼 영역 추가
+    if(count > 0) {
+        const bottomBtns = document.createElement('div');
+        bottomBtns.style.display = 'flex';
+        bottomBtns.style.justifyContent = 'flex-end';
+        bottomBtns.style.gap = '10px';
+        bottomBtns.style.marginTop = '10px';
+        bottomBtns.style.marginBottom = '30px';
+        bottomBtns.innerHTML = `
+            <button style="padding:10px 20px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; color:#4b5563;">
+                🖨️ 인쇄 / PDF 저장
+            </button>
+            <button style="padding:10px 20px; background:var(--primary); border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; color:white;">
+                💾 임시 저장
+            </button>
+        `;
+        area.appendChild(bottomBtns);
     }
 }
 
@@ -2845,30 +3057,24 @@ function initTaskScrollers() {
 
         function renderTaskItems() {
             const container = document.getElementById('taskContainer');
-            const infoBox = document.getElementById('taskBroadcastInfo');
             const sectionsArea = document.getElementById('taskSectionsArea');
             if(!container) return;
             
             container.innerHTML = '';
-            sectionsArea.innerHTML = ''; // Reset sections when changing time
+            sectionsArea.innerHTML = ''; // 시간 변경 시 구간 초기화
             
-            container.className = '';
+            // 좌측 사이드바 세로 레이아웃 유지
             container.style.display = 'flex';
-            container.style.overflowX = 'auto';
-            container.style.gap = '15px';
-            container.style.paddingBottom = '10px';
-            container.style.alignItems = 'stretch';
+            container.style.flexDirection = 'column';
+            container.style.gap = '8px';
             
             const targetPrefix = currentTaskDate + " " + currentTaskTime;
             const items = allItems.filter(i => !i.isMaster && i.date && i.date.startsWith(targetPrefix));
             
             if(items.length === 0) {
-                container.innerHTML = '<div style="padding:30px; text-align:center; color:#999; width:100%; grid-column:1/-1;">해당 시간에 편성된 아이템이 없습니다.</div>';
-                infoBox.style.display = 'none';
+                container.innerHTML = '<div style="padding:20px 0; text-align:center; color:#bbb; font-size:12px; font-weight:700;">편성된 상품이<br>없습니다</div>';
                 return;
             }
-            
-            infoBox.style.display = 'block'; // Show broadcast info
             
             items.forEach(item => {
                 const isOurs = isOurProduct(item.code);
@@ -2882,16 +3088,20 @@ function initTaskScrollers() {
 
                 const imgBorderStyle = isOurs ? 'border: 2px solid #ff66a3;' : 'border: 1px solid #eee;';
 
+                // 사이드바 세로 배치용 카드 (가로 전체 너비)
                 const cardHTML = `
-                    <div class="dash-card" draggable="true" ondragstart="handleDragStart(event, '${item.code}')" ondragend="handleDragEnd(event)" style="display:flex; flex-direction:column; padding:10px; cursor:grab; align-items: stretch; margin-bottom:0; min-width: 120px; max-width: 120px; flex-shrink: 0;" >
-                        <div onclick="showProductInventoryModal('${item.code}')" style="width:100%; aspect-ratio: 1/1; border-radius:8px; overflow:hidden; background:#fff; position:relative; ${imgBorderStyle} box-sizing: border-box; margin-bottom: 10px; pointer-events:auto; cursor:pointer;">
+                    <div id="pool-item-${item.code}" class="dash-card" draggable="true" ondragstart="handleDragStart(event, '${item.code}')" ondragend="handleDragEnd(event)"
+                        style="display:flex; flex-direction:row; align-items:center; padding:10px; cursor:grab; gap:10px; margin-bottom:0;">
+                        <div onclick="showProductInventoryModal('${item.code}')"
+                            style="width:72px; height:72px; flex-shrink:0; border-radius:8px; overflow:hidden; background:#fff; ${imgBorderStyle} box-sizing:border-box; cursor:pointer; pointer-events:auto; position:relative;">
                             <img src="${imgSrc}" draggable="false" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
                         </div>
-                        <div style="flex:1; min-width:0; text-align:center; pointer-events:none;">
-                            <div style="font-size:11px; color:#6b7280; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px;">${brand}</div>
-                            <div style="font-size:13px; font-weight:bold; color:#111; line-height:1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-break: keep-all;">
-                                ${name}
+                        <div style="flex:1; min-width:0; pointer-events:none;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                                <div style="font-size:11px; color:var(--primary); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${brand}</div>
+                                <div class="usage-badges" style="display:flex; flex-wrap:wrap; gap:3px; align-items:center;"></div>
                             </div>
+                            <div style="font-size:12px; font-weight:700; color:#111; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:keep-all;">${name}</div>
                         </div>
                     </div>
                 `;
@@ -2899,6 +3109,7 @@ function initTaskScrollers() {
                 div.innerHTML = cardHTML.trim();
                 container.appendChild(div.firstChild);
             });
+            rebuildUsageBadges();
         }
 
         function showProductInventoryModal(code) {
