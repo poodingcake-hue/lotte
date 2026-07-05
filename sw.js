@@ -12,6 +12,12 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // 캐시 무시하고 네트워크에서 먼저 가져오기
-  e.respondWith(fetch(e.request));
+  if (e.request.method === 'GET') {
+    // 브라우저 캐시를 완전히 무시하고 항상 최신 버전을 서버에서 가져옴 (초기 접속 시 업데이트 보장)
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' }).catch(() => fetch(e.request))
+    );
+  } else {
+    e.respondWith(fetch(e.request));
+  }
 });
