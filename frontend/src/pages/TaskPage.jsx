@@ -158,7 +158,7 @@ const TaskPage = () => {
       <div style={{ display: 'flex', gap: '16px', height: 'calc(100vh - var(--nav-height) - 40px)', minHeight: '540px' }}>
 
         {/* ===== LEFT PANEL ===== */}
-        <div style={{ width: '390px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'hidden' }}>
+        <div style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'hidden' }}>
 
           {/* 일정 선택 */}
           <div className="dash-card" style={{ padding: '14px', flexShrink: 0 }}>
