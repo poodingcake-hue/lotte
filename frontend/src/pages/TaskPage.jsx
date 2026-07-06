@@ -354,11 +354,10 @@ const TaskPage = () => {
                           {/* Data cells */}
                           {columns.slice(1).map(col => (
                             <div key={col.key} style={{ flex: 1, minWidth: col.width, borderLeft: '1px solid #e5e7eb', padding: '4px' }}>
-                              <input
-                                type="text"
+                              <textarea
                                 value={(row.cells || {})[col.key] || ''}
                                 onChange={e => handleCellChange(sec.id, row.code, col.key, e.target.value)}
-                                style={{ width: '100%', height: '100%', border: 'none', outline: 'none', textAlign: 'center', fontSize: '12px', background: 'transparent', fontWeight: '700' }}
+                                style={{ width: '100%', height: '100%', minHeight: '130px', border: 'none', outline: 'none', textAlign: 'center', fontSize: '12px', background: 'transparent', fontWeight: '700', resize: 'none', boxSizing: 'border-box', padding: '10px 0', fontFamily: 'inherit' }}
                               />
                             </div>
                           ))}
