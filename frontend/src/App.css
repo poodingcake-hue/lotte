@@ -17,6 +17,11 @@ body {
     letter-spacing: -0.5px;
 }
 
+img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
 /* 헤더 디자인: 로고(좌) / 메뉴(우) */
 .top-nav {
     position: fixed;

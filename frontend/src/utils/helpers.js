@@ -13,8 +13,8 @@ export const getProductImage = (item) => {
     }
   }
 
-  // Google Drive security bypass (uc -> thumbnail)
-  if (resultUrl && resultUrl.includes('drive.google.com')) {
+  // Google Drive security bypass (uc -> thumbnail or lh3.googleusercontent.com)
+  if (resultUrl && (resultUrl.includes('drive.google.com') || resultUrl.includes('lh3.googleusercontent.com/d/'))) {
     const idMatch = resultUrl.match(/id=([^&]+)/) || resultUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (idMatch) {
       resultUrl = `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
