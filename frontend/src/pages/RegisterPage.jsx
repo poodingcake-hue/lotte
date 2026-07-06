@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import ProductSearchModal from '../components/modals/ProductSearchModal';
+import HistoryModal from '../components/modals/HistoryModal';
 import { getProductImage } from '../utils/helpers';
 
 const RegisterPage = () => {
@@ -19,6 +20,7 @@ const RegisterPage = () => {
   const [extraSizes, setExtraSizes] = useState(['', '']); // Two extra size columns
   const [extraColors, setExtraColors] = useState(['']); // One extra color row
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -101,8 +103,113 @@ const RegisterPage = () => {
   };
 
   const handleSaveInventory = async () => {
-    // Implement inventory save logic
-    alert("재고 저장 기능이 호출되었습니다 (API 연동 대기 중)");
+    if (!formData.code) { alert('상품을 먼저 불러오세요.'); return; }
+    
+    const newLogs = [];
+    const newStockMap = { ...allStockMap };
+    let currentStock = newStockMap[formData.code] || [];
+    const timestamp = new Date().toISOString();
+
+    const flat = [];
+    
+    // Process main colors and sizes
+    colors.forEach(c => {
+      sizes.forEach(s => {
+        const key = `${c}_${s}`;
+        if (matrixData[key] !== undefined) {
+           const qty = Number(matrixData[key]);
+           if (qty >= 0) {
+             const existing = currentStock.find(x => x.color === c && x.size === s);
+             const oldQty = existing ? existing.qty : 0;
+             if (qty !== oldQty) {
+               const delta = qty - oldQty;
+               newLogs.push({ code: formData.code, color: c, size: s, type: isAdditional ? (delta > 0 ? 'IN' : 'ADJUST') : 'IN', qty: delta, date: timestamp, actor: '관리자', note: isAdditional ? '기존 재고 수정/추가' : '신규 재고 등록' });
+             }
+           }
+        }
+      });
+      // extra sizes
+      extraSizes.forEach(s => {
+        if (!s) return;
+        const key = `${c}_${s}`;
+        if (matrixData[key] !== undefined) {
+           const qty = Number(matrixData[key]);
+           if (qty >= 0) {
+             const existing = currentStock.find(x => x.color === c && x.size === s);
+             const oldQty = existing ? existing.qty : 0;
+             if (qty !== oldQty) {
+               const delta = qty - oldQty;
+               newLogs.push({ code: formData.code, color: c, size: s, type: isAdditional ? (delta > 0 ? 'IN' : 'ADJUST') : 'IN', qty: delta, date: timestamp, actor: '관리자', note: '신규 사이즈 추가' });
+             }
+           }
+        }
+      });
+    });
+
+    // Process extra colors
+    extraColors.forEach(c => {
+      if (!c) return;
+      sizes.forEach(s => {
+        const key = `${c}_${s}`;
+        if (matrixData[key] !== undefined) {
+           const qty = Number(matrixData[key]);
+           if (qty >= 0) {
+             const existing = currentStock.find(x => x.color === c && x.size === s);
+             const oldQty = existing ? existing.qty : 0;
+             if (qty !== oldQty) {
+               const delta = qty - oldQty;
+               newLogs.push({ code: formData.code, color: c, size: s, type: 'IN', qty: delta, date: timestamp, actor: '관리자', note: '신규 색상 추가' });
+             }
+           }
+        }
+      });
+      extraSizes.forEach(s => {
+        if (!s) return;
+        const key = `${c}_${s}`;
+        if (matrixData[key] !== undefined) {
+           const qty = Number(matrixData[key]);
+           if (qty >= 0) {
+             const existing = currentStock.find(x => x.color === c && x.size === s);
+             const oldQty = existing ? existing.qty : 0;
+             if (qty !== oldQty) {
+               const delta = qty - oldQty;
+               newLogs.push({ code: formData.code, color: c, size: s, type: 'IN', qty: delta, date: timestamp, actor: '관리자', note: '신규 색상/사이즈 추가' });
+             }
+           }
+        }
+      });
+    });
+
+    if (newLogs.length === 0 && isAdditional) {
+      alert('변경된 재고 수량이 없습니다.');
+      return;
+    }
+
+    try {
+      const updatedItemStock = [];
+      Object.keys(matrixData).forEach(key => {
+        const qty = Number(matrixData[key]);
+        if (qty > 0) {
+           const [color, size] = key.split('_');
+           updatedItemStock.push({ color, size, qty });
+        }
+      });
+      newStockMap[formData.code] = updatedItemStock;
+      
+      Object.keys(newStockMap).forEach(code => newStockMap[code].forEach(s => flat.push({ code, ...s })));
+      
+      const { apiClient, saveHistoryToBackend, setAllStockMap } = useAppStore.getState();
+      await apiClient.post('?action=save_inventory', { type: 'save_inventory', data: flat });
+      if (newLogs.length > 0) {
+        await saveHistoryToBackend(newLogs);
+      }
+      setAllStockMap(newStockMap);
+      
+      alert('재고 저장이 완료되었습니다.');
+    } catch (e) {
+      console.error(e);
+      alert('재고 저장 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -189,7 +296,10 @@ const RegisterPage = () => {
                 )}
               </span>
               {(colors.length > 0 && sizes.length > 0 && formData.code) && (
-                <button className="m-btn m-btn-confirm" onClick={handleSaveInventory} style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', width: 'auto', flex: 'none', background: '#047857' }}>재고 저장</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="m-btn m-btn-confirm" style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', width: 'auto', flex: 'none', background: '#64748b' }} onClick={() => setIsHistoryOpen(true)}>재고 수정</button>
+                  <button className="m-btn m-btn-confirm" onClick={handleSaveInventory} style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', width: 'auto', flex: 'none', background: '#047857' }}>재고 저장</button>
+                </div>
               )}
             </div>
             <div id="reg-matrix-container" style={{ marginTop: '10px' }}>
@@ -262,6 +372,11 @@ const RegisterPage = () => {
         isOpen={isSearchOpen} 
         onClose={() => setIsSearchOpen(false)} 
         onSelect={handleProductSelect} 
+      />
+      <HistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        productCode={formData.code}
       />
     </section>
   );

@@ -19,7 +19,8 @@ export default {
             env.DB.prepare("SELECT * FROM outfits"),
             env.DB.prepare("SELECT * FROM notes"),
             env.DB.prepare("SELECT * FROM supplies"),
-            env.DB.prepare("SELECT * FROM products")
+            env.DB.prepare("SELECT * FROM products"),
+            env.DB.prepare("SELECT * FROM inventory_history")
         ]);
 
         const inventoryResults = batchResults[0].results;
@@ -28,6 +29,7 @@ export default {
         const notesResults = batchResults[3].results;
         const suppliesResults = batchResults[4].results;
         const productsResults = batchResults[5].results;
+        const historyResults = batchResults[6].results;
 
         const formattedInventory = {};
         inventoryResults.forEach(item => {
@@ -47,7 +49,8 @@ export default {
           outfits: outfitsResults,
           notes: notesResults,
           supplies: suppliesResults,
-          products: productsResults
+          products: productsResults,
+          history: historyResults
         };
 
         return new Response(JSON.stringify(responseData), {
@@ -138,6 +141,18 @@ export default {
                });
            }
            // Use maximum chunk size of 100 allowed by D1
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
+        }
+        else if (type === "save_history") {
+           const statements = [];
+           if (data && data.length > 0) {
+               const stmt = env.DB.prepare("INSERT INTO inventory_history (code, color, size, type, qty, actor, date, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+               data.forEach(item => {
+                   statements.push(stmt.bind(item.code, item.color, item.size, item.type, item.qty, item.actor || "", item.date || "", item.note || ""));
+               });
+           }
            for (let i = 0; i < statements.length; i += 100) {
                await env.DB.batch(statements.slice(i, i + 100));
            }

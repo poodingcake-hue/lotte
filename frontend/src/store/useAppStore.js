@@ -10,6 +10,7 @@ export const useAppStore = create((set, get) => ({
   allOutfits: [],
   allNotes: [],
   allSupplies: [],
+  allHistory: [],
   allWeather: null,
   selDate: null,
   filteredItems: [],
@@ -23,6 +24,7 @@ export const useAppStore = create((set, get) => ({
   setAllNotes: (notes) => set({ allNotes: notes }),
   setAllSupplies: (supplies) => set({ allSupplies: supplies }),
   setAllStockMap: (map) => set({ allStockMap: map }),
+  setAllHistory: (history) => set({ allHistory: history }),
   setSelDate: (date) => set({ selDate: date }),
   setIsLoading: (v) => set({ isLoading: v }),
   addToCart: (item) => set((state) => ({ rentalCart: [...state.rentalCart, item] })),
@@ -56,6 +58,24 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
+  // Save history to backend
+  saveHistoryToBackend: async (newHistoryLogs) => {
+    try {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'save_history', data: newHistoryLogs })
+      });
+      if (!response.ok) throw new Error('Failed to save history');
+      
+      // Update local state by appending
+      set(state => ({ allHistory: [...state.allHistory, ...newHistoryLogs] }));
+    } catch (e) {
+      console.error('Error saving history:', e);
+      throw e;
+    }
+  },
+
   // Fetch initial data
   initApp: async () => {
     set({ isLoading: true, error: null });
@@ -75,6 +95,7 @@ export const useAppStore = create((set, get) => ({
       const outfits = backendData.outfits || [];
       const notes = backendData.notes || [];
       const supplies = backendData.supplies || [];
+      const history = backendData.history || [];
       
       let allItems = [];
       const schedules = (masterData.items || []).filter(i => !i.isMaster);
@@ -118,6 +139,7 @@ export const useAppStore = create((set, get) => ({
         allOutfits: outfits,
         allNotes: notes,
         allSupplies: supplies,
+        allHistory: history,
         allWeather: weather,
         isLoading: false 
       });

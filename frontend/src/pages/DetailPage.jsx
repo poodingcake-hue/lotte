@@ -163,12 +163,23 @@ const DetailPage = () => {
       onConfirm: async () => {
         try {
           let next = [...(allRentals || [])];
+          const newLogs = [];
+          const timestamp = new Date().toISOString();
+          
           checked.forEach(r => {
             next = next.filter(x => !isSameRental(x, r));
+            newLogs.push({
+              code: r.code, color: r.color, size: r.size,
+              type: 'IN', qty: Number(r.qty || 1), date: timestamp,
+              actor: r.renter, note: '대여 반납'
+            });
           });
           setAllRentals(next);
           setChecked([]);
           await saveToGitHub('rentals.json', next);
+          if (newLogs.length > 0) {
+            await useAppStore.getState().saveHistoryToBackend(newLogs);
+          }
         } catch (err) {
           console.error(err);
         }
@@ -181,9 +192,23 @@ const DetailPage = () => {
     if (cart.length === 0) return;
     try {
       const next = [...(allRentals || [])];
-      cart.forEach(c => next.push({ code: String(id), renter: renter.trim(), color: c.color, size: c.size, qty: c.qty, date: new Date().toISOString() }));
+      const newLogs = [];
+      const timestamp = new Date().toISOString();
+      
+      cart.forEach(c => {
+        next.push({ code: String(id), renter: renter.trim(), color: c.color, size: c.size, qty: c.qty, date: timestamp });
+        newLogs.push({
+          code: String(id), color: c.color, size: c.size,
+          type: 'OUT', qty: -Number(c.qty || 1), date: timestamp,
+          actor: renter.trim(), note: '방송 대여(반출)'
+        });
+      });
+      
       setAllRentals(next);
       await saveToGitHub('rentals.json', next);
+      if (newLogs.length > 0) {
+        await useAppStore.getState().saveHistoryToBackend(newLogs);
+      }
       setCart([]);
       setRenter('');
       alert('대여 등록이 완료되었습니다.');
@@ -211,15 +236,30 @@ const DetailPage = () => {
     try {
       const newMap = { ...allStockMap };
       if (!newMap[id]) newMap[id] = [];
+      
+      const newLogs = [];
+      const timestamp = new Date().toISOString();
+      
       matrix.forEach(m => {
         const ex = newMap[id].find(x => x.color === m.color && x.size === m.size);
         if (ex) ex.qty = Number(ex.qty) + Number(m.qty);
         else newMap[id].push({ color: m.color, size: m.size, qty: m.qty });
+        
+        newLogs.push({
+          code: String(id), color: m.color, size: m.size,
+          type: 'ADJUST', qty: Number(m.qty), date: timestamp,
+          actor: '관리자', note: '재고 추가/조정 (수기입력)'
+        });
       });
       setAllStockMap(newMap);
       const flat = [];
       Object.keys(newMap).forEach(code => newMap[code].forEach(s => flat.push({ code, ...s })));
       await apiClient.post('?action=save_inventory', { type: 'save_inventory', data: flat });
+      
+      if (newLogs.length > 0) {
+        await useAppStore.getState().saveHistoryToBackend(newLogs);
+      }
+      
       alert('입고 저장이 완료되었습니다.');
       setEditMode(false); setStockEdits({}); setNewSizeName('');
     } catch (e) { alert('오류가 발생했습니다.'); }
