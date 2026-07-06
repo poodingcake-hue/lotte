@@ -13,11 +13,12 @@ export const getProductImage = (item) => {
     }
   }
 
-  // Google Drive security bypass (uc -> thumbnail or lh3.googleusercontent.com)
-  if (resultUrl && (resultUrl.includes('drive.google.com') || resultUrl.includes('lh3.googleusercontent.com/d/'))) {
+  // Google Drive security bypass (uc -> thumbnail)
+  if (resultUrl && resultUrl.includes('drive.google.com')) {
     const idMatch = resultUrl.match(/id=([^&]+)/) || resultUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (idMatch) {
-      resultUrl = `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
+      // Use uc?export=view to get original quality if possible, otherwise fallback to thumbnail
+      resultUrl = `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
     }
   }
 
