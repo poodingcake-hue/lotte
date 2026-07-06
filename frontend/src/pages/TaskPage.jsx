@@ -45,9 +45,12 @@ const TaskPage = () => {
   const [currentTime, setCurrentTime] = useState(null);
   const [hostsInput, setHostsInput] = useState('호스트1, 호스트2');
   const [sectionsCount, setSectionsCount] = useState(2);
-  const [sections, setSections] = useState([]); // [{id, rows: []}]
+  const [sectionsMap, setSectionsMap] = useState({}); // { "YYYY-MM-DD HH:MM": [{id, rows: []}] }
   const [dragItem, setDragItem] = useState(null);
   const [dragOverSection, setDragOverSection] = useState(null);
+
+  const currentSlotKey = `${currentDate} ${currentTime}`;
+  const sections = sectionsMap[currentSlotKey] || [];
 
   // Set default date
   useEffect(() => {
@@ -80,9 +83,8 @@ const TaskPage = () => {
   // Products for current date+time slot
   const slotItems = useMemo(() => {
     if (!currentDate || !currentTime) return [];
-    const slotKey = `${currentDate} ${currentTime}`;
-    return allItems.filter(i => !i.isMaster && i.date && i.date.trim() === slotKey && isOurProduct(i.code));
-  }, [allItems, currentDate, currentTime, isOurProduct]);
+    return allItems.filter(i => !i.isMaster && i.date && i.date.trim() === currentSlotKey && isOurProduct(i.code));
+  }, [allItems, currentDate, currentTime, isOurProduct, currentSlotKey]);
 
   const hosts = useMemo(() => {
     const arr = hostsInput.split(',').map(s => s.trim()).filter(Boolean);
@@ -99,9 +101,19 @@ const TaskPage = () => {
     { key: 'h2_wear', name: `${hosts[1]} 착장`, width: '75px' },
   ], [hosts]);
 
+  const updateCurrentSections = (updater) => {
+    if (!currentDate || !currentTime) return;
+    setSectionsMap(prev => ({
+      ...prev,
+      [currentSlotKey]: updater(prev[currentSlotKey] || [])
+    }));
+  };
+
   const handleGenerateSections = () => {
+    if (!currentDate || !currentTime) return;
     const count = Math.max(1, Math.min(10, Number(sectionsCount)));
-    setSections(Array.from({ length: count }, (_, i) => ({ id: i + 1, rows: [] })));
+    const newSections = Array.from({ length: count }, (_, i) => ({ id: i + 1, rows: [] }));
+    updateCurrentSections(() => newSections);
   };
 
   const handleDragStart = (e, item) => {
@@ -117,7 +129,16 @@ const TaskPage = () => {
   const handleDrop = (e, sectionId) => {
     e.preventDefault();
     if (!dragItem) return;
-    setSections(prev => prev.map(sec => {
+    
+    // Check if the dragged item belongs to the current selected slot
+    // Though practically impossible with our UI unless they somehow change the slot while dragging
+    if (dragItem.date && dragItem.date.trim() !== currentSlotKey) {
+        alert("선택된 방송 날짜와 시간의 상품만 해당 구간에 등록할 수 있습니다.");
+        setDragOverSection(null);
+        return;
+    }
+
+    updateCurrentSections(prev => prev.map(sec => {
       if (sec.id !== sectionId) return sec;
       // Don't add duplicate
       if (sec.rows.find(r => r.code === dragItem.code)) return sec;
@@ -127,7 +148,7 @@ const TaskPage = () => {
   };
 
   const handleCellChange = (sectionId, rowCode, colKey, value) => {
-    setSections(prev => prev.map(sec => {
+    updateCurrentSections(prev => prev.map(sec => {
       if (sec.id !== sectionId) return sec;
       return {
         ...sec,
@@ -140,7 +161,7 @@ const TaskPage = () => {
   };
 
   const handleRemoveRow = (sectionId, rowCode) => {
-    setSections(prev => prev.map(sec => {
+    updateCurrentSections(prev => prev.map(sec => {
       if (sec.id !== sectionId) return sec;
       return { ...sec, rows: sec.rows.filter(r => r.code !== rowCode) };
     }));
