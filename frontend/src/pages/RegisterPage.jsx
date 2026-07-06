@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import ProductSearchModal from '../components/modals/ProductSearchModal';
+import { getProductImage } from '../utils/helpers';
 
 const RegisterPage = () => {
   const { allStockMap } = useAppStore();
@@ -10,7 +11,8 @@ const RegisterPage = () => {
     name: '',
     cate: '',
     colors: '',
-    sizes: ''
+    sizes: '',
+    image: ''
   });
 
   const [matrixData, setMatrixData] = useState({});
@@ -36,8 +38,16 @@ const RegisterPage = () => {
       name: item.name || '',
       cate: item.category || '',
       colors: colorVal,
-      sizes: sizeVal
+      sizes: sizeVal,
+      image: item.image || ''
     });
+
+    const existingStock = allStockMap[item.code] || [];
+    const newMatrixData = {};
+    existingStock.forEach(stock => {
+      newMatrixData[`${stock.color}_${stock.size}`] = stock.qty;
+    });
+    setMatrixData(newMatrixData);
   };
 
   const handleMatrixChange = (color, size, value) => {
@@ -59,16 +69,7 @@ const RegisterPage = () => {
   const stockMap = allStockMap[formData.code] || [];
   const isAdditional = stockMap.length > 0;
 
-  const lotteImageUrl = useMemo(() => {
-    if (formData.code && formData.code.length >= 8) {
-      const code = String(formData.code);
-      const p1 = code.substring(0, 2);
-      const p2 = code.substring(4, 6);
-      const p3 = code.substring(2, 4);
-      return `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${code}_L.jpg`;
-    }
-    return '';
-  }, [formData.code]);
+  const lotteImageUrl = useMemo(() => getProductImage(formData), [formData]);
 
   const handleSaveProduct = async () => {
     // Implement save logic via store or api
