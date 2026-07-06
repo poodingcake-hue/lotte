@@ -209,27 +209,27 @@ const TaskPage = () => {
           {/* 방송 설정 */}
           <div className="dash-card" style={{ padding: '16px', flexShrink: 0 }}>
             <div className="dash-title" style={{ marginBottom: '14px', fontSize: '14px' }}>방송 설정</div>
-            <input
-              type="text"
-              id="taskHosts"
-              placeholder="호스트명 (쉼표로 구분)"
-              value={hostsInput}
-              onChange={e => setHostsInput(e.target.value)}
-              style={{ width: '100%', padding: '9px 12px', border: '1px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', fontWeight: '700', marginBottom: '14px', boxSizing: 'border-box', outline: 'none' }}
-            />
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="text"
+                id="taskHosts"
+                placeholder="호스트명 (쉼표로 구분)"
+                value={hostsInput}
+                onChange={e => setHostsInput(e.target.value)}
+                style={{ flex: 1, padding: '9px 12px', border: '1px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', fontWeight: '700', boxSizing: 'border-box', outline: 'none', minWidth: '0' }}
+              />
               <input
                 type="number"
                 id="taskSectionsCount"
                 value={sectionsCount}
                 min="1" max="10"
                 onChange={e => setSectionsCount(e.target.value)}
-                style={{ width: '54px', padding: '9px 4px', border: '1px solid #e0e0e0', borderRadius: '8px', fontSize: '15px', fontWeight: '800', textAlign: 'center', outline: 'none' }}
+                style={{ width: '45px', padding: '9px 4px', border: '1px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', fontWeight: '800', textAlign: 'center', outline: 'none' }}
               />
-              <span style={{ fontSize: '13px', color: '#888', fontWeight: '700' }}>구간</span>
+              <span style={{ fontSize: '13px', color: '#888', fontWeight: '700', whiteSpace: 'nowrap' }}>구간</span>
               <button
                 onClick={handleGenerateSections}
-                style={{ flex: 1, padding: '9px 0', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '800', cursor: 'pointer' }}
+                style={{ padding: '9px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 적용
               </button>
