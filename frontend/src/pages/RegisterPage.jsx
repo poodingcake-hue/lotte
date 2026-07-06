@@ -17,6 +17,7 @@ const RegisterPage = () => {
 
   const [matrixData, setMatrixData] = useState({});
   const [extraSizes, setExtraSizes] = useState(['', '']); // Two extra size columns
+  const [extraColors, setExtraColors] = useState(['', '']); // Two extra color rows
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleChange = (e) => {
@@ -78,6 +79,12 @@ const RegisterPage = () => {
     const newSizes = [...extraSizes];
     newSizes[index] = value;
     setExtraSizes(newSizes);
+  };
+
+  const handleExtraColorChange = (index, value) => {
+    const newColors = [...extraColors];
+    newColors[index] = value;
+    setExtraColors(newColors);
   };
 
   const colors = useMemo(() => formData.colors.split(',').map(s => s.trim()).filter(Boolean), [formData.colors]);
@@ -217,6 +224,23 @@ const RegisterPage = () => {
                           {extraSizes.map((val, idx) => (
                              <td key={`extra-td-${idx}`} style={{ padding: '5px' }}>
                                {val ? <input type="number" min="0" className="matrix-input" value={matrixData[`${c}_${val}`] || ''} onChange={(e) => handleMatrixChange(c, val, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} /> : null}
+                             </td>
+                          ))}
+                        </tr>
+                      ))}
+                      {extraColors.map((cVal, cIdx) => (
+                        <tr key={`extra-color-${cIdx}`} style={{ borderBottom: '1px solid #f1f1f1' }}>
+                          <td style={{ padding: 0, background: '#fafafa', borderRight: '1px solid #f1f1f1' }}>
+                            <input type="text" placeholder="+색상 추가" value={cVal} onChange={(e) => handleExtraColorChange(cIdx, e.target.value)} style={{ width: '100%', height: '50px', border: 'none', textAlign: 'center', fontWeight: 'bold', color: '#444', background: 'transparent', outline: 'none', fontSize: '13px' }} />
+                          </td>
+                          {sizes.map(s => (
+                            <td key={`extra-td-${cIdx}-${s}`} style={{ padding: '5px' }}>
+                              {cVal ? <input type="number" min="0" className="matrix-input" value={matrixData[`${cVal}_${s}`] || ''} onChange={(e) => handleMatrixChange(cVal, s, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} /> : null}
+                            </td>
+                          ))}
+                          {extraSizes.map((sVal, sIdx) => (
+                             <td key={`extra-td-${cIdx}-extra-${sIdx}`} style={{ padding: '5px' }}>
+                               {cVal && sVal ? <input type="number" min="0" className="matrix-input" value={matrixData[`${cVal}_${sVal}`] || ''} onChange={(e) => handleMatrixChange(cVal, sVal, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} /> : null}
                              </td>
                           ))}
                         </tr>
