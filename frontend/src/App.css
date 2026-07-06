@@ -36,15 +36,20 @@ body {
 .main-content {
     width: 100%;
     margin: 0 auto;
-    padding: 0 15px;
+    /* 모바일에서는 좌우 여백을 조금 더 줍니다 */
+    padding: 0 5%;
+    box-sizing: border-box;
 }
 
 /* 데스크톱 여백 반영 */
 @media (min-width: 992px) {
     .nav-container,
     .main-content {
-        width: 90%;
-        max-width: 1800px;
+        /* 데스크톱에서 좌우 여백 10%씩 추가 (기존 90% -> 70%) */
+        width: 70%;
+        /* 컨텐츠 크기가 적절하게 보이도록 최대 너비도 축소 */
+        max-width: 1400px;
+        padding: 0;
     }
 
     #page-task {
