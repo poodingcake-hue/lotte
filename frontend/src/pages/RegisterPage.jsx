@@ -162,7 +162,7 @@ const RegisterPage = () => {
               
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>전체이미지</span>
-                <div style={{ width: '120px', height: '120px', border: '1px dashed #ccc', borderRadius: '4px', cursor: 'pointer', backgroundImage: lotteImageUrl ? `url(${lotteImageUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '120px', height: '120px', border: '1px dashed #ccc', borderRadius: '4px', cursor: 'pointer', backgroundImage: lotteImageUrl ? `url(${lotteImageUrl})` : 'none', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {!lotteImageUrl && <span style={{ color: '#999', fontSize: '12px' }}>이미지 없음</span>}
                 </div>
               </div>
