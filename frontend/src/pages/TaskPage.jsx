@@ -343,7 +343,7 @@ const TaskPage = () => {
                           {/* Product cell */}
                           <div style={{ width: '180px', minWidth: '180px', padding: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                             <button onClick={() => handleRemoveRow(sec.id, row.code)} style={{ background: 'none', border: 'none', color: '#ddd', cursor: 'pointer', fontSize: '16px', padding: '0 4px', flexShrink: 0 }}>×</button>
-                            <img src={getProductImage(displayItem) || 'https://via.placeholder.com/60'} alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
+                            <img src={getProductImage(displayItem) || 'https://via.placeholder.com/90'} alt="" style={{ width: '90px', height: '90px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800' }}>{displayItem.brand}</div>
                               <div style={{ fontSize: '12px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'keep-all', lineHeight: '1.3' }}>{displayItem.name}</div>
