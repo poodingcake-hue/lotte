@@ -341,12 +341,14 @@ const TaskPage = () => {
                       return (
                         <div key={`${row.code}-${rowIdx}`} style={{ display: 'flex', borderBottom: '1px solid #eee', background: '#fff' }}>
                           {/* Product cell */}
-                          <div style={{ width: '180px', minWidth: '180px', padding: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <button onClick={() => handleRemoveRow(sec.id, row.code)} style={{ background: 'none', border: 'none', color: '#ddd', cursor: 'pointer', fontSize: '16px', padding: '0 4px', flexShrink: 0 }}>×</button>
-                            <img src={getProductImage(displayItem) || 'https://via.placeholder.com/90'} alt="" style={{ width: '90px', height: '90px', objectFit: 'contain', borderRadius: '4px', flexShrink: 0 }} />
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800' }}>{displayItem.brand}</div>
-                              <div style={{ fontSize: '12px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'keep-all', lineHeight: '1.3' }}>{displayItem.name}</div>
+                          <div style={{ width: '180px', minWidth: '180px', padding: '10px 8px', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                            <button onClick={() => handleRemoveRow(sec.id, row.code)} style={{ background: 'none', border: 'none', color: '#ddd', cursor: 'pointer', fontSize: '16px', padding: '0', flexShrink: 0, marginTop: '2px' }}>×</button>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: 0, alignItems: 'center' }}>
+                              <img src={getProductImage(displayItem) || 'https://via.placeholder.com/117'} alt="" style={{ width: '117px', height: '117px', objectFit: 'contain', borderRadius: '4px', flexShrink: 0 }} />
+                              <div style={{ width: '100%', textAlign: 'center' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', marginBottom: '2px' }}>{displayItem.brand}</div>
+                                <div style={{ fontSize: '12px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'keep-all', lineHeight: '1.3' }}>{displayItem.name}</div>
+                              </div>
                             </div>
                           </div>
                           {/* Data cells */}
