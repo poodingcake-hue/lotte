@@ -17,7 +17,7 @@ const RegisterPage = () => {
 
   const [matrixData, setMatrixData] = useState({});
   const [extraSizes, setExtraSizes] = useState(['', '']); // Two extra size columns
-  const [extraColors, setExtraColors] = useState(['', '']); // Two extra color rows
+  const [extraColors, setExtraColors] = useState(['']); // One extra color row
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleChange = (e) => {
