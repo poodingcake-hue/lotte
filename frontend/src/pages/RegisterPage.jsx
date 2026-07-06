@@ -24,13 +24,31 @@ const RegisterPage = () => {
   };
 
   const handleProductSelect = (item) => {
-    const colorVal = Array.isArray(item.colors)
-      ? item.colors.join(', ')
-      : (item.colors || '');
+    const existingStock = allStockMap[item.code] || [];
+    let colorVal = '';
+    let sizeVal = '';
 
-    const sizeVal = Array.isArray(item.sizes)
-      ? item.sizes.join(', ')
-      : (item.sizes || '');
+    if (existingStock.length > 0) {
+      const sList = [];
+      const cList = [];
+      existingStock.forEach(s => {
+        if (s.size && !sList.includes(s.size)) sList.push(s.size);
+        if (s.color && !cList.includes(s.color)) cList.push(s.color);
+      });
+      colorVal = cList.join(', ');
+      sizeVal = sList.join(', ');
+    } else {
+      colorVal = Array.isArray(item.colors) ? item.colors.join(', ') : (item.colors || '');
+      sizeVal = Array.isArray(item.sizes) ? item.sizes.join(', ') : (item.sizes || '');
+    }
+
+    // Clean up trailing commas just in case the master data had them (e.g. "S,,,,,")
+    if (colorVal.includes(',') && !existingStock.length) {
+      colorVal = colorVal.split(',').map(s => s.trim()).filter(Boolean).join(', ');
+    }
+    if (sizeVal.includes(',') && !existingStock.length) {
+      sizeVal = sizeVal.split(',').map(s => s.trim()).filter(Boolean).join(', ');
+    }
 
     setFormData({
       code: item.code || '',
@@ -42,7 +60,6 @@ const RegisterPage = () => {
       image: item.image || ''
     });
 
-    const existingStock = allStockMap[item.code] || [];
     const newMatrixData = {};
     existingStock.forEach(stock => {
       newMatrixData[`${stock.color}_${stock.size}`] = stock.qty;
