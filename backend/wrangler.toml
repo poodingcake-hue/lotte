@@ -6,3 +6,7 @@ compatibility_date = "2024-03-29"
 binding = "DB"
 database_name = "lotte-db"
 database_id = "d6b90d01-7c5e-48c6-b463-70f2219bc393"
+
+[[r2_buckets]]
+binding = "IMAGE_BUCKET"
+bucket_name = "lotte-images"

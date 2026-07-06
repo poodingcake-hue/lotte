@@ -14,10 +14,20 @@ export const getProductImage = (item) => {
   }
 
   // Google Drive security bypass (uc -> thumbnail)
-  if (resultUrl && resultUrl.includes('drive.google.com')) {
-    const idMatch = resultUrl.match(/id=([^&]+)/) || resultUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (idMatch) {
-      // Use uc?export=view to get original quality if possible, otherwise fallback to thumbnail
+  if (resultUrl) {
+    let idMatch = null;
+    
+    // Check for drive.google.com URLs
+    if (resultUrl.includes('drive.google.com')) {
+      idMatch = resultUrl.match(/id=([^&]+)/) || resultUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    } 
+    // Check for lh3.googleusercontent.com/d/ URLs which expire
+    else if (resultUrl.includes('lh3.googleusercontent.com/d/')) {
+      idMatch = resultUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    }
+    
+    if (idMatch && idMatch[1]) {
+      // Use uc?export=view to get original quality and bypass expiration
       resultUrl = `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
     }
   }

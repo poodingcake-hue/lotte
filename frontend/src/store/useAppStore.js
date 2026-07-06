@@ -76,6 +76,53 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
+  // Update existing history logs and auto-sync inventory locally
+  updateHistoryInBackend: async (updatedLogs) => {
+    try {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'update_history', data: updatedLogs })
+      });
+      if (!response.ok) throw new Error('Failed to update history');
+
+      set(state => {
+        // 1. Update allHistory
+        const newHistory = [...state.allHistory];
+        const stockMap = { ...state.allStockMap };
+        
+        updatedLogs.forEach(updatedLog => {
+          const idx = newHistory.findIndex(h => h.id === updatedLog.id);
+          if (idx !== -1) {
+             newHistory[idx] = { ...newHistory[idx], qty: updatedLog.qty, date: updatedLog.date, note: updatedLog.note };
+          }
+          
+          // 2. Sync local stockMap with deltaQty
+          if (updatedLog.deltaQty !== 0) {
+            const { code, color, size, deltaQty } = updatedLog;
+            if (stockMap[code]) {
+               const itemIdx = stockMap[code].findIndex(i => i.color === color && i.size === size);
+               if (itemIdx !== -1) {
+                  const items = [...stockMap[code]];
+                  items[itemIdx] = { ...items[itemIdx], qty: Number(items[itemIdx].qty) + deltaQty };
+                  stockMap[code] = items;
+               } else {
+                  stockMap[code] = [...stockMap[code], { color, size, qty: deltaQty }];
+               }
+            } else {
+               stockMap[code] = [{ color, size, qty: deltaQty }];
+            }
+          }
+        });
+
+        return { allHistory: newHistory, allStockMap: stockMap };
+      });
+    } catch (e) {
+      console.error('Error updating history:', e);
+      throw e;
+    }
+  },
+
   // Fetch initial data
   initApp: async () => {
     set({ isLoading: true, error: null });

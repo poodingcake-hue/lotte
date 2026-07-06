@@ -11,6 +11,25 @@ export default {
     }
 
     try {
+      const url = new URL(request.url);
+      
+      // Serve images directly from R2
+      if (request.method === "GET" && url.pathname.startsWith("/images/")) {
+        const filename = url.pathname.split("/images/")[1];
+        if (!filename) return new Response("Not found", { status: 404 });
+        
+        const object = await env.IMAGE_BUCKET.get(filename);
+        if (!object) return new Response("Not found", { status: 404 });
+        
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set("etag", object.httpEtag);
+        // Add CORS headers for images too
+        headers.set("Access-Control-Allow-Origin", "*");
+
+        return new Response(object.body, { headers });
+      }
+
       if (request.method === "GET") {
         // Optimize reads by batching them into a single roundtrip!
         const batchResults = await env.DB.batch([
@@ -59,10 +78,44 @@ export default {
       }
 
       if (request.method === "POST") {
+        const contentType = request.headers.get("content-type") || "";
+        
+        // Handle image uploads via multipart/form-data
+        if (contentType.includes("multipart/form-data")) {
+          const formData = await request.formData();
+          const file = formData.get("file");
+          if (!file) {
+            return new Response(JSON.stringify({ success: false, message: "No file provided" }), {
+              status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+          }
+          
+          const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          
+          await env.IMAGE_BUCKET.put(filename, file.stream(), {
+            httpMetadata: { contentType: file.type }
+          });
+          
+          const imageUrl = `${url.origin}/images/${filename}`;
+          
+          return new Response(JSON.stringify({ success: true, imageUrl }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        // Handle JSON RPC
         const body = await request.json();
         const { type, data } = body;
 
-        if (type === "save_rentals") {
+        if (type === "update_product_image") {
+          const { code, image } = data;
+          if (code && image !== undefined) {
+             await env.DB.prepare("UPDATE products SET image = ? WHERE code = ?").bind(image, code).run();
+             return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        else if (type === "save_rentals") {
            const statements = [env.DB.prepare("DELETE FROM rentals")];
            if (data && data.length > 0) {
                const stmt = env.DB.prepare("INSERT INTO rentals (code, renter, color, size, qty, date) VALUES (?, ?, ?, ?, ?, ?)");
@@ -151,6 +204,23 @@ export default {
                const stmt = env.DB.prepare("INSERT INTO inventory_history (code, color, size, type, qty, actor, date, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                data.forEach(item => {
                    statements.push(stmt.bind(item.code, item.color, item.size, item.type, item.qty, item.actor || "", item.date || "", item.note || ""));
+               });
+           }
+           for (let i = 0; i < statements.length; i += 100) {
+               await env.DB.batch(statements.slice(i, i + 100));
+           }
+        }
+        else if (type === "update_history") {
+           const statements = [];
+           if (data && data.length > 0) {
+               const updateHistoryStmt = env.DB.prepare("UPDATE inventory_history SET qty = ?, date = ?, note = ? WHERE id = ?");
+               const updateInventoryStmt = env.DB.prepare("UPDATE inventory SET qty = qty + ? WHERE code = ? AND color = ? AND size = ?");
+               
+               data.forEach(item => {
+                   statements.push(updateHistoryStmt.bind(item.qty, item.date || "", item.note || "", item.id));
+                   if (item.deltaQty !== 0) {
+                       statements.push(updateInventoryStmt.bind(item.deltaQty, item.code, item.color, item.size));
+                   }
                });
            }
            for (let i = 0; i < statements.length; i += 100) {

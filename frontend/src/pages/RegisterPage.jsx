@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import ProductSearchModal from '../components/modals/ProductSearchModal';
 import HistoryModal from '../components/modals/HistoryModal';
@@ -21,6 +21,9 @@ const RegisterPage = () => {
   const [extraColors, setExtraColors] = useState(['']); // One extra color row
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,27 +34,33 @@ const RegisterPage = () => {
     let colorVal = '';
     let sizeVal = '';
 
-    if (existingStock.length > 0) {
-      const sList = [];
-      const cList = [];
-      existingStock.forEach(s => {
-        if (s.size && !sList.includes(s.size)) sList.push(s.size);
-        if (s.color && !cList.includes(s.color)) cList.push(s.color);
+    const sList = [];
+    const cList = [];
+
+    // 1. Master Data
+    if (item.sizes) {
+      const ms = Array.isArray(item.sizes) ? item.sizes : item.sizes.split(',');
+      ms.forEach(s => {
+        const trimmed = s.trim();
+        if (trimmed && !sList.includes(trimmed)) sList.push(trimmed);
       });
-      colorVal = cList.join(', ');
-      sizeVal = sList.join(', ');
-    } else {
-      colorVal = Array.isArray(item.colors) ? item.colors.join(', ') : (item.colors || '');
-      sizeVal = Array.isArray(item.sizes) ? item.sizes.join(', ') : (item.sizes || '');
+    }
+    if (item.colors) {
+      const mc = Array.isArray(item.colors) ? item.colors : item.colors.split(',');
+      mc.forEach(c => {
+        const trimmed = c.trim();
+        if (trimmed && !cList.includes(trimmed)) cList.push(trimmed);
+      });
     }
 
-    // Clean up trailing commas just in case the master data had them (e.g. "S,,,,,")
-    if (colorVal.includes(',') && !existingStock.length) {
-      colorVal = colorVal.split(',').map(s => s.trim()).filter(Boolean).join(', ');
-    }
-    if (sizeVal.includes(',') && !existingStock.length) {
-      sizeVal = sizeVal.split(',').map(s => s.trim()).filter(Boolean).join(', ');
-    }
+    // 2. Inventory Data
+    existingStock.forEach(s => {
+      if (s.size && !sList.includes(s.size)) sList.push(s.size);
+      if (s.color && !cList.includes(s.color)) cList.push(s.color);
+    });
+
+    colorVal = cList.join(', ');
+    sizeVal = sList.join(', ');
 
     setFormData({
       code: item.code || '',
@@ -96,6 +105,61 @@ const RegisterPage = () => {
   const isAdditional = stockMap.length > 0;
 
   const lotteImageUrl = useMemo(() => getProductImage(formData), [formData]);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      
+      // Convert to WebP using Canvas
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      const webpBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.85));
+      const webpFile = new File([webpBlob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+      URL.revokeObjectURL(img.src);
+
+      const { apiClient } = useAppStore.getState();
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', webpFile);
+
+      // We need to bypass the standard JSON fetch in apiClient for multipart/form-data
+      // Or we can just use native fetch to our backend
+      const baseUrl = import.meta.env.VITE_API_URL || 'https://lotte-backend.poodingcake.workers.dev';
+      const response = await fetch(baseUrl, {
+        method: 'POST',
+        body: uploadFormData
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setFormData(prev => ({ ...prev, image: data.imageUrl }));
+        alert('이미지가 성공적으로 업로드되었습니다!');
+      } else {
+        alert('업로드 실패: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleSaveProduct = async () => {
     // Implement save logic via store or api
@@ -269,8 +333,22 @@ const RegisterPage = () => {
               
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>전체이미지</span>
-                <div style={{ width: '120px', height: '120px', border: '1px dashed #ccc', borderRadius: '4px', cursor: 'pointer', backgroundImage: lotteImageUrl ? `url(${lotteImageUrl})` : 'none', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {!lotteImageUrl && <span style={{ color: '#999', fontSize: '12px' }}>이미지 없음</span>}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  style={{ display: 'none' }} 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                />
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ width: '120px', height: '120px', border: '1px dashed #ccc', borderRadius: '4px', cursor: 'pointer', backgroundImage: lotteImageUrl ? `url(${lotteImageUrl})` : 'none', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {isUploading ? (
+                    <span style={{ color: '#007bff', fontSize: '12px', fontWeight: 'bold' }}>업로드 중...</span>
+                  ) : !lotteImageUrl ? (
+                    <span style={{ color: '#999', fontSize: '12px' }}>이미지 선택</span>
+                  ) : null}
                 </div>
               </div>
 
