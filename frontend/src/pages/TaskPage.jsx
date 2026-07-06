@@ -354,11 +354,30 @@ const TaskPage = () => {
                           {/* Data cells */}
                           {columns.slice(1).map(col => (
                             <div key={col.key} style={{ flex: 1, minWidth: col.width, borderLeft: '1px solid #e5e7eb', padding: '4px' }}>
-                              <textarea
-                                value={(row.cells || {})[col.key] || ''}
-                                onChange={e => handleCellChange(sec.id, row.code, col.key, e.target.value)}
-                                style={{ width: '100%', height: '100%', minHeight: '130px', border: 'none', outline: 'none', textAlign: 'center', fontSize: '12px', background: 'transparent', fontWeight: '700', resize: 'none', boxSizing: 'border-box', padding: '10px 0', fontFamily: 'inherit' }}
-                              />
+                              <div
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={e => handleCellChange(sec.id, row.code, col.key, e.target.innerText)}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  minHeight: '130px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  textAlign: 'center',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  outline: 'none',
+                                  wordBreak: 'break-word',
+                                  whiteSpace: 'pre-wrap',
+                                  cursor: 'text',
+                                  padding: '10px',
+                                  boxSizing: 'border-box'
+                                }}
+                              >
+                                {(row.cells || {})[col.key] || ''}
+                              </div>
                             </div>
                           ))}
                         </div>
