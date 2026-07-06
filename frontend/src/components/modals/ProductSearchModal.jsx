@@ -53,7 +53,7 @@ const ProductSearchModal = ({ isOpen, onClose, onSelect }) => {
                 <img 
                   src={getProductImage(item) || 'https://via.placeholder.com/200?text=No+Img'} 
                   alt={item.name} 
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} 
                 />
               </div>
               <div style={{ fontSize: '12px', color: '#666', fontWeight: 'bold' }}>{item.brand}</div>
