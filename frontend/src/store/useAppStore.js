@@ -77,22 +77,29 @@ export const useAppStore = create((set, get) => ({
       const supplies = backendData.supplies || [];
       
       let allItems = [];
-      if (backendData.products && backendData.products.length > 0) {
-          const schedules = (masterData.items || []).filter(i => !i.isMaster);
-          const prodKeys = new Set((backendData.products || []).map(p => p.code));
-          const orphanCodes = Object.keys(backendData.inventory || {}).filter(k => !prodKeys.has(k));
-          const dummyProducts = orphanCodes.map(code => ({
-              code: code,
-              brand: '미등록',
-              name: '기본 정보가 없는 상품 (재고만 존재)',
-              category: '-',
-              image: '',
-              isMaster: true
-          }));
-          allItems = [...backendData.products, ...dummyProducts, ...schedules];
-      } else {
-          allItems = masterData.items || [];
-      }
+      const schedules = (masterData.items || []).filter(i => !i.isMaster);
+      const originalMasters = (masterData.items || []).filter(i => i.isMaster);
+      const backendProducts = backendData.products || [];
+
+      // Merge backend products with original masters (backend products take precedence)
+      const backendProdKeys = new Set(backendProducts.map(p => String(p.code)));
+      const remainingOriginalMasters = originalMasters.filter(m => !backendProdKeys.has(String(m.code)));
+      
+      const combinedMasters = [...remainingOriginalMasters, ...backendProducts];
+      const allMasterKeys = new Set(combinedMasters.map(m => String(m.code)));
+      
+      // Find orphans (in inventory but no master info)
+      const orphanCodes = Object.keys(backendData.inventory || {}).filter(k => !allMasterKeys.has(String(k)));
+      const dummyProducts = orphanCodes.map(code => ({
+          code: code,
+          brand: '미등록',
+          name: '기본 정보가 없는 상품 (재고만 존재)',
+          category: '-',
+          image: '',
+          isMaster: true
+      }));
+
+      allItems = [...combinedMasters, ...dummyProducts, ...schedules];
       
       // 3. Fetch Weather from public/weather.json
       let weather = null;
