@@ -91,12 +91,12 @@ const TaskPage = () => {
 
   const columns = useMemo(() => [
     { key: 'product', name: '상품', width: '300px' },
-    { key: 'main', name: '메인', width: '110px' },
-    { key: 'hanger', name: '행거', width: '110px' },
-    { key: 'h1_hand', name: `${hosts[0]} 핸들링`, width: '110px' },
-    { key: 'h2_hand', name: `${hosts[1]} 핸들링`, width: '110px' },
-    { key: 'h1_wear', name: `${hosts[0]} 착장`, width: '110px' },
-    { key: 'h2_wear', name: `${hosts[1]} 착장`, width: '110px' },
+    { key: 'main', name: '메인', width: '75px' },
+    { key: 'hanger', name: '행거', width: '75px' },
+    { key: 'h1_hand', name: `${hosts[0]} 핸들링`, width: '75px' },
+    { key: 'h2_hand', name: `${hosts[1]} 핸들링`, width: '75px' },
+    { key: 'h1_wear', name: `${hosts[0]} 착장`, width: '75px' },
+    { key: 'h2_wear', name: `${hosts[1]} 착장`, width: '75px' },
   ], [hosts]);
 
   const handleGenerateSections = () => {
