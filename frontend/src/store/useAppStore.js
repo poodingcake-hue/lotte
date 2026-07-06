@@ -63,7 +63,8 @@ export const useAppStore = create((set, get) => ({
       const ts = new Date().getTime();
       
       // 1. Fetch Master Data from public/data.json
-      const masterRes = await fetch(`/data.json?v=${ts}`);
+      const baseUrl = import.meta.env.BASE_URL;
+      const masterRes = await fetch(`${baseUrl}data.json?v=${ts}`);
       const masterData = await masterRes.json();
 
       // 2. Fetch Backend Data (Cloudflare Worker)
@@ -96,7 +97,7 @@ export const useAppStore = create((set, get) => ({
       // 3. Fetch Weather from public/weather.json
       let weather = null;
       try {
-        const weatherRes = await fetch(`/weather.json?v=${ts}`);
+        const weatherRes = await fetch(`${baseUrl}weather.json?v=${ts}`);
         if (weatherRes.ok) {
           const wData = await weatherRes.json();
           if (wData && wData.hourly) weather = wData;
