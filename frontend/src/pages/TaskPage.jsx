@@ -92,7 +92,7 @@ const TaskPage = () => {
   }, [hostsInput]);
 
   const columns = useMemo(() => [
-    { key: 'product', name: '상품', width: '300px' },
+    { key: 'product', name: '상품', width: '180px' },
     { key: 'main', name: '메인', width: '75px' },
     { key: 'hanger', name: '행거', width: '75px' },
     { key: 'h1_hand', name: `${hosts[0]} 핸들링`, width: '75px' },
@@ -341,12 +341,12 @@ const TaskPage = () => {
                       return (
                         <div key={`${row.code}-${rowIdx}`} style={{ display: 'flex', borderBottom: '1px solid #eee', background: '#fff' }}>
                           {/* Product cell */}
-                          <div style={{ width: '300px', minWidth: '300px', padding: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ width: '180px', minWidth: '180px', padding: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                             <button onClick={() => handleRemoveRow(sec.id, row.code)} style={{ background: 'none', border: 'none', color: '#ddd', cursor: 'pointer', fontSize: '16px', padding: '0 4px', flexShrink: 0 }}>×</button>
-                            <img src={getProductImage(displayItem) || 'https://via.placeholder.com/40'} alt="" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
+                            <img src={getProductImage(displayItem) || 'https://via.placeholder.com/60'} alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800' }}>{displayItem.brand}</div>
-                              <div style={{ fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayItem.name}</div>
+                              <div style={{ fontSize: '12px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'keep-all', lineHeight: '1.3' }}>{displayItem.name}</div>
                             </div>
                           </div>
                           {/* Data cells */}
