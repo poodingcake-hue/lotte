@@ -1,0 +1,64 @@
+
+.vton-accordion {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.vton-accordion-header {
+    padding: 10px 15px;
+    background: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vton-accordion-header:hover {
+    background: #e9ecef;
+}
+
+.vton-accordion-body {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.vton-mode-tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.vton-mode-tabs button {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.vton-mode-tabs button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.vton-product-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.vton-product-item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.vton-product-item:last-child {
+    border-bottom: none;
+}

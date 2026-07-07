@@ -59,6 +59,42 @@ export const useAppStore = create((set, get) => ({
   },
 
   // Save history to backend
+saveProductToBackend: async (newProduct) => {
+    try {
+      // 1. Fetch latest backend data to get current products array
+      const ts = new Date().getTime();
+      const backendRes = await fetch(GAS_WEB_APP_URL + `?action=getAll&v=${ts}`);
+      const backendData = await backendRes.json();
+      const backendProducts = backendData.products || [];
+      
+      // 2. Update or append
+      const idx = backendProducts.findIndex(p => String(p.code) === String(newProduct.code));
+      if (idx !== -1) {
+          backendProducts[idx] = newProduct;
+      } else {
+          backendProducts.push(newProduct);
+      }
+      
+      // 3. Save full array to backend
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'save_products', data: backendProducts })
+      });
+      
+      if (!response.ok) throw new Error('Failed to save product');
+      
+      // 4. Update local state
+      set(state => {
+         const filtered = state.allItems.filter(p => String(p.code) !== String(newProduct.code));
+         return { allItems: [...filtered, newProduct] };
+      });
+    } catch (e) {
+      console.error('Error saving product:', e);
+      throw e;
+    }
+  },
+
   saveHistoryToBackend: async (newHistoryLogs) => {
     try {
       const response = await fetch(GAS_WEB_APP_URL, {
@@ -144,6 +180,48 @@ export const useAppStore = create((set, get) => ({
       const supplies = backendData.supplies || [];
       const history = backendData.history || [];
       
+      let finalInventory = {};
+      
+      if (history.length > 0) {
+        // ALWAYS reconstruct inventory dynamically from history to bypass backend inventory duplicate bugs
+        const tempInv = {};
+        history.forEach(log => {
+          const c = String(log.code);
+          if (!tempInv[c]) tempInv[c] = {};
+          const key = `${log.color}_${log.size}`;
+          if (!tempInv[c][key]) tempInv[c][key] = 0;
+          tempInv[c][key] += (Number(log.qty) || 0);
+        });
+
+        Object.keys(tempInv).forEach(code => {
+          finalInventory[code] = Object.keys(tempInv[code]).map(key => {
+            const lastUnderscore = key.lastIndexOf('_');
+            const color = key.substring(0, lastUnderscore);
+            const size = key.substring(lastUnderscore + 1);
+            return { color, size, qty: tempInv[code][key] };
+          });
+        });
+      } else {
+        // Fallback to raw inventory if history is completely empty
+        const rawInventory = backendData.inventory || {};
+        Object.keys(rawInventory).forEach(code => {
+          const items = rawInventory[code];
+          if (Array.isArray(items)) {
+            const map = {};
+            items.forEach(item => {
+              const key = `${item.color}_${item.size}`;
+              map[key] = (Number(item.qty) || 0);
+            });
+            finalInventory[code] = Object.keys(map).map(key => {
+              const lastUnderscore = key.lastIndexOf('_');
+              const color = key.substring(0, lastUnderscore);
+              const size = key.substring(lastUnderscore + 1);
+              return { color, size, qty: map[key] };
+            });
+          }
+        });
+      }
+      
       let allItems = [];
       const schedules = (masterData.items || []).filter(i => !i.isMaster);
       const originalMasters = (masterData.items || []).filter(i => i.isMaster);
@@ -157,7 +235,7 @@ export const useAppStore = create((set, get) => ({
       const allMasterKeys = new Set(combinedMasters.map(m => String(m.code)));
       
       // Find orphans (in inventory but no master info)
-      const orphanCodes = Object.keys(backendData.inventory || {}).filter(k => !allMasterKeys.has(String(k)));
+      const orphanCodes = Object.keys(finalInventory).filter(k => !allMasterKeys.has(String(k)));
       const dummyProducts = orphanCodes.map(code => ({
           code: code,
           brand: '미등록',
@@ -181,7 +259,7 @@ export const useAppStore = create((set, get) => ({
 
       set({ 
         allItems,
-        allStockMap: backendData.inventory || {},
+        allStockMap: finalInventory,
         allRentals: rentals,
         allOutfits: outfits,
         allNotes: notes,

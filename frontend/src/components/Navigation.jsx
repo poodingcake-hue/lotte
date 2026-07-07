@@ -21,6 +21,9 @@ const Navigation = () => {
           <Link to="/register">
             <button id="nav-reg" className={`nav-item ${currentPath === '/register' ? 'active' : ''}`}>상품등록</button>
           </Link>
+          <Link to="/vton">
+            <button id="nav-vton" className={`nav-item ${currentPath === '/vton' ? 'active' : ''}`}>가상착장</button>
+          </Link>
         </div>
       </div>
     </nav>

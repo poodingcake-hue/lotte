@@ -6,6 +6,7 @@ import TaskPage from './pages/TaskPage';
 import InventoryPage from './pages/InventoryPage';
 import RegisterPage from './pages/RegisterPage';
 import DetailPage from './pages/DetailPage';
+import VtonPage from './pages/VtonPage';
 import { useAppStore } from './store/useAppStore';
 import './App.css';
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/detail/:id" element={<DetailPage />} />
+          <Route path="/vton" element={<VtonPage />} />
         </Routes>
       </main>
     </Router>

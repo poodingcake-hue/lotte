@@ -164,8 +164,14 @@ export default {
            }
         }
         else if (type === "save_inventory") {
-           const statements = [env.DB.prepare("DELETE FROM inventory")];
+           const statements = [];
            if (data && data.length > 0) {
+               // Fix: Only delete the specific product codes being updated, NOT the entire table
+               const codes = [...new Set(data.map(item => item.code))];
+               codes.forEach(code => {
+                   statements.push(env.DB.prepare("DELETE FROM inventory WHERE code = ?").bind(code));
+               });
+               
                const stmt = env.DB.prepare("INSERT INTO inventory (code, color, size, qty) VALUES (?, ?, ?, ?)");
                data.forEach(item => {
                    statements.push(stmt.bind(item.code, item.color, item.size, item.qty));

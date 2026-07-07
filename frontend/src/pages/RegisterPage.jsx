@@ -1,11 +1,10 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import ProductSearchModal from '../components/modals/ProductSearchModal';
 import HistoryModal from '../components/modals/HistoryModal';
-import { getProductImage } from '../utils/helpers';
 
 const RegisterPage = () => {
-  const { allStockMap } = useAppStore();
+  const { allStockMap, apiClient, saveProductToBackend } = useAppStore();
   const [formData, setFormData] = useState({
     code: '',
     brand: '',
@@ -17,47 +16,69 @@ const RegisterPage = () => {
   });
 
   const [matrixData, setMatrixData] = useState({});
-  const [extraSizes, setExtraSizes] = useState(['', '']); // Two extra size columns
-  const [extraColors, setExtraColors] = useState(['']); // One extra color row
+  const [extraSizes, setExtraSizes] = useState(['', '']); 
+  const [extraColors, setExtraColors] = useState(['']); 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Active box for pasting images ('main' or color name)
+  const [activeImageBox, setActiveImageBox] = useState('main');
+  // URL input for web images
+  const [webImageUrl, setWebImageUrl] = useState('');
 
   const fileInputRef = useRef(null);
+
+  // Parse image string to object
+  const imageObj = useMemo(() => {
+    if (!formData.image) return { main: '' };
+    try {
+      const parsed = JSON.parse(formData.image);
+      if (typeof parsed === 'object' && parsed !== null) return parsed;
+      return { main: formData.image };
+    } catch (e) {
+      return { main: formData.image };
+    }
+  }, [formData.image]);
+
+  const updateImageObj = (key, url) => {
+    const newObj = { ...imageObj, [key]: url };
+    setFormData(prev => ({ ...prev, image: JSON.stringify(newObj) }));
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleProductSelect = (item) => {
-    const existingStock = allStockMap[item.code] || [];
+    const existingStock = allStockMap[String(item.code)] || [];
     let colorVal = '';
     let sizeVal = '';
 
     const sList = [];
     const cList = [];
 
-    // 1. Master Data
+    // Prioritize inventory colors and sizes by pushing them FIRST
+    existingStock.forEach(s => {
+      if (s.size && !sList.includes(String(s.size))) sList.push(String(s.size));
+      if (s.color && !cList.includes(String(s.color))) cList.push(String(s.color));
+    });
+
+    // Then add master colors and sizes if not already present
     if (item.sizes) {
-      const ms = Array.isArray(item.sizes) ? item.sizes : item.sizes.split(',');
+      const ms = Array.isArray(item.sizes) ? item.sizes : String(item.sizes).split(',');
       ms.forEach(s => {
-        const trimmed = s.trim();
+        const trimmed = String(s).trim();
         if (trimmed && !sList.includes(trimmed)) sList.push(trimmed);
       });
     }
     if (item.colors) {
-      const mc = Array.isArray(item.colors) ? item.colors : item.colors.split(',');
+      const mc = Array.isArray(item.colors) ? item.colors : String(item.colors).split(',');
       mc.forEach(c => {
-        const trimmed = c.trim();
+        const trimmed = String(c).trim();
         if (trimmed && !cList.includes(trimmed)) cList.push(trimmed);
       });
     }
-
-    // 2. Inventory Data
-    existingStock.forEach(s => {
-      if (s.size && !sList.includes(s.size)) sList.push(s.size);
-      if (s.color && !cList.includes(s.color)) cList.push(s.color);
-    });
 
     colorVal = cList.join(', ');
     sizeVal = sList.join(', ');
@@ -80,10 +101,7 @@ const RegisterPage = () => {
   };
 
   const handleMatrixChange = (color, size, value) => {
-    setMatrixData(prev => ({
-      ...prev,
-      [`${color}_${size}`]: value
-    }));
+    setMatrixData(prev => ({ ...prev, [`${color}_${size}`]: value }));
   };
 
   const handleExtraSizeChange = (index, value) => {
@@ -101,26 +119,16 @@ const RegisterPage = () => {
   const colors = useMemo(() => formData.colors.split(',').map(s => s.trim()).filter(Boolean), [formData.colors]);
   const sizes = useMemo(() => formData.sizes.split(',').map(s => s.trim()).filter(Boolean), [formData.sizes]);
 
-  const stockMap = allStockMap[formData.code] || [];
+  const stockMap = allStockMap[String(formData.code)] || [];
   const isAdditional = stockMap.length > 0;
 
-  const lotteImageUrl = useMemo(() => getProductImage(formData), [formData]);
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // Handle uploading a file to Google Drive via backend
+  const uploadFile = async (file) => {
     try {
       setIsUploading(true);
-      
-      // Convert to WebP using Canvas
       const img = new Image();
       img.src = URL.createObjectURL(file);
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; });
 
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
@@ -132,22 +140,15 @@ const RegisterPage = () => {
       const webpFile = new File([webpBlob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
       URL.revokeObjectURL(img.src);
 
-      const { apiClient } = useAppStore.getState();
       const uploadFormData = new FormData();
       uploadFormData.append('file', webpFile);
 
-      // We need to bypass the standard JSON fetch in apiClient for multipart/form-data
-      // Or we can just use native fetch to our backend
       const baseUrl = import.meta.env.VITE_API_URL || 'https://lotte-backend.poodingcake.workers.dev';
-      const response = await fetch(baseUrl, {
-        method: 'POST',
-        body: uploadFormData
-      });
-
+      const response = await fetch(baseUrl, { method: 'POST', body: uploadFormData });
       const data = await response.json();
+      
       if (data.success) {
-        setFormData(prev => ({ ...prev, image: data.imageUrl }));
-        alert('이미지가 성공적으로 업로드되었습니다!');
+        updateImageObj(activeImageBox, data.imageUrl);
       } else {
         alert('업로드 실패: ' + data.message);
       }
@@ -156,16 +157,84 @@ const RegisterPage = () => {
       alert('이미지 업로드 중 오류가 발생했습니다.');
     } finally {
       setIsUploading(false);
-      // Reset input
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const handleSaveProduct = async () => {
-    // Implement save logic via store or api
-    alert("상품 정보 저장 기능이 호출되었습니다 (API 연동 대기 중)");
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
   };
 
+  const handleLoadWebImage = () => {
+    if (webImageUrl) {
+      updateImageObj(activeImageBox, webImageUrl);
+      setWebImageUrl('');
+    }
+  };
+
+  // Paste Event Listener for Global document
+  useEffect(() => {
+    const handlePaste = async (e) => {
+      // Don't intercept if typing in an input (except our webImageUrl input)
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        if (e.target.name !== 'webImageInput') return; 
+      }
+
+      const items = e.clipboardData.items;
+      let filePasted = false;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            filePasted = true;
+            uploadFile(file);
+            break;
+          }
+        }
+      }
+
+      // If text (URL) was pasted and we aren't in an input box
+      if (!filePasted && e.target.tagName !== 'INPUT') {
+        const text = e.clipboardData.getData('text');
+        if (text && (text.startsWith('http://') || text.startsWith('https://'))) {
+          e.preventDefault();
+          updateImageObj(activeImageBox, text);
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => {
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [activeImageBox, imageObj]); // Dependencies ensure we use current activeImageBox
+
+  const handleSaveProduct = async () => {
+    if (!formData.code) {
+       alert("상품코드를 먼저 입력해주세요!");
+       return;
+    }
+    
+    try {
+        setIsUploading(true);
+        const newProduct = {
+           ...formData,
+           image: JSON.stringify(imageObj),
+           isMaster: true
+        };
+        await saveProductToBackend(newProduct);
+        alert("상품 정보(마스터 및 이미지)가 성공적으로 저장되었습니다!");
+    } catch (error) {
+        alert("상품 정보 저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+        setIsUploading(false);
+    }
+  };
+
+  // ... inventory save logic (truncated for brevity here, see full replacement below)
   const handleSaveInventory = async () => {
     if (!formData.code) { alert('상품을 먼저 불러오세요.'); return; }
     
@@ -173,10 +242,8 @@ const RegisterPage = () => {
     const newStockMap = { ...allStockMap };
     let currentStock = newStockMap[formData.code] || [];
     const timestamp = new Date().toISOString();
-
     const flat = [];
     
-    // Process main colors and sizes
     colors.forEach(c => {
       sizes.forEach(s => {
         const key = `${c}_${s}`;
@@ -192,7 +259,6 @@ const RegisterPage = () => {
            }
         }
       });
-      // extra sizes
       extraSizes.forEach(s => {
         if (!s) return;
         const key = `${c}_${s}`;
@@ -210,7 +276,6 @@ const RegisterPage = () => {
       });
     });
 
-    // Process extra colors
     extraColors.forEach(c => {
       if (!c) return;
       sizes.forEach(s => {
@@ -244,10 +309,7 @@ const RegisterPage = () => {
       });
     });
 
-    if (newLogs.length === 0 && isAdditional) {
-      alert('변경된 재고 수량이 없습니다.');
-      return;
-    }
+    if (newLogs.length === 0 && isAdditional) { alert('변경된 재고 수량이 없습니다.'); return; }
 
     try {
       const updatedItemStock = [];
@@ -260,20 +322,85 @@ const RegisterPage = () => {
       });
       newStockMap[formData.code] = updatedItemStock;
       
-      Object.keys(newStockMap).forEach(code => newStockMap[code].forEach(s => flat.push({ code, ...s })));
+      // Fix: Only send the inventory for the CURRENT product to avoid race conditions and database corruption
+      if (newStockMap[formData.code]) {
+        newStockMap[formData.code].forEach(s => flat.push({ code: formData.code, ...s }));
+      }
       
       const { apiClient, saveHistoryToBackend, setAllStockMap } = useAppStore.getState();
       await apiClient.post('?action=save_inventory', { type: 'save_inventory', data: flat });
-      if (newLogs.length > 0) {
-        await saveHistoryToBackend(newLogs);
-      }
+      if (newLogs.length > 0) { await saveHistoryToBackend(newLogs); }
       setAllStockMap(newStockMap);
-      
       alert('재고 저장이 완료되었습니다.');
     } catch (e) {
       console.error(e);
       alert('재고 저장 중 오류가 발생했습니다.');
     }
+  };
+
+  
+  // Compute Web Reference Image URL automatically
+  const webReferenceUrl = useMemo(() => {
+    if (formData.code && String(formData.code).length >= 8) {
+       const code = String(formData.code);
+       const p1 = code.substring(6, 8); // 7th, 8th
+       const p2 = code.substring(4, 6); // 5th, 6th
+       const p3 = code.substring(2, 4); // 3rd, 4th
+       return `https://image2.lotteimall.com/goods/${p1}/${p2}/${p3}/${code}_L1.jpg`;
+    }
+    return '';
+  }, [formData.code]);
+
+  const renderImageBox = (boxKey, title) => {
+    const isActive = activeImageBox === boxKey;
+    const imgUrl = imageObj[boxKey];
+    
+    let displayUrl = imgUrl;
+    if (imgUrl) {
+       const match = imgUrl.match(/id=([a-zA-Z0-9_-]+)/);
+       if (match) displayUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+    }
+
+    return (
+      <div 
+        key={boxKey}
+        onClick={() => setActiveImageBox(boxKey)}
+        style={{ 
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+          padding: '10px',
+          border: isActive ? '2px solid #3b82f6' : '1px solid transparent',
+          borderRadius: '8px',
+          background: isActive ? '#eff6ff' : 'transparent',
+          transition: 'all 0.2s',
+          cursor: 'pointer'
+        }}
+        title="클릭하여 선택 후 Ctrl+V로 이미지 붙여넣기"
+      >
+        <span style={{ fontSize: '12px', fontWeight: 'bold', color: isActive ? '#1d4ed8' : '#333' }}>
+          {title} {isActive && '(선택됨)'}
+        </span>
+        
+        <div 
+          style={{ 
+            width: '120px', height: '120px', 
+            border: '1px dashed #ccc', borderRadius: '4px', 
+            backgroundImage: displayUrl ? `url(${displayUrl})` : 'none',
+            backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: '#fafafa'
+          }}
+        >
+          {isUploading && isActive ? (
+            <span style={{ color: '#007bff', fontSize: '12px', fontWeight: 'bold' }}>업로드 중...</span>
+          ) : !displayUrl ? (
+            <span style={{ color: '#999', fontSize: '20px' }}>+</span>
+          ) : null}
+        </div>
+
+        
+        
+      </div>
+    );
   };
 
   return (
@@ -293,30 +420,25 @@ const RegisterPage = () => {
               <input type="text" name="code" className="modal-input" value={formData.code} onChange={handleChange} style={{ flex: 1, margin: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0 }} />
               <button onClick={() => setIsSearchOpen(true)} style={{ padding: '0 10px', height: '38px', background: '#e9ecef', border: '1px solid #ced4da', borderLeft: 'none', borderTopRightRadius: '4px', borderBottomRightRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', color: '#495057', width: 'auto' }}>불러오기</button>
             </div>
-            
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>브랜드</span>
               <input type="text" name="brand" className="modal-input" value={formData.brand} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
             </div>
-
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>상품명</span>
               <input type="text" name="name" className="modal-input" value={formData.name} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
             </div>
-
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>카테고리</span>
-              <input type="text" name="cate" className="modal-input" placeholder="상의/하의/아우터/" value={formData.cate} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="cate" className="modal-input" placeholder="상의/하의/아우터/잡화" value={formData.cate} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
             </div>
-
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>색상 (콤마)</span>
-              <input type="text" name="colors" className="modal-input" placeholder="블랙, 화이트" value={formData.colors} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="colors" className="modal-input" placeholder="" value={formData.colors} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
             </div>
-
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>사이즈 (콤마)</span>
-              <input type="text" name="sizes" className="modal-input" placeholder="S, M, L" value={formData.sizes} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="sizes" className="modal-input" placeholder="" value={formData.sizes} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
             </div>
           </div>
         </div>
@@ -326,40 +448,52 @@ const RegisterPage = () => {
           
           <div className="dash-card">
             <div className="dash-title-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="dash-title">이미지 등록</span>
+              <span className="dash-title">이미지 등록 (클릭 후 Ctrl+V 로 복사/붙여넣기 가능)</span>
               <button className="m-btn m-btn-confirm" onClick={handleSaveProduct} style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', width: 'auto', flex: 'none' }}>저장</button>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'nowrap', overflowX: 'auto', gap: '15px', alignItems: 'flex-start', paddingBottom: '10px', width: '100%' }}>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>전체이미지</span>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  style={{ display: 'none' }} 
-                  accept="image/*" 
-                  onChange={handleImageUpload} 
-                />
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{ width: '120px', height: '120px', border: '1px dashed #ccc', borderRadius: '4px', cursor: 'pointer', backgroundImage: lotteImageUrl ? `url(${lotteImageUrl})` : 'none', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  {isUploading ? (
-                    <span style={{ color: '#007bff', fontSize: '12px', fontWeight: 'bold' }}>업로드 중...</span>
-                  ) : !lotteImageUrl ? (
-                    <span style={{ color: '#999', fontSize: '12px' }}>이미지 선택</span>
-                  ) : null}
-                </div>
-              </div>
+            
+            
 
-              {colors.map(c => (
-                <div key={c} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#333' }}>{c}</span>
-                  <div style={{ width: '120px', height: '120px', border: '1px dashed #ccc', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}>
-                    <span style={{ color: '#999', fontSize: '20px' }}>+</span>
-                  </div>
+            
+            <div style={{ display: 'flex', flexWrap: 'nowrap', overflowX: 'auto', gap: '10px', alignItems: 'flex-start', paddingBottom: '10px', width: '100%' }}>
+              
+              {/* Reference Web Image Box */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', padding: '10px', border: '1px solid transparent' }}>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#888' }}>웹이미지(참고용)</span>
+                <div 
+                  onClick={() => {
+                      if (formData.code) {
+                          window.open(`https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=${formData.code}`, '_blank');
+                      }
+                  }}
+                  style={{ 
+                    width: '120px', height: '120px', 
+                    border: '1px solid #ddd', borderRadius: '4px', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    backgroundColor: '#fff',
+                    cursor: formData.code ? 'pointer' : 'default',
+                    overflow: 'hidden',
+                    position: 'relative'
+                  }}
+                  title={formData.code ? '클릭 시 해당 상품의 웹페이지 열기' : ''}
+                >
+                  {webReferenceUrl ? (
+                      <img 
+                          src={webReferenceUrl} 
+                          alt="웹이미지" 
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                      />
+                  ) : (
+                      <span style={{ color: '#ccc', fontSize: '11px' }}>자동불러오기</span>
+                  )}
                 </div>
-              ))}
+                <div style={{ marginTop: '4px', fontSize: '11px', color: '#999' }}>클릭 시 웹 이동</div>
+                
+              </div>
+              
+              <div style={{ width: '1px', background: '#eee', margin: '0 5px' }}></div>
+              {renderImageBox('main', '전체이미지')}
+              {colors.map(c => renderImageBox(c, c))}
             </div>
           </div>
 
@@ -405,13 +539,13 @@ const RegisterPage = () => {
                             const placeholder = existingQty > 0 ? `기존: ${existingQty}개` : "0";
                             return (
                               <td key={`${c}-${s}`} style={{ padding: '5px' }}>
-                                <input type="number" min="0" className="matrix-input" placeholder={placeholder} value={matrixData[`${c}_${s}`] || ''} onChange={(e) => handleMatrixChange(c, s, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
+                                <input type="number" min="0" className="matrix-input" placeholder={placeholder} value={matrixData[`${c}_${s}`] || ''} onChange={(e) => handleMatrixChange(c, s, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }} />
                               </td>
                             );
                           })}
                           {extraSizes.map((val, idx) => (
                              <td key={`extra-td-${idx}`} style={{ padding: '5px' }}>
-                               {val ? <input type="number" min="0" className="matrix-input" value={matrixData[`${c}_${val}`] || ''} onChange={(e) => handleMatrixChange(c, val, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} /> : null}
+                               {val ? <input type="number" min="0" className="matrix-input" value={matrixData[`${c}_${val}`] || ''} onChange={(e) => handleMatrixChange(c, val, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }} /> : null}
                              </td>
                           ))}
                         </tr>
@@ -423,12 +557,12 @@ const RegisterPage = () => {
                           </td>
                           {sizes.map(s => (
                             <td key={`extra-td-${cIdx}-${s}`} style={{ padding: '5px' }}>
-                              {cVal ? <input type="number" min="0" className="matrix-input" value={matrixData[`${cVal}_${s}`] || ''} onChange={(e) => handleMatrixChange(cVal, s, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} /> : null}
+                              {cVal ? <input type="number" min="0" className="matrix-input" value={matrixData[`${cVal}_${s}`] || ''} onChange={(e) => handleMatrixChange(cVal, s, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }} /> : null}
                             </td>
                           ))}
                           {extraSizes.map((sVal, sIdx) => (
                              <td key={`extra-td-${cIdx}-extra-${sIdx}`} style={{ padding: '5px' }}>
-                               {cVal && sVal ? <input type="number" min="0" className="matrix-input" value={matrixData[`${cVal}_${sVal}`] || ''} onChange={(e) => handleMatrixChange(cVal, sVal, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} /> : null}
+                               {cVal && sVal ? <input type="number" min="0" className="matrix-input" value={matrixData[`${cVal}_${sVal}`] || ''} onChange={(e) => handleMatrixChange(cVal, sVal, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }} /> : null}
                              </td>
                           ))}
                         </tr>
@@ -446,16 +580,8 @@ const RegisterPage = () => {
 
       </div>
 
-      <ProductSearchModal 
-        isOpen={isSearchOpen} 
-        onClose={() => setIsSearchOpen(false)} 
-        onSelect={handleProductSelect} 
-      />
-      <HistoryModal
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        productCode={formData.code}
-      />
+      <ProductSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onSelect={handleProductSelect} />
+      <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} productCode={formData.code} />
     </section>
   );
 };
