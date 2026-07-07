@@ -18,7 +18,7 @@ function App() {
   }, [initApp]);
 
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <Router>
       <Navigation />
       <main className="main-content">
         <Routes>
