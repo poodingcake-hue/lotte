@@ -12,12 +12,9 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.method === 'GET') {
-    // 브라우저 캐시를 완전히 무시하고 항상 최신 버전을 서버에서 가져옴 (초기 접속 시 업데이트 보장)
-    e.respondWith(
-      fetch(e.request, { cache: 'no-store' }).catch(() => fetch(e.request))
-    );
-  } else {
-    e.respondWith(fetch(e.request));
-  }
+  // 모바일 Safari 등 일부 브라우저에서 기존 Request 객체에 cache: 'no-store' 옵션을 지정해 fetch를 호출하면
+  // TypeError가 발생하여 페이지 로드가 차단되는 문제가 있습니다. 
+  // 안전하게 e.request 그대로 fetch를 수행합니다.
+  e.respondWith(fetch(e.request));
 });
+
