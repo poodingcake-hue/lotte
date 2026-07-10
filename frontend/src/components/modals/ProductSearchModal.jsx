@@ -10,14 +10,26 @@ const ProductSearchModal = ({ isOpen, onClose, onSelect }) => {
     return allItems.filter(i => i.isMaster);
   }, [allItems]);
 
-  const filteredItems = useMemo(() => {
-    if (!keyword.trim()) return [];
-    const lower = keyword.toLowerCase();
-    return masterItems.filter(i => 
-      (i.name && i.name.toLowerCase().includes(lower)) ||
-      (i.code && i.code.toLowerCase().includes(lower)) ||
-      (i.brand && i.brand.toLowerCase().includes(lower))
-    ).slice(0, 50); // Limit to 50 for performance
+    const filteredItems = useMemo(() => {
+    let result = masterItems;
+    
+    if (keyword.trim()) {
+      const lower = keyword.toLowerCase();
+      result = result.filter(i => 
+        (i.name && i.name.toLowerCase().includes(lower)) ||
+        (i.code && i.code.toLowerCase().includes(lower)) ||
+        (i.brand && i.brand.toLowerCase().includes(lower))
+      );
+    }
+    
+    // Sort by code descending (highest first)
+    result = [...result].sort((a, b) => {
+      const codeA = a.code || '';
+      const codeB = b.code || '';
+      return codeB.localeCompare(codeA, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    return result.slice(0, 50); // Limit to 50 for performance
   }, [masterItems, keyword]);
 
   if (!isOpen) return null;
