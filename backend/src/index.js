@@ -107,7 +107,36 @@ export default {
         const body = await request.json();
         const { type, data } = body;
 
-        if (type === "update_product_image") {
+        if (type === "fal_api_proxy") {
+          const { modelUrl, payload } = data;
+          const key = env.FAL_API_KEY;
+          if (!key) {
+            return new Response(JSON.stringify({ error: "FAL_API_KEY is not configured on the server." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const res = await fetch(`https://queue.fal.run/${modelUrl}`, {
+              method: 'POST',
+              headers: { 'Authorization': 'Key ' + key, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+          if (!res.ok) return new Response(JSON.stringify({ error: 'Fal API Error: ' + res.status }), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(await res.json()), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        else if (type === "fal_api_status") {
+          const { statusUrl } = data;
+          const key = env.FAL_API_KEY;
+          const res = await fetch(statusUrl, { headers: { 'Authorization': 'Key ' + key } });
+          if (!res.ok) return new Response(JSON.stringify({ error: 'Polling failed' }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(await res.json()), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        else if (type === "fal_api_result") {
+          const { responseUrl } = data;
+          const key = env.FAL_API_KEY;
+          const res = await fetch(responseUrl, { headers: { 'Authorization': 'Key ' + key } });
+          if (!res.ok) return new Response(JSON.stringify({ error: 'Fetch result failed' }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(await res.json()), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        else if (type === "update_product_image") {
           const { code, image } = data;
           if (code && image !== undefined) {
              await env.DB.prepare("UPDATE products SET image = ? WHERE code = ?").bind(image, code).run();
