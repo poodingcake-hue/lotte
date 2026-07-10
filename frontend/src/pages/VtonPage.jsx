@@ -189,7 +189,13 @@ const VtonPage = () => {
 
     // Modal Content
     const layerNames = { top: '상의', bottom: '하의', outer: '아우터' };
-    const items = allItems.filter(i => i.isMaster && (searchTerm === '' || (i.brand && i.brand.includes(searchTerm)) || (i.name && i.name.includes(searchTerm))));
+    let items = allItems.filter(i => i.isMaster && (searchTerm === '' || (i.brand && i.brand.includes(searchTerm)) || (i.name && i.name.includes(searchTerm))));
+    
+    items = items.sort((a, b) => {
+        const codeA = a.code || '';
+        const codeB = b.code || '';
+        return codeB.localeCompare(codeA, undefined, { numeric: true, sensitivity: 'base' });
+    });
 
     return (
         <div className="vton-container container-fluid p-3" style={{position: 'relative'}}>
@@ -270,7 +276,7 @@ const VtonPage = () => {
             {/* Selection Modal */}
             {modalConfig.isOpen && (
                 <div className="modal-backdrop" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1050, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                    <div className="modal-content bg-white rounded shadow" style={{width: '90%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column'}}>
+                    <div className="modal-content bg-white rounded shadow" style={{width: '90%', maxWidth: '850px', maxHeight: '85vh', display: 'flex', flexDirection: 'column'}}>
                         <div className="modal-header p-3 border-bottom d-flex justify-content-between align-items-center">
                             <h5 className="m-0 fw-bold">{layerNames[modalConfig.layer]} 선택</h5>
                             <button className="btn-close" onClick={closeModal}></button>
@@ -294,19 +300,45 @@ const VtonPage = () => {
                                     <div className="vton-modal-product-list" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
                                         {items.slice(0, 30).map((item, idx) => {
                                             let colors = [];
+                                            let imgObj = null;
                                             try {
-                                                const imgObj = JSON.parse(item.image);
+                                                imgObj = JSON.parse(item.image);
                                                 colors = Object.keys(imgObj).filter(k => k !== 'main');
                                             } catch(e) {}
                                             return (
-                                                <div key={idx} className="p-3 border rounded">
-                                                    <div className="fw-bold" style={{fontSize: '14px', color: 'var(--primary)'}}>{item.brand}</div>
-                                                    <div className="mb-2" style={{fontSize: '14px'}}>{item.name}</div>
-                                                    <div className="d-flex flex-wrap gap-2">
-                                                        <button className="btn btn-sm btn-outline-primary" onClick={() => selectProductColor(item, null)}>기본 이미지</button>
-                                                        {colors.map((c, i) => (
-                                                            <button key={i} className="btn btn-sm btn-outline-secondary" onClick={() => selectProductColor(item, c)}>{c}</button>
-                                                        ))}
+                                                <div key={idx} className="p-3 border rounded d-flex align-items-center mb-2">
+                                                    <div style={{ width: '40%', paddingRight: '15px' }}>
+                                                        <div className="fw-bold" style={{fontSize: '14px', color: 'var(--primary)'}}>{item.brand}</div>
+                                                        <div style={{fontSize: '15px', fontWeight: 'bold', wordBreak: 'keep-all', margin: '4px 0'}}>{item.name}</div>
+                                                        <div className="text-muted" style={{fontSize: '12px'}}>{item.code}</div>
+                                                    </div>
+                                                    <div style={{ width: '60%', display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '5px', alignItems: 'center' }}>
+                                                        {colors.map((c, i) => {
+                                                            let cUrl = imgObj[c];
+                                                            const idMatch = cUrl && cUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                                                            const finalUrl = idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[1]}` : cUrl;
+                                                            return (
+                                                                <div 
+                                                                    key={i} 
+                                                                    onClick={() => selectProductColor(item, c)}
+                                                                    style={{ cursor: 'pointer', textAlign: 'center', minWidth: '70px', transition: 'opacity 0.2s' }}
+                                                                    onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+                                                                    onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                                                                >
+                                                                    <div style={{ width: '70px', height: '90px', background: '#f8f9fa', borderRadius: '4px', overflow: 'hidden', border: '1px solid #eee' }}>
+                                                                        {finalUrl ? (
+                                                                            <img src={finalUrl} alt={c} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                                        ) : (
+                                                                            <div style={{fontSize:'10px', color:'#999', lineHeight:'90px'}}>No Img</div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '11px', marginTop: '6px', color: '#555', fontWeight: 'bold' }}>{c}</div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        {colors.length === 0 && (
+                                                            <div className="text-muted small p-2">등록된 색상 이미지가 없습니다.</div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
