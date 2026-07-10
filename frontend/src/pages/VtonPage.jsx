@@ -137,7 +137,7 @@ const VtonPage = () => {
                     mode: "performance"
                 };
                 
-                const res = await callFalRestApi('fal-ai/fashn/vton', payload);
+                const res = await callFalRestApi('fal-ai/fashn/tryon/v1.6', payload);
                 if (res && res.images && res.images[0]) {
                     currentBaseImage = res.images[0].url;
                 } else {
