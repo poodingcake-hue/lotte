@@ -10,6 +10,7 @@ const VtonPage = () => {
     const [bottom, setBottom] = useState({ type: 'product', url: '', prompt: '', id: null });
     const [top, setTop] = useState({ type: 'product', url: '', prompt: '', id: null });
     const [outer, setOuter] = useState({ type: 'product', url: '', prompt: '', id: null });
+    const [vtonEngine, setVtonEngine] = useState('fashn');
     
     const [isGenerating, setIsGenerating] = useState(false);
     const [progressText, setProgressText] = useState('');
@@ -119,22 +120,38 @@ const VtonPage = () => {
         let currentBaseImage = model.url;
         
         try {
-            for (let i=0; i<layers.length; i++) {
-                const layer = layers[i];
-                setProgressText(`${layer.name} 합성 중... (${i+1}/${layers.length})\n진행 상황: ${layer.name} VTON 적용 중`);
-                
+            if (vtonEngine === 'nano-banana') {
+                setProgressText(`룩시트 일괄 합성 중... (Nano Banana)\n진행 상황: 구글 제미나이 에디트 처리 중`);
+                const imageUrls = [currentBaseImage, ...layers.map(l => l.url)];
                 const payload = {
-                    model_image: currentBaseImage,
-                    garment_image: layer.url,
-                    category: layer.cat,
-                    garment_photo_type: "flat-lay"
+                    image_urls: imageUrls,
+                    prompt: "A highly photorealistic image of the person in the first image wearing all the exact garments shown in the subsequent images. The person's identity, pose, and background must remain exactly the same. Synthesize the clothes naturally onto the person.",
+                    output_format: "png"
                 };
-                
-                const res = await callFalRestApi('fal-ai/fashn/tryon/v1.6', payload);
+                const res = await callFalRestApi('fal-ai/nano-banana-pro/edit', payload);
                 if (res && res.images && res.images[0]) {
                     currentBaseImage = res.images[0].url;
                 } else {
                     throw new Error('결과 이미지를 받지 못했습니다.');
+                }
+            } else {
+                for (let i=0; i<layers.length; i++) {
+                    const layer = layers[i];
+                    setProgressText(`${layer.name} 합성 중... (${i+1}/${layers.length})\n진행 상황: ${layer.name} VTON 적용 중`);
+                    
+                    const payload = {
+                        model_image: currentBaseImage,
+                        garment_image: layer.url,
+                        category: layer.cat,
+                        garment_photo_type: "flat-lay"
+                    };
+                    
+                    const res = await callFalRestApi('fal-ai/fashn/tryon/v1.6', payload);
+                    if (res && res.images && res.images[0]) {
+                        currentBaseImage = res.images[0].url;
+                    } else {
+                        throw new Error('결과 이미지를 받지 못했습니다.');
+                    }
                 }
             }
             
@@ -193,7 +210,13 @@ const VtonPage = () => {
     return (
         <div className="vton-container container-fluid p-3" style={{position: 'relative'}}>
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h4 className="fw-bold m-0" style={{color: 'var(--primary)'}}>가상착장 (VTON)</h4>
+                <div className="d-flex align-items-center gap-3">
+                    <h4 className="fw-bold m-0" style={{color: 'var(--primary)'}}>가상착장 (VTON)</h4>
+                    <select className="form-select form-select-sm" style={{width: '260px', fontWeight: 'bold'}} value={vtonEngine} onChange={(e) => setVtonEngine(e.target.value)}>
+                        <option value="fashn">엔진: Fashn (순차 정밀 합성)</option>
+                        <option value="nano-banana">엔진: Nano Banana (룩시트 일괄)</option>
+                    </select>
+                </div>
                 <button 
                     className="btn btn-success fw-bold px-5 py-2" 
                     onClick={startVtonProcess}
