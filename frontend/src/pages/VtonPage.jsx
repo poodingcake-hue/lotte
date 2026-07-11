@@ -5,17 +5,17 @@ import './VtonPage.css';
 
 const VtonPage = () => {
     const allItems = useAppStore(state => state.allItems);
-
+    
     const [model, setModel] = useState({ type: 'preset', url: 'https://cdn.pixabay.com/photo/2021/01/29/14/41/wardrobe-5961193_1280.jpg' });
     const [bottom, setBottom] = useState({ type: 'product', url: '', prompt: '', id: null });
     const [top, setTop] = useState({ type: 'product', url: '', prompt: '', id: null });
     const [outer, setOuter] = useState({ type: 'product', url: '', prompt: '', id: null });
     const [vtonEngine, setVtonEngine] = useState('fashn');
-
+    
     const [isGenerating, setIsGenerating] = useState(false);
     const [progressText, setProgressText] = useState('');
     const [finalResult, setFinalResult] = useState('');
-
+    
     // Modal State
     const [modalConfig, setModalConfig] = useState({ isOpen: false, layer: null });
     const [modalTab, setModalTab] = useState('product'); // 'product' or 'prompt'
@@ -79,7 +79,7 @@ const VtonPage = () => {
     const handleGeneratePromptImage = async () => {
         const layer = modalConfig.layer;
         if (!promptText) { alert('프롬프트를 입력하세요.'); return; }
-
+        
         setIsPromptGenerating(true);
         try {
             const payload = {
@@ -104,21 +104,21 @@ const VtonPage = () => {
 
     const startVtonProcess = async () => {
         if (!model.url) { alert('모델 이미지가 없습니다.'); return; }
-
+        
         const layers = [];
         if (bottom.url) layers.push({ url: bottom.url, cat: 'bottoms', name: '하의' });
         if (top.url) layers.push({ url: top.url, cat: 'tops', name: '상의' });
         if (outer.url) layers.push({ url: outer.url, cat: 'tops', name: '아우터' });
-
+        
         if (layers.length === 0) {
             alert('합성할 옷(하의/상의/아우터) 중 하나 이상 선택해주세요.');
             return;
         }
-
+        
         setIsGenerating(true);
         setFinalResult('');
         let currentBaseImage = model.url;
-
+        
         try {
             if (vtonEngine === 'nano-banana') {
                 setProgressText(`룩시트 일괄 합성 중... (Nano Banana)\n진행 상황: 구글 제미나이 에디트 처리 중`);
@@ -135,17 +135,17 @@ const VtonPage = () => {
                     throw new Error('결과 이미지를 받지 못했습니다.');
                 }
             } else {
-                for (let i = 0; i < layers.length; i++) {
+                for (let i=0; i<layers.length; i++) {
                     const layer = layers[i];
-                    setProgressText(`${layer.name} 합성 중... (${i + 1}/${layers.length})\n진행 상황: ${layer.name} VTON 적용 중`);
-
+                    setProgressText(`${layer.name} 합성 중... (${i+1}/${layers.length})\n진행 상황: ${layer.name} VTON 적용 중`);
+                    
                     const payload = {
                         model_image: currentBaseImage,
                         garment_image: layer.url,
                         category: layer.cat,
                         garment_photo_type: "flat-lay"
                     };
-
+                    
                     const res = await callFalRestApi('fal-ai/fashn/tryon/v1.6', payload);
                     if (res && res.images && res.images[0]) {
                         currentBaseImage = res.images[0].url;
@@ -154,7 +154,7 @@ const VtonPage = () => {
                     }
                 }
             }
-
+            
             setFinalResult(currentBaseImage);
             setProgressText('최종 착장 합성 완료! (우클릭 후 이미지 저장 가능)');
         } catch (e) {
@@ -171,15 +171,15 @@ const VtonPage = () => {
             <div className="col" style={{ minWidth: '220px' }}>
                 <div className="p-3 border rounded h-100 bg-white d-flex flex-column align-items-center">
                     <h6 className="fw-bold mb-3">{layerTitle}</h6>
-
-                    <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center w-100 mb-3" style={{ minHeight: '150px', background: '#f8f9fa', borderRadius: '4px', border: '1px dashed #ccc' }}>
+                    
+                    <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center w-100 mb-3" style={{minHeight: '150px', background: '#f8f9fa', borderRadius: '4px', border: '1px dashed #ccc'}}>
                         {state.url ? (
-                            <img src={state.url} alt={layerTitle} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain', padding: '5px' }} />
+                            <img src={state.url} alt={layerTitle} style={{maxWidth: '100%', maxHeight: '180px', objectFit: 'contain', padding: '5px'}} />
                         ) : (
                             <div className="text-muted small">선택된 이미지가 없습니다</div>
                         )}
                     </div>
-
+                    
                     <button className="btn btn-outline-primary w-100 mt-auto fw-bold" onClick={() => openModal(layerName)}>
                         {state.url ? '변경하기' : '선택하기'}
                     </button>
@@ -200,7 +200,7 @@ const VtonPage = () => {
     // Modal Content
     const layerNames = { top: '상의', bottom: '하의', outer: '아우터' };
     let items = allItems.filter(i => i.isMaster && (searchTerm === '' || (i.brand && i.brand.includes(searchTerm)) || (i.name && i.name.includes(searchTerm))));
-
+    
     items = items.sort((a, b) => {
         const codeA = a.code || '';
         const codeB = b.code || '';
@@ -208,49 +208,49 @@ const VtonPage = () => {
     });
 
     return (
-        <div className="vton-container container-fluid p-3" style={{ position: 'relative' }}>
+        <div className="vton-container container-fluid p-3" style={{position: 'relative'}}>
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex align-items-center gap-3">
-                    <h4 className="fw-bold m-0" style={{ color: 'var(--primary)' }}>가상착장 (VTON)</h4>
-                    <select className="form-select form-select-sm" style={{ width: '260px', fontWeight: 'bold' }} value={vtonEngine} onChange={(e) => setVtonEngine(e.target.value)}>
+                    <h4 className="fw-bold m-0" style={{color: 'var(--primary)'}}>가상착장 (VTON)</h4>
+                    <select className="form-select form-select-sm" style={{width: '260px', fontWeight: 'bold'}} value={vtonEngine} onChange={(e) => setVtonEngine(e.target.value)}>
                         <option value="fashn">엔진: Fashn (순차 정밀 합성)</option>
                         <option value="nano-banana">엔진: Nano Banana (룩시트 일괄)</option>
                     </select>
                 </div>
-                <button
-                    className="btn btn-success fw-bold px-5 py-2"
+                <button 
+                    className="btn btn-success fw-bold px-5 py-2" 
                     onClick={startVtonProcess}
                     disabled={isGenerating}
                 >
                     {isGenerating ? '합성 진행 중...' : '가상착장 시작'}
                 </button>
             </div>
-
+            
             <div className="row flex-nowrap" style={{ overflowX: 'auto', paddingBottom: '15px' }}>
                 {/* 1. Model Selection */}
                 <div className="col" style={{ minWidth: '220px' }}>
                     <div className="vton-model-section p-3 border rounded h-100 bg-white d-flex flex-column">
                         <h6 className="fw-bold mb-3 text-center">모델 선택</h6>
                         <div className="vton-mode-tabs mb-2 d-flex gap-2">
-                            <button className={`btn btn-sm flex-grow-1 ${model.type === 'preset' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => setModel(prev => ({ ...prev, type: 'preset' }))}>프리셋</button>
-                            <button className={`btn btn-sm flex-grow-1 ${model.type === 'url' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => setModel(prev => ({ ...prev, type: 'url' }))}>URL 입력</button>
+                            <button className={`btn btn-sm flex-grow-1 ${model.type === 'preset' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => setModel(prev => ({...prev, type: 'preset'}))}>프리셋</button>
+                            <button className={`btn btn-sm flex-grow-1 ${model.type === 'url' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => setModel(prev => ({...prev, type: 'url'}))}>URL 입력</button>
                         </div>
                         {model.type === 'preset' ? (
-                            <select className="form-select form-select-sm mb-2" value={model.url} onChange={(e) => setModel(prev => ({ ...prev, url: e.target.value }))}>
+                            <select className="form-select form-select-sm mb-2" value={model.url} onChange={(e) => setModel(prev => ({...prev, url: e.target.value}))}>
                                 <option value="https://cdn.pixabay.com/photo/2021/01/29/14/41/wardrobe-5961193_1280.jpg">여성 모델 1 (전신)</option>
                                 <option value="https://cdn.pixabay.com/photo/2016/11/29/13/14/attractive-1869761_1280.jpg">여성 모델 2 (전신)</option>
                                 <option value="https://cdn.pixabay.com/photo/2017/08/01/11/48/woman-2564660_1280.jpg">여성 모델 3 (상반신)</option>
                                 <option value="https://cdn.pixabay.com/photo/2015/01/09/02/45/girl-593645_1280.jpg">남성 모델 1 (전신)</option>
                             </select>
                         ) : (
-                            <input type="text" className="form-control form-control-sm mb-2" placeholder="이미지 URL 입력" value={model.url} onChange={(e) => setModel(prev => ({ ...prev, url: e.target.value }))} />
+                            <input type="text" className="form-control form-control-sm mb-2" placeholder="이미지 URL 입력" value={model.url} onChange={(e) => setModel(prev => ({...prev, url: e.target.value}))} />
                         )}
-                        <div className="flex-grow-1 d-flex justify-content-center align-items-center mt-2" style={{ minHeight: '150px', background: '#f8f9fa', borderRadius: '4px', border: '1px dashed #ccc' }}>
-                            {model.url ? <img src={model.url} alt="Model Preview" style={{ maxWidth: '100%', maxHeight: '250px', objectFit: 'contain', padding: '5px' }} /> : <div className="text-muted small p-2 text-center">모델 이미지가<br />없습니다.</div>}
+                        <div className="flex-grow-1 d-flex justify-content-center align-items-center mt-2" style={{minHeight: '150px', background: '#f8f9fa', borderRadius: '4px', border: '1px dashed #ccc'}}>
+                            {model.url ? <img src={model.url} alt="Model Preview" style={{maxWidth: '100%', maxHeight: '250px', objectFit: 'contain', padding: '5px'}} /> : <div className="text-muted small p-2 text-center">모델 이미지가<br/>없습니다.</div>}
                         </div>
                     </div>
                 </div>
-
+                
                 {/* 2. Top Selection */}
                 {renderLayerBox('top', '상의', top)}
 
@@ -259,10 +259,10 @@ const VtonPage = () => {
 
                 {/* 4. Outer Selection */}
                 {renderLayerBox('outer', '아우터', outer)}
-
+                
                 {/* 5. Final Result */}
                 <div className="col" style={{ minWidth: '320px' }}>
-                    <div className="vton-result-section p-3 border rounded bg-white h-100 d-flex flex-column align-items-center justify-content-start" style={{ minHeight: '400px' }}>
+                    <div className="vton-result-section p-3 border rounded bg-white h-100 d-flex flex-column align-items-center justify-content-start" style={{minHeight: '400px'}}>
                         <h6 className="fw-bold w-100 text-center mb-3">최종 결과</h6>
                         <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center w-100">
                             {isGenerating && (
@@ -270,18 +270,18 @@ const VtonPage = () => {
                                     <div className="spinner-border text-primary" role="status">
                                         <span className="visually-hidden">Loading...</span>
                                     </div>
-                                    <div className="mt-3 text-muted fw-bold" style={{ whiteSpace: 'pre-line' }}>{progressText}</div>
+                                    <div className="mt-3 text-muted fw-bold" style={{whiteSpace: 'pre-line'}}>{progressText}</div>
                                 </div>
                             )}
                             {!isGenerating && finalResult && (
                                 <>
-                                    <img src={finalResult} alt="Final VTON" style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', border: '2px solid var(--primary)', borderRadius: '8px' }} />
+                                    <img src={finalResult} alt="Final VTON" style={{maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', border: '2px solid var(--primary)', borderRadius: '8px'}} />
                                     <div className="text-success fw-bold mt-3 text-center">{progressText}</div>
                                 </>
                             )}
                             {!isGenerating && !finalResult && (
-                                <div className="text-muted text-center p-4 border rounded" style={{ background: '#f8f9fa' }}>
-                                    우측 상단의<br /><strong className="text-success">가상착장 시작</strong><br />버튼을 눌러주세요.
+                                <div className="text-muted text-center p-4 border rounded" style={{background: '#f8f9fa'}}>
+                                    우측 상단의<br/><strong className="text-success">가상착장 시작</strong><br/>버튼을 눌러주세요.
                                 </div>
                             )}
                         </div>
@@ -291,14 +291,14 @@ const VtonPage = () => {
 
             {/* Selection Modal */}
             {modalConfig.isOpen && (
-                <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1050, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <div className="modal-content bg-white rounded shadow" style={{ width: '90%', maxWidth: '850px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+                <div className="modal-backdrop" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1050, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                    <div className="modal-content bg-white rounded shadow" style={{width: '90%', maxWidth: '850px', maxHeight: '85vh', display: 'flex', flexDirection: 'column'}}>
                         <div className="modal-header p-3 border-bottom d-flex justify-content-between align-items-center">
                             <h5 className="m-0 fw-bold">{layerNames[modalConfig.layer]} 선택</h5>
                             <button className="btn-close" onClick={closeModal}></button>
                         </div>
-
-                        <div className="modal-body p-3 overflow-auto" style={{ flexGrow: 1 }}>
+                        
+                        <div className="modal-body p-3 overflow-auto" style={{flexGrow: 1}}>
                             <div className="d-flex gap-2 mb-3">
                                 <button className={`btn flex-grow-1 ${modalTab === 'product' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => setModalTab('product')}>내 상품</button>
                                 <button className={`btn flex-grow-1 ${modalTab === 'prompt' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => setModalTab('prompt')}>프롬프트</button>
@@ -306,27 +306,27 @@ const VtonPage = () => {
 
                             {modalTab === 'product' && (
                                 <div>
-                                    <input
-                                        type="text"
-                                        placeholder="브랜드 또는 상품명 검색"
+                                    <input 
+                                        type="text" 
+                                        placeholder="브랜드 또는 상품명 검색" 
                                         className="form-control mb-3"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
-                                    <div className="vton-modal-product-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div className="vton-modal-product-list" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
                                         {items.slice(0, 30).map((item, idx) => {
                                             let colors = [];
                                             let imgObj = null;
                                             try {
                                                 imgObj = JSON.parse(item.image);
                                                 colors = Object.keys(imgObj).filter(k => k !== 'main');
-                                            } catch (e) { }
+                                            } catch(e) {}
                                             return (
                                                 <div key={idx} className="p-3 border rounded d-flex align-items-center mb-2">
                                                     <div style={{ width: '40%', paddingRight: '15px' }}>
-                                                        <div className="fw-bold" style={{ fontSize: '14px', color: 'var(--primary)' }}>{item.brand}</div>
-                                                        <div style={{ fontSize: '15px', fontWeight: 'bold', wordBreak: 'keep-all', margin: '4px 0' }}>{item.name}</div>
-                                                        <div className="text-muted" style={{ fontSize: '12px' }}>{item.code}</div>
+                                                        <div className="fw-bold" style={{fontSize: '14px', color: 'var(--primary)'}}>{item.brand}</div>
+                                                        <div style={{fontSize: '15px', fontWeight: 'bold', wordBreak: 'keep-all', margin: '4px 0'}}>{item.name}</div>
+                                                        <div className="text-muted" style={{fontSize: '12px'}}>{item.code}</div>
                                                     </div>
                                                     <div style={{ width: '60%', display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '5px', alignItems: 'center' }}>
                                                         {colors.map((c, i) => {
@@ -334,8 +334,8 @@ const VtonPage = () => {
                                                             const idMatch = cUrl && cUrl.match(/id=([a-zA-Z0-9_-]+)/);
                                                             const finalUrl = idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[1]}` : cUrl;
                                                             return (
-                                                                <div
-                                                                    key={i}
+                                                                <div 
+                                                                    key={i} 
                                                                     onClick={() => selectProductColor(item, c)}
                                                                     style={{ cursor: 'pointer', textAlign: 'center', minWidth: '70px', transition: 'opacity 0.2s' }}
                                                                     onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
@@ -345,7 +345,7 @@ const VtonPage = () => {
                                                                         {finalUrl ? (
                                                                             <img src={finalUrl} alt={c} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                                                         ) : (
-                                                                            <div style={{ fontSize: '10px', color: '#999', lineHeight: '90px' }}>No Img</div>
+                                                                            <div style={{fontSize:'10px', color:'#999', lineHeight:'90px'}}>No Img</div>
                                                                         )}
                                                                     </div>
                                                                     <div style={{ fontSize: '11px', marginTop: '6px', color: '#555', fontWeight: 'bold' }}>{c}</div>
@@ -367,22 +367,22 @@ const VtonPage = () => {
                             {modalTab === 'prompt' && (
                                 <div>
                                     <div className="mb-2 fw-bold text-secondary">원하는 옷의 스타일을 영문으로 입력하세요</div>
-                                    <textarea
-                                        className="form-control mb-3"
-                                        rows="4"
+                                    <textarea 
+                                        className="form-control mb-3" 
+                                        rows="4" 
                                         placeholder="예: red leather jacket, white t-shirt, blue denim jeans"
                                         value={promptText}
                                         onChange={(e) => setPromptText(e.target.value)}
                                     />
-                                    <button
-                                        className="btn btn-primary w-100 py-2 fw-bold"
+                                    <button 
+                                        className="btn btn-primary w-100 py-2 fw-bold" 
                                         onClick={handleGeneratePromptImage}
                                         disabled={isPromptGenerating}
                                     >
                                         {isPromptGenerating ? '이미지 생성 중...' : '이미지 생성 및 적용하기'}
                                     </button>
                                     <div className="text-muted small mt-2 text-center">
-                                        * AI가 프롬프트를 바탕으로 흰 배경의 의류 이미지를 생성합니다.<br />
+                                        * AI가 프롬프트를 바탕으로 흰 배경의 의류 이미지를 생성합니다.<br/>
                                         (생성에는 약 10~20초 소요됩니다)
                                     </div>
                                 </div>
