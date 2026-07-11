@@ -16,6 +16,9 @@ const VtonPage = () => {
     const [progressText, setProgressText] = useState('');
     const [finalResult, setFinalResult] = useState('');
     
+    const [characterSheetResult, setCharacterSheetResult] = useState('');
+    const [isGeneratingSheet, setIsGeneratingSheet] = useState(false);
+    
     // Modal State
     const [modalConfig, setModalConfig] = useState({ isOpen: false, layer: null });
     const [modalTab, setModalTab] = useState('product'); // 'product' or 'prompt'
@@ -166,6 +169,33 @@ const VtonPage = () => {
         }
     };
 
+    const generateCharacterSheet = async () => {
+        if (!finalResult) return;
+        setIsGeneratingSheet(true);
+        setCharacterSheetResult('');
+        try {
+            const payload = {
+                image_urls: [finalResult],
+                system_prompt: "You are an expert concept artist and fashion illustrator.",
+                prompt: "A highly photorealistic character design sheet showing 3 different angles (front, side, and back) of this exact person wearing this exact outfit. They are standing against a solid white background. Preserve the facial identity, body proportions, and clothing details perfectly across all angles.",
+                aspect_ratio: "16:9",
+                resolution: "2K",
+                output_format: "png"
+            };
+            const res = await callFalRestApi('fal-ai/nano-banana-pro/edit', payload);
+            if (res && res.images && res.images[0]) {
+                setCharacterSheetResult(res.images[0].url);
+            } else {
+                throw new Error('결과 이미지를 받지 못했습니다.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('캐릭터 시트 생성 중 에러 발생:\n' + e.message);
+        } finally {
+            setIsGeneratingSheet(false);
+        }
+    };
+
     const renderLayerBox = (layerName, layerTitle, state) => {
         return (
             <div className="col" style={{ minWidth: '220px' }}>
@@ -277,6 +307,20 @@ const VtonPage = () => {
                                 <>
                                     <img src={finalResult} alt="Final VTON" style={{maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', border: '2px solid var(--primary)', borderRadius: '8px'}} />
                                     <div className="text-success fw-bold mt-3 text-center">{progressText}</div>
+                                    <button 
+                                        className="btn btn-warning fw-bold mt-3 w-100" 
+                                        onClick={generateCharacterSheet}
+                                        disabled={isGeneratingSheet}
+                                    >
+                                        {isGeneratingSheet ? '캐릭터 시트 생성 중...' : '이 착장으로 캐릭터 시트 뽑아내기 (Nano Banana)'}
+                                    </button>
+                                    
+                                    {characterSheetResult && (
+                                        <div className="mt-4 w-100">
+                                            <h6 className="fw-bold text-center mb-2">캐릭터 시트 (16:9)</h6>
+                                            <img src={characterSheetResult} alt="Character Sheet" style={{width: '100%', objectFit: 'contain', border: '2px solid #ffc107', borderRadius: '8px'}} />
+                                        </div>
+                                    )}
                                 </>
                             )}
                             {!isGenerating && !finalResult && (
