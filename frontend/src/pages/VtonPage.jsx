@@ -126,7 +126,8 @@ const VtonPage = () => {
                 const payload = {
                     model_image: currentBaseImage,
                     garment_image: layer.url,
-                    category: layer.cat
+                    category: layer.cat,
+                    segmentation_free: false
                 };
                 
                 const res = await callFalRestApi('fal-ai/fashn/tryon/v1.6', payload);
