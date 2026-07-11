@@ -18,8 +18,6 @@ except ImportError:
     except ImportError:
         USE_NEW_STEALTH = None
 
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 
 # 한국 시간(KST) 기준 오늘 날짜 구하기
 def get_kst_today():
@@ -38,10 +36,7 @@ def clean_product_code(code_str):
     except:
         return "코드없음"
 
-# 구글 시트 설정
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1iMuT6cxSOeLnAl-F8qT-K0DWBLd-5ptts3EZUvfkj0o/edit?gid=9087494#gid=9087494"
-SHEET_NAME = "편성"
-CREDENTIALS_FILE = "service_account.json"
+
 
 async def scrape_lotte_schedule():
     all_results = []
