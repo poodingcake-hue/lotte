@@ -191,7 +191,7 @@ async def scrape_lotte_schedule():
 
 def save_to_data_json(scraped_data):
     import json
-    data_path = os.path.join(os.path.dirname(__file__), '..', 'data.json')
+    data_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'public', 'data.json')
     try:
         with open(data_path, 'r', encoding='utf-8') as f:
             data = json.load(f)

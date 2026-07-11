@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 from datetime import datetime, timedelta
 import pytz
 
@@ -93,7 +94,8 @@ def get_kma_weather():
                 final_data['hourly']['sky'].append(data['sky'])
                 final_data['hourly']['pty'].append(data['pty'])
 
-        with open('weather.json', 'w', encoding='utf-8') as f:
+        weather_path = os.path.join(os.path.dirname(__file__), 'frontend', 'public', 'weather.json')
+        with open(weather_path, 'w', encoding='utf-8') as f:
             json.dump(final_data, f, ensure_ascii=False, indent=2)
             print("Successfully updated weather.json")
 
