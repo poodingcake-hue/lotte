@@ -11,6 +11,8 @@ export const useAppStore = create((set, get) => ({
   allNotes: [],
   allSupplies: [],
   allHistory: [],
+  allCustomModels: [],
+  allGallery: [],
   allWeather: null,
   selDate: null,
   filteredItems: [],
@@ -25,6 +27,8 @@ export const useAppStore = create((set, get) => ({
   setAllSupplies: (supplies) => set({ allSupplies: supplies }),
   setAllStockMap: (map) => set({ allStockMap: map }),
   setAllHistory: (history) => set({ allHistory: history }),
+  setAllCustomModels: (models) => set({ allCustomModels: models }),
+  setAllGallery: (gallery) => set({ allGallery: gallery }),
   setSelDate: (date) => set({ selDate: date }),
   setIsLoading: (v) => set({ isLoading: v }),
   addToCart: (item) => set((state) => ({ rentalCart: [...state.rentalCart, item] })),
@@ -112,6 +116,40 @@ saveProductToBackend: async (newProduct) => {
     }
   },
 
+  saveCustomModelToBackend: async (name, url) => {
+    try {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'save_model', data: { name, url } })
+      });
+      if (!response.ok) throw new Error('Failed to save model');
+      
+      // Update local state by prepending
+      set(state => ({ allCustomModels: [{ id: Date.now(), name, url, created_at: new Date().toISOString() }, ...state.allCustomModels] }));
+    } catch (e) {
+      console.error('Error saving model:', e);
+      throw e;
+    }
+  },
+
+  saveGalleryToBackend: async (gType, url) => {
+    try {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'save_gallery', data: { type: gType, url } })
+      });
+      if (!response.ok) throw new Error('Failed to save gallery');
+      
+      // Update local state by prepending
+      set(state => ({ allGallery: [{ id: Date.now(), type: gType, url, created_at: new Date().toISOString() }, ...state.allGallery] }));
+    } catch (e) {
+      console.error('Error saving gallery:', e);
+      throw e;
+    }
+  },
+
   // Update existing history logs and auto-sync inventory locally
   updateHistoryInBackend: async (updatedLogs) => {
     try {
@@ -179,6 +217,9 @@ saveProductToBackend: async (newProduct) => {
       const notes = backendData.notes || [];
       const supplies = backendData.supplies || [];
       const history = backendData.history || [];
+      const customModels = backendData.custom_models || [];
+      const gallery = backendData.gallery || [];
+      
       
       let finalInventory = {};
       
@@ -265,6 +306,8 @@ saveProductToBackend: async (newProduct) => {
         allNotes: notes,
         allSupplies: supplies,
         allHistory: history,
+        allCustomModels: customModels,
+        allGallery: gallery,
         allWeather: weather,
         isLoading: false 
       });

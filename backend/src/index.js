@@ -46,7 +46,9 @@ export default {
             env.DB.prepare("SELECT * FROM notes"),
             env.DB.prepare("SELECT * FROM supplies"),
             env.DB.prepare("SELECT * FROM products"),
-            env.DB.prepare("SELECT * FROM inventory_history")
+            env.DB.prepare("SELECT * FROM inventory_history"),
+            env.DB.prepare("SELECT * FROM custom_models ORDER BY created_at DESC"),
+            env.DB.prepare("SELECT * FROM gallery ORDER BY created_at DESC")
         ]);
 
         const inventoryResults = batchResults[0].results;
@@ -56,6 +58,8 @@ export default {
         const suppliesResults = batchResults[4].results;
         const productsResults = batchResults[5].results;
         const historyResults = batchResults[6].results;
+        const customModelsResults = batchResults[7].results;
+        const galleryResults = batchResults[8].results;
 
         const formattedInventory = {};
         inventoryResults.forEach(item => {
@@ -76,7 +80,9 @@ export default {
           notes: notesResults,
           supplies: suppliesResults,
           products: productsResults,
-          history: historyResults
+          history: historyResults,
+          custom_models: customModelsResults,
+          gallery: galleryResults
         };
 
         return new Response(JSON.stringify(responseData), {
@@ -150,6 +156,22 @@ export default {
              return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
           return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        else if (type === "save_model") {
+           const { name, url } = data;
+           if (name && url) {
+               await env.DB.prepare("INSERT INTO custom_models (name, url) VALUES (?, ?)").bind(name, url).run();
+               return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+           }
+           return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        else if (type === "save_gallery") {
+           const { type: gType, url } = data;
+           if (gType && url) {
+               await env.DB.prepare("INSERT INTO gallery (type, url) VALUES (?, ?)").bind(gType, url).run();
+               return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+           }
+           return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         else if (type === "save_rentals") {
            const statements = [env.DB.prepare("DELETE FROM rentals")];
