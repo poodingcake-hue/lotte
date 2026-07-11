@@ -127,6 +127,7 @@ const VtonPage = () => {
                     model_image: currentBaseImage,
                     garment_image: layer.url,
                     category: layer.cat,
+                    garment_photo_type: "flat-lay",
                     segmentation_free: false
                 };
                 
