@@ -30,6 +30,13 @@ export default {
         return new Response(object.body, { headers });
       }
 
+      if (request.method === "GET" && url.pathname === "/listr2") {
+        const list = await env.IMAGE_BUCKET.list({ limit: 1000 });
+        return new Response(JSON.stringify(list.objects.map(o => o.key)), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
       if (request.method === "GET") {
         // Optimize reads by batching them into a single roundtrip!
         const batchResults = await env.DB.batch([
