@@ -124,17 +124,9 @@ const VtonPage = () => {
                 setProgressText(`${layer.name} 합성 중... (${i+1}/${layers.length})\n진행 상황: ${layer.name} VTON 적용 중`);
                 
                 const payload = {
-                    model_image_url: currentBaseImage,
-                    garment_image_url: layer.url,
-                    category: layer.cat,
-                    garment_description: "Professional studio lighting",
-                    nsfw_filter: false,
-                    cover_feet: false,
-                    adjust_hands: false,
-                    restore_background: false,
-                    restore_hands: false,
-                    restore_faces: false,
-                    mode: "performance"
+                    model_image: currentBaseImage,
+                    garment_image: layer.url,
+                    category: layer.cat
                 };
                 
                 const res = await callFalRestApi('fal-ai/fashn/tryon/v1.6', payload);
