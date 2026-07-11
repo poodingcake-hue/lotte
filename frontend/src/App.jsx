@@ -20,16 +20,14 @@ function App() {
   return (
     <Router>
       <Navigation />
-      <main className="main-content">
-        <Routes>
-          <Route path="/" element={<SchedulePage />} />
-          <Route path="/task" element={<TaskPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/detail/:id" element={<DetailPage />} />
-          <Route path="/vton" element={<VtonPage />} />
-        </Routes>
-      </main>
+      <Routes>
+        <Route path="/" element={<main className="main-content"><SchedulePage /></main>} />
+        <Route path="/task" element={<main className="main-content"><TaskPage /></main>} />
+        <Route path="/inventory" element={<main className="main-content"><InventoryPage /></main>} />
+        <Route path="/register" element={<main className="main-content"><RegisterPage /></main>} />
+        <Route path="/detail/:id" element={<main className="main-content"><DetailPage /></main>} />
+        <Route path="/vton" element={<main style={{width: '100%', padding: '0 20px'}}><VtonPage /></main>} />
+      </Routes>
     </Router>
   );
 }
