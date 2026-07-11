@@ -19,6 +19,10 @@ const VtonPage = () => {
     const [characterSheetResult, setCharacterSheetResult] = useState('');
     const [isGeneratingSheet, setIsGeneratingSheet] = useState(false);
     
+    const [videoResult, setVideoResult] = useState('');
+    const [isVideoGenerating, setIsVideoGenerating] = useState(false);
+    const [videoProgressText, setVideoProgressText] = useState('');
+    
     // Modal State
     const [modalConfig, setModalConfig] = useState({ isOpen: false, layer: null });
     const [modalTab, setModalTab] = useState('product'); // 'product' or 'prompt'
@@ -196,6 +200,32 @@ const VtonPage = () => {
         }
     };
 
+    const generateVideo = async () => {
+        if (!finalResult) return;
+        setIsVideoGenerating(true);
+        setVideoResult('');
+        setVideoProgressText('씨댄스(SeaDance) 영상 생성 중... (약 1~3분 소요됩니다)');
+        try {
+            const payload = {
+                image_url: finalResult,
+                prompt: "A high-quality, photorealistic video of a female model in a minimalist indoor studio, performing natural fashion modeling poses. She smoothly transitions between poses: bending her knees slightly, crossing her arms and looking away, walking slowly while holding a wicker basket prop, and standing at a diagonal angle. The camera is static at eye-level, capturing a medium-full shot. No panning or zooming. The lighting is soft, diffused natural light coming from the side like window light, creating a warm, bright, and clean aesthetic. The background is a plain light-grey wall, and the floor is dark wood. The movement is fluid, elegant, and realistic, mimicking a professional photo shoot."
+            };
+            const res = await callFalRestApi('fal-ai/minimax-video/image-to-video', payload);
+            if (res && res.video && res.video.url) {
+                setVideoResult(res.video.url);
+                setVideoProgressText('영상 생성 완료!');
+            } else {
+                throw new Error('비디오 URL을 받지 못했습니다.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('비디오 생성 중 에러 발생:\n' + e.message);
+            setVideoProgressText('영상 생성 실패');
+        } finally {
+            setIsVideoGenerating(false);
+        }
+    };
+
     const renderLayerBox = (layerName, layerTitle, state) => {
         return (
             <div className="col" style={{ minWidth: '220px' }}>
@@ -319,6 +349,39 @@ const VtonPage = () => {
                                         <div className="mt-4 w-100">
                                             <h6 className="fw-bold text-center mb-2">캐릭터 시트 (16:9)</h6>
                                             <img src={characterSheetResult} alt="Character Sheet" style={{width: '100%', objectFit: 'contain', border: '2px solid #ffc107', borderRadius: '8px'}} />
+                                        </div>
+                                    )}
+                                    
+                                    <hr className="w-100 my-4" />
+                                    
+                                    <button 
+                                        className="btn btn-dark fw-bold w-100" 
+                                        onClick={generateVideo}
+                                        disabled={isVideoGenerating}
+                                    >
+                                        {isVideoGenerating ? (
+                                            <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> 영상 렌더링 중...</>
+                                        ) : '🎬 이 착장으로 패션 화보 영상 만들기 (SeaDance)'}
+                                    </button>
+                                    
+                                    {isVideoGenerating && (
+                                        <div className="text-center mt-3 text-muted small fw-bold">
+                                            {videoProgressText}
+                                        </div>
+                                    )}
+                                    
+                                    {videoResult && (
+                                        <div className="mt-4 w-100 d-flex flex-column align-items-center">
+                                            <h6 className="fw-bold text-center mb-2">🎬 씨댄스 화보 영상</h6>
+                                            <video 
+                                                controls 
+                                                autoPlay 
+                                                loop 
+                                                style={{width: '100%', maxWidth: '400px', borderRadius: '8px', border: '2px solid #343a40', boxShadow: '0 4px 12px rgba(0,0,0,0.15)'}}
+                                            >
+                                                <source src={videoResult} type="video/mp4" />
+                                                브라우저가 비디오 태그를 지원하지 않습니다.
+                                            </video>
                                         </div>
                                     )}
                                 </>
