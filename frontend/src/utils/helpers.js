@@ -13,23 +13,10 @@ export const getProductImage = (item) => {
     }
   }
 
-  // Google Drive security bypass (uc -> thumbnail)
-  if (resultUrl) {
-    let idMatch = null;
-    
-    // Check for drive.google.com URLs
-    if (resultUrl.includes('drive.google.com')) {
-      idMatch = resultUrl.match(/id=([^&]+)/) || resultUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    } 
-    // Check for lh3.googleusercontent.com/d/ URLs which expire
-    else if (resultUrl.includes('lh3.googleusercontent.com/d/')) {
-      idMatch = resultUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    }
-    
-    if (idMatch && idMatch[1]) {
-      // Use uc?export=view to get original quality and bypass expiration
-      resultUrl = `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
-    }
+  // Google Drive URLs have expired/broken due to Google's security updates.
+  // We will force these to fall back to the official Lotte CDN instead.
+  if (resultUrl && (resultUrl.includes('drive.google.com') || resultUrl.includes('googleusercontent.com'))) {
+    resultUrl = '';
   }
 
   // Fallback to Lotte image server if no explicit image but valid code exists
