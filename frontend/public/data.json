@@ -3019,19 +3019,6 @@
       "isMaster": false
     },
     {
-      "code": "12913515",
-      "image": "",
-      "brand": "",
-      "name": "[상담예약] 참좋은여행 북해도 4일 패키지",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-07-12 17:35",
-      "dateKey": "2026-07-12",
-      "location": "-",
-      "isMaster": false
-    },
-    {
       "code": "12913300",
       "image": "",
       "brand": "",
@@ -5939,6 +5926,19 @@
       "colors": "",
       "sizes": "",
       "date": "2026-07-18 10:35",
+      "dateKey": "2026-07-18",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12908739",
+      "image": "",
+      "brand": "",
+      "name": "[로보락]F25 Ultra 무선 스팀 습건식 청소기",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-07-18 13:55",
       "dateKey": "2026-07-18",
       "location": "-",
       "isMaster": false
