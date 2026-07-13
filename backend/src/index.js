@@ -30,6 +30,29 @@ export default {
         return new Response(object.body, { headers });
       }
 
+      if (request.method === "GET" && url.pathname === "/proxy") {
+        const targetUrl = url.searchParams.get("url");
+        if (!targetUrl) return new Response("Missing url", { status: 400, headers: corsHeaders });
+        
+        try {
+          const res = await fetch(targetUrl);
+          if (!res.ok) return new Response("Failed to fetch target URL", { status: res.status, headers: corsHeaders });
+          
+          const contentType = res.headers.get("content-type") || "image/jpeg";
+          const body = await res.arrayBuffer();
+          
+          return new Response(body, {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Content-Type": contentType,
+              "Cache-Control": "public, max-age=86400"
+            }
+          });
+        } catch (e) {
+          return new Response("Proxy error: " + e.message, { status: 500, headers: corsHeaders });
+        }
+      }
+
       if (request.method === "GET" && url.pathname === "/listr2") {
         const list = await env.IMAGE_BUCKET.list({ limit: 1000 });
         return new Response(JSON.stringify(list.objects.map(o => o.key)), {
@@ -158,9 +181,9 @@ export default {
           return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         else if (type === "save_model") {
-           const { name, url } = data;
+           const { name, url, height } = data;
            if (name && url) {
-               await env.DB.prepare("INSERT INTO custom_models (name, url) VALUES (?, ?)").bind(name, url).run();
+               await env.DB.prepare("INSERT INTO custom_models (name, url, height) VALUES (?, ?, ?)").bind(name, url, height ? Number(height) : null).run();
                return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
            }
            return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -169,6 +192,14 @@ export default {
            const { type: gType, url } = data;
            if (gType && url) {
                await env.DB.prepare("INSERT INTO gallery (type, url) VALUES (?, ?)").bind(gType, url).run();
+               return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+           }
+           return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        else if (type === "delete_gallery") {
+           const { id } = data;
+           if (id) {
+               await env.DB.prepare("DELETE FROM gallery WHERE id = ?").bind(id).run();
                return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
            }
            return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

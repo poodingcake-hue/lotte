@@ -355,7 +355,7 @@ const DetailPage = () => {
                 />
               )}
               {/* 색상별 썸네일 */}
-              {Object.entries(colorImages).filter(([k]) => k !== 'main').map(([k, v]) => {
+              {Object.entries(colorImages).filter(([k]) => k !== 'main' && k !== 'size').map(([k, v]) => {
                 const src = toThumb(v);
                 return (
                   <img

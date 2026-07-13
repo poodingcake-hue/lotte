@@ -9,7 +9,7 @@ const RegisterPage = () => {
     code: '',
     brand: '',
     name: '',
-    cate: '',
+    category: '',
     colors: '',
     sizes: '',
     image: ''
@@ -87,7 +87,7 @@ const RegisterPage = () => {
       code: item.code || '',
       brand: item.brand || '',
       name: item.name || '',
-      cate: item.category || '',
+      category: item.category || '',
       colors: colorVal,
       sizes: sizeVal,
       image: item.image || ''
@@ -430,7 +430,7 @@ const RegisterPage = () => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>카테고리</span>
-              <input type="text" name="cate" className="modal-input" placeholder="상의/하의/아우터/잡화" value={formData.cate} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="category" className="modal-input" placeholder="상의/하의/아우터/잡화" value={formData.category} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>색상 (콤마)</span>
@@ -493,6 +493,7 @@ const RegisterPage = () => {
               
               <div style={{ width: '1px', background: '#eee', margin: '0 5px' }}></div>
               {renderImageBox('main', '전체이미지')}
+              {renderImageBox('size', '상세사이즈')}
               {colors.map(c => renderImageBox(c, c))}
             </div>
           </div>

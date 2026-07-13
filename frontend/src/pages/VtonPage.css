@@ -62,3 +62,67 @@
 .vton-product-item:last-child {
     border-bottom: none;
 }
+
+/* Tooltip styles */
+.vton-tooltip-container {
+    position: relative;
+}
+
+.vton-tooltip-content-right {
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 102%;
+    background-color: rgba(33, 37, 41, 0.98);
+    color: #fff;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    z-index: 1200;
+    opacity: 0;
+    transition: opacity 0.2s, visibility 0.2s;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    width: 280px;
+    pointer-events: none;
+    border: 1px solid #444;
+}
+
+.vton-tooltip-content-left {
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    right: 102%;
+    background-color: rgba(33, 37, 41, 0.98);
+    color: #fff;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    z-index: 1200;
+    opacity: 0;
+    transition: opacity 0.2s, visibility 0.2s;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    width: 280px;
+    pointer-events: none;
+    border: 1px solid #444;
+}
+
+.vton-tooltip-container:hover .vton-tooltip-content-right {
+    visibility: visible;
+    opacity: 1;
+}
+
+.vton-tooltip-container:hover .vton-tooltip-content-left {
+    visibility: visible;
+    opacity: 1;
+}
+
+.vton-tooltip-image {
+    width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    margin-top: 8px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background: #fff;
+}
+
