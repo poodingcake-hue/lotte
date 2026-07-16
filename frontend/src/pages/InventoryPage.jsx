@@ -1,15 +1,13 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { getProductImage } from '../utils/helpers';
 import { useNavigate } from 'react-router-dom';
 
-const PAGE_SIZE = 40;
-
 const InventoryPage = () => {
   const { 
     allItems, allStockMap, isLoading, allSupplies,
-    invSearchTerm, invSelectedBrand, invSelectedCate, invVisibleCount,
-    setInvSearchTerm, setInvSelectedBrand, setInvSelectedCate, setInvVisibleCount
+    invSearchTerm, invSelectedBrand, invSelectedCate,
+    setInvSearchTerm, setInvSelectedBrand, setInvSelectedCate
   } = useAppStore();
   const navigate = useNavigate();
 
@@ -49,11 +47,7 @@ const InventoryPage = () => {
     setInvSelectedBrand('');
     setInvSelectedCate('');
     setInvSearchTerm('');
-    setInvVisibleCount(PAGE_SIZE);
-  }, [setInvSelectedBrand, setInvSelectedCate, setInvSearchTerm, setInvVisibleCount]);
-
-  const visibleItems = filteredItems.slice(0, invVisibleCount);
-  const hasMore = invVisibleCount < filteredItems.length;
+  }, [setInvSelectedBrand, setInvSelectedCate, setInvSearchTerm]);
 
   if (isLoading) {
     return (
@@ -78,7 +72,7 @@ const InventoryPage = () => {
               id="brandSel"
               className="form-select form-select-sm border-0 bg-light"
               value={invSelectedBrand}
-              onChange={(e) => { setInvSelectedBrand(e.target.value); setInvVisibleCount(PAGE_SIZE); }}
+              onChange={(e) => setInvSelectedBrand(e.target.value)}
             >
               {brands.map(b => <option key={b} value={b === '전체' ? '' : b}>{b}</option>)}
             </select>
@@ -88,7 +82,7 @@ const InventoryPage = () => {
               id="cateSel"
               className="form-select form-select-sm border-0 bg-light"
               value={invSelectedCate}
-              onChange={(e) => { setInvSelectedCate(e.target.value); setInvVisibleCount(PAGE_SIZE); }}
+              onChange={(e) => setInvSelectedCate(e.target.value)}
             >
               {categories.map(c => <option key={c} value={c === '전체' ? '' : c}>{c}</option>)}
             </select>
@@ -100,15 +94,15 @@ const InventoryPage = () => {
               className="form-control form-control-sm border-0 bg-light"
               placeholder="상품명, 브랜드, 코드 검색"
               value={invSearchTerm}
-              onChange={(e) => { setInvSearchTerm(e.target.value); setInvVisibleCount(PAGE_SIZE); }}
+              onChange={(e) => setInvSearchTerm(e.target.value)}
             />
           </div>
         </div>
       </div>
 
       {/* Product Grid */}
-      <div id="inventoryContainer" className="product-grid">
-        {visibleItems.map(item => {
+      <div id="inventoryContainer" className="product-grid" style={{ paddingBottom: '20px' }}>
+        {filteredItems.map(item => {
           const supplyObj = allSupplies?.find(s => String(s.code) === String(item.code));
           const overlay = (supplyObj && supplyObj.text)
             ? <div className="supplies-overlay">{supplyObj.text}</div>
@@ -131,18 +125,6 @@ const InventoryPage = () => {
             </div>
           );
         })}
-      </div>
-
-      {/* Load More */}
-      <div id="loadMoreContainer" className="text-center mt-3" style={{ paddingBottom: '20px' }}>
-        {hasMore && (
-          <button
-            className="btn btn-outline-secondary btn-sm"
-            onClick={() => setInvVisibleCount(invVisibleCount + PAGE_SIZE)}
-          >
-            더보기 ({filteredItems.length - invVisibleCount}개 남음)
-          </button>
-        )}
       </div>
     </section>
   );
