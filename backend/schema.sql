@@ -1,62 +1,63 @@
-DROP TABLE IF EXISTS inventory;
-CREATE TABLE inventory (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    color TEXT NOT NULL,
-    size TEXT NOT NULL,
-    qty INTEGER NOT NULL DEFAULT 0
-);
-
-DROP TABLE IF EXISTS rentals;
-CREATE TABLE rentals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    renter TEXT NOT NULL,
-    color TEXT,
-    size TEXT,
-    qty INTEGER NOT NULL DEFAULT 1,
-    date TEXT NOT NULL
-);
-
-DROP TABLE IF EXISTS outfits;
-CREATE TABLE outfits (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    host TEXT NOT NULL,
-    size TEXT
-);
-
-DROP TABLE IF EXISTS notes;
-CREATE TABLE notes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    text TEXT NOT NULL
-);
-
-DROP TABLE IF EXISTS supplies;
-CREATE TABLE supplies (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    text TEXT NOT NULL
-);
-
-DROP TABLE IF EXISTS products;
-CREATE TABLE IF NOT EXISTS products (
-  code TEXT PRIMARY KEY,
-  brand TEXT,
-  name TEXT,
-  category TEXT,
-  image TEXT,
-  date TEXT,
-  isMaster INTEGER DEFAULT 0,
-  colors TEXT,
-  sizes TEXT
+CREATE TABLE IF NOT EXISTS inventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL,
+    color TEXT NOT NULL,
+    size TEXT NOT NULL,
+    qty INTEGER NOT NULL DEFAULT 0
 );
-DROP TABLE IF EXISTS tasks; CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, assignee TEXT, status TEXT DEFAULT '대기', due_date TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
 
+CREATE TABLE IF NOT EXISTS rentals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL,
+    renter TEXT NOT NULL,
+    color TEXT,
+    size TEXT,
+    qty INTEGER NOT NULL DEFAULT 1,
+    date TEXT NOT NULL
+);
 
-DROP TABLE IF EXISTS inventory_history;
-CREATE TABLE inventory_history (
+CREATE TABLE IF NOT EXISTS outfits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL,
+    host TEXT NOT NULL,
+    size TEXT
+);
+
+CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL,
+    text TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS supplies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL,
+    text TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS products (
+  code TEXT PRIMARY KEY,
+  brand TEXT,
+  name TEXT,
+  category TEXT,
+  image TEXT,
+  date TEXT,
+  isMaster INTEGER DEFAULT 0,
+  colors TEXT,
+  sizes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    assignee TEXT,
+    status TEXT DEFAULT '대기',
+    due_date TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT NOT NULL,
     color TEXT NOT NULL,
@@ -66,9 +67,9 @@ CREATE TABLE inventory_history (
     actor TEXT,
     date TEXT NOT NULL,
     note TEXT
-);
-DROP TABLE IF EXISTS custom_models;
-CREATE TABLE custom_models (
+);
+
+CREATE TABLE IF NOT EXISTS custom_models (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     url TEXT NOT NULL,
@@ -76,10 +77,9 @@ CREATE TABLE custom_models (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS gallery;
-CREATE TABLE gallery (
+CREATE TABLE IF NOT EXISTS gallery (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT NOT NULL,
     url TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+);
