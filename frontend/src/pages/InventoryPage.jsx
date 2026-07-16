@@ -138,7 +138,7 @@ const InventoryPage = () => {
         {hasMore && (
           <button
             className="btn btn-outline-secondary btn-sm"
-            onClick={() => setInvVisibleCount(prev => prev + PAGE_SIZE)}
+            onClick={() => setInvVisibleCount(invVisibleCount + PAGE_SIZE)}
           >
             더보기 ({filteredItems.length - invVisibleCount}개 남음)
           </button>
