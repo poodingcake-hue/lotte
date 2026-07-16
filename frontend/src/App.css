@@ -915,3 +915,9 @@ input[type=number] {
 .matrix-input {
     font-family: 'Pretendard', sans-serif;
 }
+
+@media (max-width: 768px) {
+    .hide-on-mobile {
+        display: none !important;
+    }
+}

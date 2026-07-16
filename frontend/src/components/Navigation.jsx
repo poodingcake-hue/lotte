@@ -12,16 +12,16 @@ const Navigation = () => {
           <Link to="/">
             <button id="nav-sch" className={`nav-item ${currentPath === '/' ? 'active' : ''}`}>편성표</button>
           </Link>
-          <Link to="/task">
+          <Link to="/task" className="hide-on-mobile">
             <button id="nav-task" className={`nav-item ${currentPath === '/task' ? 'active' : ''}`}>작업수행서</button>
           </Link>
           <Link to="/inventory">
             <button id="nav-inv" className={`nav-item ${currentPath === '/inventory' ? 'active' : ''}`}>재고관리</button>
           </Link>
-          <Link to="/register">
+          <Link to="/register" className="hide-on-mobile">
             <button id="nav-reg" className={`nav-item ${currentPath === '/register' ? 'active' : ''}`}>상품등록</button>
           </Link>
-          <Link to="/vton">
+          <Link to="/vton" className="hide-on-mobile">
             <button id="nav-vton" className={`nav-item ${currentPath === '/vton' ? 'active' : ''}`}>가상착장</button>
           </Link>
         </div>
