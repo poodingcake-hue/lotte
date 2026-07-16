@@ -40,8 +40,8 @@ const InventoryPage = () => {
         (i.code && String(i.code).toLowerCase().includes(lower)) ||
         (i.brand && i.brand.toLowerCase().includes(lower))
       );
-    }
-    return items;
+    // 상품코드가 높은 순서대로 정렬
+    return [...items].sort((a, b) => String(b.code).localeCompare(String(a.code), undefined, { numeric: true }));
   }, [masterItems, selectedBrand, selectedCate, searchTerm]);
 
   const handleResetFilter = useCallback(() => {
