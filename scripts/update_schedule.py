@@ -101,10 +101,7 @@ async def scrape_lotte_schedule():
                     
                     hour = int(time_only.split(':')[0])
                     
-                    # 전날 밤 방송 제외 로직
-                    if not started_today:
-                        if hour >= 12: continue
-                        else: started_today = True
+                    # 전날 밤 방송 제외 로직 제거 (오후 시간대 전체가 날아가는 치명적 버그 방지)
                     
                     # 02:00 ~ 05:59 방송 제외 로직
                     if 2 <= hour <= 4:
