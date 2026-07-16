@@ -101,13 +101,36 @@ async def scrape_lotte_schedule():
                     
                     hour = int(time_only.split(':')[0])
                     
-                    # 전날 밤 방송 제외 로직 제거 (오후 시간대 전체가 날아가는 치명적 버그 방지)
-                    
                     # 02:00 ~ 05:59 방송 제외 로직
                     if 2 <= hour <= 4:
                         continue
                     
-                    broadcast_datetime = f"{date_val} {time_only}"
+                    # 전날 밤 방송 제외/보정 로직
+                    actual_date = date_val
+                    if not started_today:
+                        if hour >= 18:
+                            # 다음 아이템들 중 오전 방송(<12시)이 있는지 확인하여, 있으면 전날 방송으로 판단
+                            is_yesterday = False
+                            for next_li in time_list[i+1:i+10]:
+                                next_time_elem = await next_li.query_selector(".time")
+                                if next_time_elem:
+                                    next_time_text = await next_time_elem.inner_text()
+                                    next_time_only = re.findall(r'\d{2}:\d{2}', next_time_text)[-1] if re.findall(r'\d{2}:\d{2}', next_time_text) else None
+                                    if next_time_only:
+                                        next_hour = int(next_time_only.split(':')[0])
+                                        if next_hour < 12:
+                                            is_yesterday = True
+                                            break
+                            if is_yesterday:
+                                current_dt = datetime.strptime(date_val, "%Y-%m-%d")
+                                prev_dt = current_dt - timedelta(days=1)
+                                actual_date = prev_dt.strftime("%Y-%m-%d")
+                            else:
+                                started_today = True
+                        else:
+                            started_today = True
+                    
+                    broadcast_datetime = f"{actual_date} {time_only}"
                     class_attr = await li.get_attribute("class")
                     p_match = re.search(r'time_(\d+)', class_attr)
                     if not p_match: continue
@@ -214,8 +237,17 @@ def save_to_data_json(scraped_data):
             'isMaster': False
         })
     
+    # Deduplicate new_schedules by product code and broadcast date/time
+    seen = set()
+    deduped_schedules = []
+    for s in new_schedules:
+        key = (s['code'], s['date'])
+        if key not in seen:
+            seen.add(key)
+            deduped_schedules.append(s)
+    
     # Merge
-    data['items'] = master_items + new_schedules
+    data['items'] = master_items + deduped_schedules
     
     with open(data_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
