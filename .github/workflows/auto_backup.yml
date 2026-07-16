@@ -1,0 +1,31 @@
+name: Auto Database Backup
+
+on:
+  schedule:
+    # Runs every day at 18:00 UTC (03:00 KST / KST 오전 3시 실행)
+    - cron: '0 18 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run backup script
+        run: node backup.js
+
+      - name: Commit and Push backups
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rentals.json outfits.json notes.json supplies.json
+          # Commit only if there are changes (i.e. database has updated)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: automated database backup" && git push)
