@@ -342,32 +342,6 @@ const DetailPage = () => {
                 onClick={() => window.open(`https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=${item.code}`, '_blank')}
               />
             </div>
-
-            {/* 컬러 썸네일 가로 스크롤 */}
-            <div id="det-color-imgs" style={{ display: 'flex', gap: '8px', marginTop: '10px', overflowX: 'auto', paddingBottom: '5px', padding: '0 12px 10px' }}>
-              {/* 메인 이미지 썸네일 */}
-              {colorImages.main && (
-                <img
-                  src={toThumb(colorImages.main)}
-                  alt="전체"
-                  onClick={() => setActiveImg(toThumb(colorImages.main))}
-                  style={{ width: '60px', height: '66px', objectFit: 'contain', borderRadius: '6px', border: activeImg === toThumb(colorImages.main) ? '2px solid var(--primary)' : '1px solid #eee', cursor: 'pointer', background: '#fff', flexShrink: 0 }}
-                />
-              )}
-              {/* 색상별 썸네일 */}
-              {Object.entries(colorImages).filter(([k]) => k !== 'main' && k !== 'size').map(([k, v]) => {
-                const src = toThumb(v);
-                return (
-                  <img
-                    key={k}
-                    src={src}
-                    alt={k}
-                    onClick={() => setActiveImg(src)}
-                    style={{ width: '60px', height: '66px', objectFit: 'contain', borderRadius: '6px', border: activeImg === src ? '2px solid var(--primary)' : '1px solid #eee', cursor: 'pointer', background: '#fff', flexShrink: 0 }}
-                  />
-                );
-              })}
-            </div>
           </div>
 
           {/* 특이사항 */}
