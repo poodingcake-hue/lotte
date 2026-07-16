@@ -25,6 +25,12 @@ const InventoryPage = () => {
 
   const filteredItems = useMemo(() => {
     let items = masterItems;
+    
+    // 카테고리가 '반출'인 상품은 카테고리 필터에서 명시적으로 '반출'을 선택했을 때만 노출
+    if (invSelectedCate !== '반출') {
+      items = items.filter(i => i.category !== '반출');
+    }
+    
     if (invSelectedBrand && invSelectedBrand !== '전체') {
       items = items.filter(i => i.brand === invSelectedBrand);
     }
