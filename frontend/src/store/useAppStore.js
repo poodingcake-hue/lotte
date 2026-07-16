@@ -20,6 +20,12 @@ export const useAppStore = create((set, get) => ({
   isLoading: false,
   error: null,
 
+  // Inventory page filter persistence states
+  invSearchTerm: '',
+  invSelectedBrand: '',
+  invSelectedCate: '',
+  invVisibleCount: 40,
+
   // Setters for mutable arrays (for optimistic updates in DetailPage, etc.)
   setAllRentals: (rentals) => set({ allRentals: rentals }),
   setAllOutfits: (outfits) => set({ allOutfits: outfits }),
@@ -31,6 +37,10 @@ export const useAppStore = create((set, get) => ({
   setAllGallery: (gallery) => set({ allGallery: gallery }),
   setSelDate: (date) => set({ selDate: date }),
   setIsLoading: (v) => set({ isLoading: v }),
+  setInvSearchTerm: (v) => set({ invSearchTerm: v }),
+  setInvSelectedBrand: (v) => set({ invSelectedBrand: v }),
+  setInvSelectedCate: (v) => set({ invSelectedCate: v }),
+  setInvVisibleCount: (v) => set({ invVisibleCount: v }),
   addToCart: (item) => set((state) => ({ rentalCart: [...state.rentalCart, item] })),
   clearCart: () => set({ rentalCart: [] }),
   

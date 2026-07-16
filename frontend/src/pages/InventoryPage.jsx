@@ -6,11 +6,11 @@ import { useNavigate } from 'react-router-dom';
 const PAGE_SIZE = 40;
 
 const InventoryPage = () => {
-  const { allItems, allStockMap, isLoading, allSupplies } = useAppStore();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedCate, setSelectedCate] = useState('');
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const { 
+    allItems, allStockMap, isLoading, allSupplies,
+    invSearchTerm, invSelectedBrand, invSelectedCate, invVisibleCount,
+    setInvSearchTerm, setInvSelectedBrand, setInvSelectedCate, setInvVisibleCount
+  } = useAppStore();
   const navigate = useNavigate();
 
   const masterItems = useMemo(() => allItems.filter(i => i.isMaster), [allItems]);
@@ -27,32 +27,33 @@ const InventoryPage = () => {
 
   const filteredItems = useMemo(() => {
     let items = masterItems;
-    if (selectedBrand && selectedBrand !== '전체') {
-      items = items.filter(i => i.brand === selectedBrand);
+    if (invSelectedBrand && invSelectedBrand !== '전체') {
+      items = items.filter(i => i.brand === invSelectedBrand);
     }
-    if (selectedCate && selectedCate !== '전체') {
-      items = items.filter(i => i.category === selectedCate);
+    if (invSelectedCate && invSelectedCate !== '전체') {
+      items = items.filter(i => i.category === invSelectedCate);
     }
-    if (searchTerm.trim()) {
-      const lower = searchTerm.toLowerCase();
+    if (invSearchTerm.trim()) {
+      const lower = invSearchTerm.toLowerCase();
       items = items.filter(i =>
         (i.name && i.name.toLowerCase().includes(lower)) ||
         (i.code && String(i.code).toLowerCase().includes(lower)) ||
         (i.brand && i.brand.toLowerCase().includes(lower))
       );
+    }
     // 상품코드가 높은 순서대로 정렬
     return [...items].sort((a, b) => String(b.code).localeCompare(String(a.code), undefined, { numeric: true }));
-  }, [masterItems, selectedBrand, selectedCate, searchTerm]);
+  }, [masterItems, invSelectedBrand, invSelectedCate, invSearchTerm]);
 
   const handleResetFilter = useCallback(() => {
-    setSelectedBrand('');
-    setSelectedCate('');
-    setSearchTerm('');
-    setVisibleCount(PAGE_SIZE);
-  }, []);
+    setInvSelectedBrand('');
+    setInvSelectedCate('');
+    setInvSearchTerm('');
+    setInvVisibleCount(PAGE_SIZE);
+  }, [setInvSelectedBrand, setInvSelectedCate, setInvSearchTerm, setInvVisibleCount]);
 
-  const visibleItems = filteredItems.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredItems.length;
+  const visibleItems = filteredItems.slice(0, invVisibleCount);
+  const hasMore = invVisibleCount < filteredItems.length;
 
   if (isLoading) {
     return (
@@ -76,8 +77,8 @@ const InventoryPage = () => {
             <select
               id="brandSel"
               className="form-select form-select-sm border-0 bg-light"
-              value={selectedBrand}
-              onChange={(e) => { setSelectedBrand(e.target.value); setVisibleCount(PAGE_SIZE); }}
+              value={invSelectedBrand}
+              onChange={(e) => { setInvSelectedBrand(e.target.value); setInvVisibleCount(PAGE_SIZE); }}
             >
               {brands.map(b => <option key={b} value={b === '전체' ? '' : b}>{b}</option>)}
             </select>
@@ -86,8 +87,8 @@ const InventoryPage = () => {
             <select
               id="cateSel"
               className="form-select form-select-sm border-0 bg-light"
-              value={selectedCate}
-              onChange={(e) => { setSelectedCate(e.target.value); setVisibleCount(PAGE_SIZE); }}
+              value={invSelectedCate}
+              onChange={(e) => { setInvSelectedCate(e.target.value); setInvVisibleCount(PAGE_SIZE); }}
             >
               {categories.map(c => <option key={c} value={c === '전체' ? '' : c}>{c}</option>)}
             </select>
@@ -98,8 +99,8 @@ const InventoryPage = () => {
               id="invSearch"
               className="form-control form-control-sm border-0 bg-light"
               placeholder="상품명, 브랜드, 코드 검색"
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setVisibleCount(PAGE_SIZE); }}
+              value={invSearchTerm}
+              onChange={(e) => { setInvSearchTerm(e.target.value); setInvVisibleCount(PAGE_SIZE); }}
             />
           </div>
         </div>
@@ -137,9 +138,9 @@ const InventoryPage = () => {
         {hasMore && (
           <button
             className="btn btn-outline-secondary btn-sm"
-            onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+            onClick={() => setInvVisibleCount(prev => prev + PAGE_SIZE)}
           >
-            더보기 ({filteredItems.length - visibleCount}개 남음)
+            더보기 ({filteredItems.length - invVisibleCount}개 남음)
           </button>
         )}
       </div>
