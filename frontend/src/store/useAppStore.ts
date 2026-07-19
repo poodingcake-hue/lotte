@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { fetchWithToken, apiClient, GH_CONFIG } from '../api/client';
+import { apiClient } from '../api/client';
 import { useVtonStore } from './useVtonStore';
 import { AppState } from '../types';
 
