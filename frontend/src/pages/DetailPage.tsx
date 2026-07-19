@@ -57,9 +57,7 @@ const DetailPage = () => {
   }, [item]);
 
   const toThumb = (url) => {
-    if (!url) return '';
-    const m = url.match(/id=([^&]+)/) || url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : url;
+    return url;
   };
 
   // ─── 관련 데이터 ─────────────────────────────────────────────

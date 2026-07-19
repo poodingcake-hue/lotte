@@ -13,11 +13,8 @@ export const getProductImage = (item) => {
     }
   }
 
-  // Google Drive URLs have expired/broken due to Google's security updates.
-  // We will force these to fall back to the official Lotte CDN instead.
-  if (resultUrl && (resultUrl.includes('drive.google.com') || resultUrl.includes('googleusercontent.com'))) {
-    resultUrl = '';
-  }
+  // Legacy Google Drive URLs are completely removed from the dataset,
+  // so no filtering logic is needed here.
 
   // Fallback to Lotte image server if no explicit image but valid code exists
   if (!resultUrl && item.code && String(item.code).length >= 8) {

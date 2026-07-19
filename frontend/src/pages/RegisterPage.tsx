@@ -122,7 +122,7 @@ const RegisterPage = () => {
   const stockMap = allStockMap[String(formData.code)] || [];
   const isAdditional = stockMap.length > 0;
 
-  // Handle uploading a file to Google Drive via backend
+  // Handle uploading a file to Cloudflare Worker via backend
   const uploadFile = async (file) => {
     try {
       setIsUploading(true);
@@ -356,10 +356,6 @@ const RegisterPage = () => {
     const imgUrl = imageObj[boxKey];
     
     let displayUrl = imgUrl;
-    if (imgUrl) {
-       const match = imgUrl.match(/id=([a-zA-Z0-9_-]+)/);
-       if (match) displayUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
-    }
 
     return (
       <div 

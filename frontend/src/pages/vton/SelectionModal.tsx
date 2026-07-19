@@ -48,8 +48,7 @@ const SelectionModal = ({
                                             <div style={{ width: '60%', display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '5px', alignItems: 'center' }}>
                                                 {colors.map((c, i) => {
                                                     let cUrl = imgObj[c];
-                                                    const idMatch = cUrl && cUrl.match(/id=([a-zA-Z0-9_-]+)/);
-                                                    const finalUrl = idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[1]}` : cUrl;
+                                                    const finalUrl = cUrl;
                                                     return (
                                                         <div key={i} onClick={() => selectProductColor(item, c)} style={{ cursor: 'pointer', textAlign: 'center', minWidth: '70px', transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
                                                             <div style={{ width: '70px', height: '90px', background: '#f8f9fa', borderRadius: '4px', overflow: 'hidden', border: '1px solid #eee' }}>

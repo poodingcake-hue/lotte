@@ -91,8 +91,7 @@ const VtonPage = () => {
         try {
             const imgObj = JSON.parse(item.image);
             if (colorCode && imgObj[colorCode]) {
-                const id = imgObj[colorCode].match(/id=([a-zA-Z0-9_-]+)/);
-                imgUrl = id ? `https://lh3.googleusercontent.com/d/${id[1]}` : imgObj[colorCode];
+                imgUrl = imgObj[colorCode];
             } else {
                 imgUrl = getProductImage(item);
             }
@@ -134,8 +133,7 @@ const VtonPage = () => {
         
         const newColorCode = colors[newIndex];
         let cUrl = imgObj[newColorCode];
-        const idMatch = cUrl && cUrl.match(/id=([a-zA-Z0-9_-]+)/);
-        const finalUrl = idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[1]}` : cUrl;
+        const finalUrl = cUrl;
         
         if (finalUrl) {
             if (layerName === 'top') setTop(prev => ({ ...prev, url: finalUrl, colorCode: newColorCode }));
@@ -156,8 +154,7 @@ const VtonPage = () => {
         try {
             const imgObj = JSON.parse(item.image);
             if (defaultColor && imgObj[defaultColor]) {
-                const id = imgObj[defaultColor].match(/id=([a-zA-Z0-9_-]+)/);
-                imgUrl = id ? `https://lh3.googleusercontent.com/d/${id[1]}` : imgObj[defaultColor];
+                imgUrl = imgObj[defaultColor];
             } else {
                 imgUrl = getProductImage(item);
             }
