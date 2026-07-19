@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { fetchWithToken, apiClient, GH_CONFIG } from '../api/client';
+import { useVtonStore } from './useVtonStore';
+import { AppState } from '../types';
 
 const GAS_WEB_APP_URL = 'https://lotte-backend.poodingcake.workers.dev';
 
-export const useAppStore = create((set, get) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   allItems: [],
   allStockMap: {},
   allRentals: [],
@@ -11,8 +13,6 @@ export const useAppStore = create((set, get) => ({
   allNotes: [],
   allSupplies: [],
   allHistory: [],
-  allCustomModels: [],
-  allGallery: [],
   allWeather: null,
   selDate: null,
   filteredItems: [],
@@ -33,8 +33,6 @@ export const useAppStore = create((set, get) => ({
   setAllSupplies: (supplies) => set({ allSupplies: supplies }),
   setAllStockMap: (map) => set({ allStockMap: map }),
   setAllHistory: (history) => set({ allHistory: history }),
-  setAllCustomModels: (models) => set({ allCustomModels: models }),
-  setAllGallery: (gallery) => set({ allGallery: gallery }),
   setSelDate: (date) => set({ selDate: date }),
   setIsLoading: (v) => set({ isLoading: v }),
   setInvSearchTerm: (v) => set({ invSearchTerm: v }),
@@ -126,55 +124,6 @@ saveProductToBackend: async (newProduct) => {
     }
   },
 
-  saveCustomModelToBackend: async (name, url, height) => {
-    try {
-      const response = await fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'save_model', data: { name, url, height: height ? Number(height) : null } })
-      });
-      if (!response.ok) throw new Error('Failed to save model');
-      
-      // Update local state by prepending
-      set(state => ({ allCustomModels: [{ id: Date.now(), name, url, height: height ? Number(height) : null, created_at: new Date().toISOString() }, ...state.allCustomModels] }));
-    } catch (e) {
-      console.error('Error saving model:', e);
-      throw e;
-    }
-  },
-
-  saveGalleryToBackend: async (gType, url) => {
-    try {
-      const response = await fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'save_gallery', data: { type: gType, url } })
-      });
-      if (!response.ok) throw new Error('Failed to save gallery');
-      
-      // Update local state by prepending
-      set(state => ({ allGallery: [{ id: Date.now(), type: gType, url, created_at: new Date().toISOString() }, ...state.allGallery] }));
-    } catch (e) {
-      console.error('Error saving gallery:', e);
-      throw e;
-    }
-  },
-
-  deleteGalleryFromBackend: async (id) => {
-    try {
-      const response = await fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'delete_gallery', data: { id } })
-      });
-      if (!response.ok) throw new Error('Failed to delete gallery item');
-      
-      set(state => ({ allGallery: state.allGallery.filter(item => item.id !== id) }));
-    } catch (e) {
-      console.error('Error deleting gallery item:', e);
-      throw e;
-    }
-  },
 
   // Update existing history logs and auto-sync inventory locally
   updateHistoryInBackend: async (updatedLogs) => {
@@ -324,6 +273,10 @@ saveProductToBackend: async (newProduct) => {
         }
       } catch (e) { console.warn('날씨 데이터 로드 실패', e); }
 
+      // Update VtonStore separately
+      useVtonStore.getState().setAllCustomModels(customModels);
+      useVtonStore.getState().setAllGallery(gallery);
+
       set({ 
         allItems,
         allStockMap: finalInventory,
@@ -332,8 +285,6 @@ saveProductToBackend: async (newProduct) => {
         allNotes: notes,
         allSupplies: supplies,
         allHistory: history,
-        allCustomModels: customModels,
-        allGallery: gallery,
         allWeather: weather,
         isLoading: false 
       });

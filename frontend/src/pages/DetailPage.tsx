@@ -275,10 +275,10 @@ const DetailPage = () => {
       const rented = itemRentals.filter(r => r.color === s.color && r.size === s.size).reduce((a, b) => a + Number(b.qty), 0);
       return { '상품코드': id, '상품명': item ? `${item.brand} ${item.name}` : id, '색상': s.color, '사이즈': s.size, '현재재고': Number(s.qty) - rented };
     }).sort((a, b) => colorOrder.indexOf(a['색상']) - colorOrder.indexOf(b['색상']));
-    const ws = window.XLSX.utils.json_to_sheet(data);
-    const wb = window.XLSX.utils.book_new();
-    window.XLSX.utils.book_append_sheet(wb, ws, '재고현황');
-    window.XLSX.writeFile(wb, `[${item?.brand}] ${item?.name}(${id}).xlsx`);
+    const wb = (window as any).XLSX.utils.book_new();
+    const ws = (window as any).XLSX.utils.json_to_sheet(data);
+    (window as any).XLSX.utils.book_append_sheet(wb, ws, '재고현황');
+    (window as any).XLSX.writeFile(wb, `[${item?.brand}] ${item?.name}(${id}).xlsx`);
   };
 
   // ─── 메인 이미지 URL ─────────────────────────────────────────

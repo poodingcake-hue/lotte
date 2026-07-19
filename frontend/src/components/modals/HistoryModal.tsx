@@ -67,7 +67,7 @@ const HistoryModal = ({ isOpen, onClose, productCode }) => {
         }
         
         // 3. 날짜 역순 정렬
-        return new Date(b.date) - new Date(a.date);
+        return ((new Date(b.date) as any) - (new Date(a.date) as any));
       });
   }, [allHistory, productCode, sizeOrder, colorOrder]);
 
@@ -222,7 +222,7 @@ const HistoryModal = ({ isOpen, onClose, productCode }) => {
 
 const thStyle = {
   padding: '12px 15px',
-  textAlign: 'left',
+  textAlign: 'left' as any,
   fontSize: '14px',
   fontWeight: 'bold',
   color: '#334155',
@@ -233,7 +233,7 @@ const tdStyle = {
   padding: '12px 15px',
   fontSize: '14px',
   color: '#475569',
-  verticalAlign: 'middle'
+  verticalAlign: 'middle' as any
 };
 
 export default HistoryModal;

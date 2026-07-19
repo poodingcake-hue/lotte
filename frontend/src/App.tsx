@@ -6,7 +6,7 @@ import TaskPage from './pages/TaskPage';
 import InventoryPage from './pages/InventoryPage';
 import RegisterPage from './pages/RegisterPage';
 import DetailPage from './pages/DetailPage';
-import VtonPage from './pages/VtonPage';
+import VtonPage from './pages/vton/index';
 import { useAppStore } from './store/useAppStore';
 import './App.css';
 
