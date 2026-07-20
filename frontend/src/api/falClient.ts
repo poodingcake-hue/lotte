@@ -1,6 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://lotte-backend.poodingcake.workers.dev';
 
-export async function callFalRestApi(modelUrl, payload) {
+export async function callFalRestApi(modelUrl: string, payload: any): Promise<any> {
     const res = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -22,9 +22,13 @@ export async function callFalRestApi(modelUrl, payload) {
     return data;
 }
 
-async function pollFalRequest(statusUrl, responseUrl) {
-    while (true) {
+async function pollFalRequest(statusUrl: string, responseUrl: string): Promise<any> {
+    const maxRetries = 180; // Max 3 minutes
+    let attempts = 0;
+
+    while (attempts < maxRetries) {
         await new Promise(r => setTimeout(r, 1000));
+        attempts++;
         
         const statusRes = await fetch(API_BASE_URL, {
             method: 'POST',
@@ -51,4 +55,6 @@ async function pollFalRequest(statusUrl, responseUrl) {
         }
         // If IN_QUEUE or IN_PROGRESS, continue while loop
     }
+    throw new Error('Fal API Polling Timeout (3 minutes exceeded)');
 }
+

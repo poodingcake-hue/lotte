@@ -1,6 +1,11 @@
 import React from 'react';
 
-const GalleryPopup = ({ selectedGalleryItem, setSelectedGalleryItem }) => {
+interface GalleryPopupProps {
+    selectedGalleryItem: any;
+    setSelectedGalleryItem: (item: any) => void;
+}
+
+const GalleryPopup = ({ selectedGalleryItem, setSelectedGalleryItem }: GalleryPopupProps) => {
     if (!selectedGalleryItem) return null;
 
     return (

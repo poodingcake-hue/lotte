@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const DOW = ['일', '월', '화', '수', '목', '금', '토'];
 
-const parseTimeFromDateString = (dateStr) => {
+const parseTimeFromDateString = (dateStr: string) => {
   // e.g. "2026-07-02 01:00" -> "01:00"
   const parts = dateStr.split(' ');
   return parts.length > 1 ? parts[1] : null;
@@ -16,12 +16,12 @@ const TaskPage = () => {
   const navigate = useNavigate();
 
   const masterCodes = useMemo(() => {
-    const s = new Set(allItems.filter(i => i.isMaster).map(i => String(i.code)));
+    const s = new Set(allItems.filter((i: any) => i.isMaster).map((i: any) => String(i.code)));
     Object.keys(allStockMap || {}).forEach(k => s.add(String(k)));
     return s;
   }, [allItems, allStockMap]);
 
-  const isOurProduct = useCallback((code) => masterCodes.has(String(code)), [masterCodes]);
+  const isOurProduct = useCallback((code: any) => masterCodes.has(String(code)), [masterCodes]);
 
   // All schedule slots that are for our products
   const ourSlots = useMemo(() => {
@@ -36,21 +36,21 @@ const TaskPage = () => {
 
   // Unique dates
   const uniqueDates = useMemo(() => {
-    const dSet = new Set();
-    ourSlots.forEach(slot => { const d = slot.split(' ')[0]; if (d) dSet.add(d); });
+    const dSet = new Set<string>();
+    ourSlots.forEach(slot => { const d = (slot as string).split(' ')[0]; if (d) dSet.add(d); });
     return Array.from(dSet).sort();
   }, [ourSlots]);
 
-  const [currentDate, setCurrentDate] = useState(null);
-  const [currentTime, setCurrentTime] = useState(null);
-  const [hostsInput, setHostsInput] = useState('호스트1, 호스트2');
-  const [sectionsCount, setSectionsCount] = useState(2);
-  const [sectionsMap, setSectionsMap] = useState({}); // { "YYYY-MM-DD HH:MM": [{id, rows: []}] }
-  const [dragItem, setDragItem] = useState(null);
-  const [dragOverSection, setDragOverSection] = useState(null);
+  const [currentDate, setCurrentDate] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<string | null>(null);
+  const [hostsInput, setHostsInput] = useState<string>('호스트1, 호스트2');
+  const [sectionsCount, setSectionsCount] = useState<number | string>(2);
+  const [sectionsMap, setSectionsMap] = useState<Record<string, any[]>>({}); // { "YYYY-MM-DD HH:MM": [{id, rows: []}] }
+  const [dragItem, setDragItem] = useState<any>(null);
+  const [dragOverSection, setDragOverSection] = useState<any>(null);
 
   const currentSlotKey = `${currentDate} ${currentTime}`;
-  const sections = sectionsMap[currentSlotKey] || [];
+  const sections = (sectionsMap as Record<string, any[]>)[currentSlotKey] || [];
 
   // Set default date
   useEffect(() => {
@@ -63,10 +63,10 @@ const TaskPage = () => {
   // Unique times for current date
   const uniqueTimes = useMemo(() => {
     if (!currentDate) return [];
-    const tSet = new Set();
+    const tSet = new Set<string>();
     ourSlots.forEach(slot => {
-      if (slot.startsWith(currentDate)) {
-        const t = parseTimeFromDateString(slot);
+      if ((slot as string).startsWith(currentDate)) {
+        const t = parseTimeFromDateString(slot as string);
         if (t) tSet.add(t);
       }
     });
@@ -101,11 +101,11 @@ const TaskPage = () => {
     { key: 'h2_wear', name: `${hosts[1]} 착장`, width: '75px' },
   ], [hosts]);
 
-  const updateCurrentSections = (updater) => {
+  const updateCurrentSections = (updater: (prev: any[]) => any[]) => {
     if (!currentDate || !currentTime) return;
     setSectionsMap(prev => ({
       ...prev,
-      [currentSlotKey]: updater(prev[currentSlotKey] || [])
+      [currentSlotKey]: updater((prev as Record<string, any[]>)[currentSlotKey] || [])
     }));
   };
 
@@ -116,7 +116,7 @@ const TaskPage = () => {
     updateCurrentSections(() => newSections);
   };
 
-  const handleDragStart = (e, item) => {
+  const handleDragStart = (e: any, item: any) => {
     setDragItem(item);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -126,13 +126,13 @@ const TaskPage = () => {
     setDragOverSection(null);
   };
 
-  const handleDrop = (e, sectionId) => {
+  const handleDrop = (e: any, sectionId: any) => {
     e.preventDefault();
     if (!dragItem) return;
     
     // Check if the dragged item belongs to the current selected slot
     // Though practically impossible with our UI unless they somehow change the slot while dragging
-    if (dragItem.date && dragItem.date.trim() !== currentSlotKey) {
+    if (dragItem.date && (dragItem.date as string).trim() !== currentSlotKey) {
         alert("선택된 방송 날짜와 시간의 상품만 해당 구간에 등록할 수 있습니다.");
         setDragOverSection(null);
         return;
@@ -141,18 +141,18 @@ const TaskPage = () => {
     updateCurrentSections(prev => prev.map(sec => {
       if (sec.id !== sectionId) return sec;
       // Don't add duplicate
-      if (sec.rows.find(r => r.code === dragItem.code)) return sec;
+      if (sec.rows.find((r: any) => r.code === dragItem.code)) return sec;
       return { ...sec, rows: [...sec.rows, { ...dragItem, cells: {} }] };
     }));
     setDragOverSection(null);
   };
 
-  const handleCellChange = (sectionId, rowCode, colKey, value) => {
+  const handleCellChange = (sectionId: any, rowCode: any, colKey: any, value: any) => {
     updateCurrentSections(prev => prev.map(sec => {
       if (sec.id !== sectionId) return sec;
       return {
         ...sec,
-        rows: sec.rows.map(row => {
+        rows: sec.rows.map((row: any) => {
           if (row.code !== rowCode) return row;
           return { ...row, cells: { ...(row.cells || {}), [colKey]: value } };
         })
@@ -160,17 +160,17 @@ const TaskPage = () => {
     }));
   };
 
-  const handleRemoveRow = (sectionId, rowCode) => {
+  const handleRemoveRow = (sectionId: any, rowCode: any) => {
     updateCurrentSections(prev => prev.map(sec => {
       if (sec.id !== sectionId) return sec;
-      return { ...sec, rows: sec.rows.filter(r => r.code !== rowCode) };
+      return { ...sec, rows: sec.rows.filter((r: any) => r.code !== rowCode) };
     }));
   };
 
   const handlePrint = () => window.print();
 
   // Get master item for a schedule entry
-  const getMasterItem = useCallback((code) => {
+  const getMasterItem = useCallback((code: any) => {
     return allItems.find(i => i.isMaster && String(i.code) === String(code));
   }, [allItems]);
 
@@ -278,7 +278,7 @@ const TaskPage = () => {
                       style={{ display: 'flex', gap: '10px', padding: '8px', borderRadius: '8px', border: '1px solid #eee', background: '#fff', cursor: 'grab', alignItems: 'center' }}
                     >
                       <img
-                        src={getProductImage(displayItem) || 'https://via.placeholder.com/50'}
+                        src={getProductImage(displayItem) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="%23f8f9fa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="8" fill="%23adb5bd">No Image</text></svg>'}
                         alt={displayItem.name}
                         style={{ width: '50px', height: '50px', objectFit: 'contain', borderRadius: '4px', flexShrink: 0 }}
                       />
@@ -303,7 +303,7 @@ const TaskPage = () => {
                 좌측의 "방송 설정"에서 구간 수를 설정하고 "적용" 버튼을 눌러주세요.
               </div>
             )}
-            {sections.map(sec => (
+            {sections.map((sec: any) => (
               <div
                 key={sec.id}
                 style={{ background: '#fff', border: `1px solid ${dragOverSection === sec.id ? 'var(--primary)' : '#e5e7eb'}`, borderRadius: '8px', padding: '15px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '20px' }}
@@ -335,7 +335,7 @@ const TaskPage = () => {
                         이곳에 상품을 드래그하여 상품 추가
                       </div>
                     )}
-                    {sec.rows.map((row, rowIdx) => {
+                    {sec.rows.map((row: any, rowIdx: number) => {
                       const master = getMasterItem(row.code);
                       const displayItem = master || row;
                       return (
@@ -344,7 +344,7 @@ const TaskPage = () => {
                           <div style={{ width: '180px', minWidth: '180px', padding: '10px 8px', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                             <button onClick={() => handleRemoveRow(sec.id, row.code)} style={{ background: 'none', border: 'none', color: '#ddd', cursor: 'pointer', fontSize: '16px', padding: '0', flexShrink: 0, marginTop: '2px' }}>×</button>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: 0, alignItems: 'center' }}>
-                              <img src={getProductImage(displayItem) || 'https://via.placeholder.com/117'} alt="" style={{ width: '117px', height: '117px', objectFit: 'contain', borderRadius: '4px', flexShrink: 0 }} />
+                              <img src={getProductImage(displayItem) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="117" height="117" viewBox="0 0 117 117"><rect width="117" height="117" fill="%23f8f9fa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23adb5bd">No Image</text></svg>'} alt="" style={{ width: '117px', height: '117px', objectFit: 'contain', borderRadius: '4px', flexShrink: 0 }} />
                               <div style={{ width: '100%', textAlign: 'center' }}>
                                 <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', marginBottom: '2px' }}>{displayItem.brand}</div>
                                 <div style={{ fontSize: '12px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'keep-all', lineHeight: '1.3' }}>{displayItem.name}</div>

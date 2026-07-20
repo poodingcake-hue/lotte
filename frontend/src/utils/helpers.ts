@@ -1,4 +1,4 @@
-export const getProductImage = (item) => {
+export const getProductImage = (item: any) => {
   if (!item) return '';
   let resultUrl = '';
 

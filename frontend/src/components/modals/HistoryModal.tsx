@@ -1,9 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 
-const HistoryModal = ({ isOpen, onClose, productCode }) => {
+interface HistoryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  productCode: string;
+}
+
+const HistoryModal = ({ isOpen, onClose, productCode }: HistoryModalProps) => {
   const { allHistory, allItems, allStockMap, updateHistoryInBackend } = useAppStore();
-  const [editedLogs, setEditedLogs] = useState({});
+  const [editedLogs, setEditedLogs] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   // Find product name from master data
@@ -14,7 +20,7 @@ const HistoryModal = ({ isOpen, onClose, productCode }) => {
   }, [allItems, productCode]);
 
   // Date formatter (YYYY-MM-DD)
-  const formatDateForInput = (dateString) => {
+  const formatDateForInput = (dateString: string | null | undefined) => {
     if (!dateString) return '';
     try {
       return dateString.split('T')[0];
@@ -25,8 +31,8 @@ const HistoryModal = ({ isOpen, onClose, productCode }) => {
 
   const sizeOrder = useMemo(() => {
     if (!productCode || !allStockMap[productCode]) return [];
-    const sizes = [];
-    allStockMap[productCode].forEach(item => {
+    const sizes: any[] = [];
+    allStockMap[productCode].forEach((item: any) => {
       if (!sizes.includes(item.size)) sizes.push(item.size);
     });
     return sizes;
@@ -34,8 +40,8 @@ const HistoryModal = ({ isOpen, onClose, productCode }) => {
 
   const colorOrder = useMemo(() => {
     if (!productCode || !allStockMap[productCode]) return [];
-    const colors = [];
-    allStockMap[productCode].forEach(item => {
+    const colors: any[] = [];
+    allStockMap[productCode].forEach((item: any) => {
       if (!colors.includes(item.color)) colors.push(item.color);
     });
     return colors;
@@ -76,11 +82,11 @@ const HistoryModal = ({ isOpen, onClose, productCode }) => {
     setEditedLogs({});
   }, [isOpen]);
 
-  const handleEdit = (id, field, value) => {
+  const handleEdit = (id: string | number, field: string, value: any) => {
     setEditedLogs(prev => ({
       ...prev,
       [id]: {
-        ...originalHistoryLogs.find(log => log.id === id),
+        ...originalHistoryLogs.find(log => String(log.id) === String(id)),
         ...prev[id],
         [field]: value
       }
@@ -96,7 +102,10 @@ const HistoryModal = ({ isOpen, onClose, productCode }) => {
 
     const payload = idsToUpdate.map(id => {
       const edited = editedLogs[id];
-      const original = originalHistoryLogs.find(log => log.id === Number(id));
+      const original = originalHistoryLogs.find(log => String(log.id) === String(id));
+      if (!original) {
+        throw new Error(`Original log not found for id: ${id}`);
+      }
       const newQty = Number(edited.qty);
       const oldQty = Number(original.qty);
       

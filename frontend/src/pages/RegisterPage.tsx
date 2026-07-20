@@ -15,7 +15,7 @@ const RegisterPage = () => {
     image: ''
   });
 
-  const [matrixData, setMatrixData] = useState({});
+  const [matrixData, setMatrixData] = useState<Record<string, string>>({});
   const [extraSizes, setExtraSizes] = useState(['', '']); 
   const [extraColors, setExtraColors] = useState(['']); 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -41,25 +41,25 @@ const RegisterPage = () => {
     }
   }, [formData.image]);
 
-  const updateImageObj = (key, url) => {
+  const updateImageObj = (key: string, url: string) => {
     const newObj = { ...imageObj, [key]: url };
     setFormData(prev => ({ ...prev, image: JSON.stringify(newObj) }));
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleProductSelect = (item) => {
+  const handleProductSelect = (item: any) => {
     const existingStock = allStockMap[String(item.code)] || [];
     let colorVal = '';
     let sizeVal = '';
 
-    const sList = [];
-    const cList = [];
+    const sList: string[] = [];
+    const cList: string[] = [];
 
     // Prioritize inventory colors and sizes by pushing them FIRST
-    existingStock.forEach(s => {
+    existingStock.forEach((s: any) => {
       if (s.size && !sList.includes(String(s.size))) sList.push(String(s.size));
       if (s.color && !cList.includes(String(s.color))) cList.push(String(s.color));
     });
@@ -67,14 +67,14 @@ const RegisterPage = () => {
     // Then add master colors and sizes if not already present
     if (item.sizes) {
       const ms = Array.isArray(item.sizes) ? item.sizes : String(item.sizes).split(',');
-      ms.forEach(s => {
+      ms.forEach((s: any) => {
         const trimmed = String(s).trim();
         if (trimmed && !sList.includes(trimmed)) sList.push(trimmed);
       });
     }
     if (item.colors) {
       const mc = Array.isArray(item.colors) ? item.colors : String(item.colors).split(',');
-      mc.forEach(c => {
+      mc.forEach((c: any) => {
         const trimmed = String(c).trim();
         if (trimmed && !cList.includes(trimmed)) cList.push(trimmed);
       });
@@ -93,24 +93,24 @@ const RegisterPage = () => {
       image: item.image || ''
     });
 
-    const newMatrixData = {};
-    existingStock.forEach(stock => {
+    const newMatrixData: Record<string, string | number> = {};
+    existingStock.forEach((stock: any) => {
       newMatrixData[`${stock.color}_${stock.size}`] = stock.qty;
     });
-    setMatrixData(newMatrixData);
+    setMatrixData(newMatrixData as Record<string, string>);
   };
 
-  const handleMatrixChange = (color, size, value) => {
+  const handleMatrixChange = (color: string, size: string, value: string) => {
     setMatrixData(prev => ({ ...prev, [`${color}_${size}`]: value }));
   };
 
-  const handleExtraSizeChange = (index, value) => {
+  const handleExtraSizeChange = (index: number, value: string) => {
     const newSizes = [...extraSizes];
     newSizes[index] = value;
     setExtraSizes(newSizes);
   };
 
-  const handleExtraColorChange = (index, value) => {
+  const handleExtraColorChange = (index: number, value: string) => {
     const newColors = [...extraColors];
     newColors[index] = value;
     setExtraColors(newColors);
@@ -123,7 +123,7 @@ const RegisterPage = () => {
   const isAdditional = stockMap.length > 0;
 
   // Handle uploading a file to Cloudflare Worker via backend
-  const uploadFile = async (file) => {
+  const uploadFile = async (file: File) => {
     try {
       setIsUploading(true);
       const img = new Image();
@@ -134,18 +134,22 @@ const RegisterPage = () => {
       canvas.width = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+      if (ctx) ctx.drawImage(img, 0, 0);
 
-      const webpBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.85));
+      const webpBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/webp', 0.85));
+      if (!webpBlob) throw new Error('WebP conversion failed');
       const webpFile = new File([webpBlob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
       URL.revokeObjectURL(img.src);
 
       const uploadFormData = new FormData();
       uploadFormData.append('file', webpFile);
 
-      const baseUrl = import.meta.env.VITE_API_URL || 'https://lotte-backend.poodingcake.workers.dev';
-      const response = await fetch(baseUrl, { method: 'POST', body: uploadFormData });
-      const data = await response.json();
+      const res = await apiClient.post('', uploadFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      const data = res.data;
       
       if (data.success) {
         updateImageObj(activeImageBox, data.imageUrl);
@@ -157,11 +161,11 @@ const RegisterPage = () => {
       alert('이미지 업로드 중 오류가 발생했습니다.');
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) (fileInputRef.current as any).value = '';
     }
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = (e: any) => {
     const file = e.target.files?.[0];
     if (file) uploadFile(file);
   };
@@ -175,7 +179,7 @@ const RegisterPage = () => {
 
   // Paste Event Listener for Global document
   useEffect(() => {
-    const handlePaste = async (e) => {
+    const handlePaste = async (e: any) => {
       // Don't intercept if typing in an input (except our webImageUrl input)
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         if (e.target.name !== 'webImageInput') return; 
@@ -238,11 +242,11 @@ const RegisterPage = () => {
   const handleSaveInventory = async () => {
     if (!formData.code) { alert('상품을 먼저 불러오세요.'); return; }
     
-    const newLogs = [];
-    const newStockMap = { ...allStockMap };
+    const newLogs: any[] = [];
+    const newStockMap: Record<string, any[]> = { ...allStockMap };
     let currentStock = newStockMap[formData.code] || [];
     const timestamp = new Date().toISOString();
-    const flat = [];
+    const flat: any[] = [];
     
     colors.forEach(c => {
       sizes.forEach(s => {
@@ -312,11 +316,13 @@ const RegisterPage = () => {
     if (newLogs.length === 0 && isAdditional) { alert('변경된 재고 수량이 없습니다.'); return; }
 
     try {
-      const updatedItemStock = [];
+      const updatedItemStock: any[] = [];
       Object.keys(matrixData).forEach(key => {
-        const qty = Number(matrixData[key]);
+        const qty = Number((matrixData as any)[key]);
         if (qty > 0) {
-           const [color, size] = key.split('_');
+           const lastUnderscore = key.lastIndexOf('_');
+           const color = key.substring(0, lastUnderscore);
+           const size = key.substring(lastUnderscore + 1);
            updatedItemStock.push({ color, size, qty });
         }
       });
@@ -351,7 +357,7 @@ const RegisterPage = () => {
     return '';
   }, [formData.code]);
 
-  const renderImageBox = (boxKey, title) => {
+  const renderImageBox = (boxKey: string, title: string) => {
     const isActive = activeImageBox === boxKey;
     const imgUrl = imageObj[boxKey];
     

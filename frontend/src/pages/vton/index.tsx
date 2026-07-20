@@ -11,6 +11,7 @@ import GallerySection from './GallerySection';
 import UploadModal from './UploadModal';
 import SelectionModal from './SelectionModal';
 import GalleryPopup from './GalleryPopup';
+import { apiClient } from '../../api/client';
 import './VtonPage.css';
 
 const VtonPage = () => {
@@ -18,27 +19,32 @@ const VtonPage = () => {
     const allItems = useAppStore(state => state.allItems);
     
     // Vton Store
+    const model = useVtonStore(state => state.model);
+    const setModel = useVtonStore(state => state.setModel);
+    const top = useVtonStore(state => state.top);
+    const setTop = useVtonStore(state => state.setTop);
+    const bottom = useVtonStore(state => state.bottom);
+    const setBottom = useVtonStore(state => state.setBottom);
+    const outer = useVtonStore(state => state.outer);
+    const setOuter = useVtonStore(state => state.setOuter);
+    
+    const targetCodesInput = useVtonStore(state => state.targetCodesInput);
+    const setTargetCodesInput = useVtonStore(state => state.setTargetCodesInput);
+    const targetCodes = useVtonStore(state => state.targetCodes);
+    const setTargetCodes = useVtonStore(state => state.setTargetCodes);
+    
+    const bodyAnalysis = useVtonStore(state => state.bodyAnalysis);
+    const setBodyAnalysis = useVtonStore(state => state.setBodyAnalysis);
+
     const allCustomModels = useVtonStore(state => state.allCustomModels);
     const allGallery = useVtonStore(state => state.allGallery);
     const saveCustomModelToBackend = useVtonStore(state => state.saveCustomModelToBackend);
     const saveGalleryToBackend = useVtonStore(state => state.saveGalleryToBackend);
     const deleteGalleryFromBackend = useVtonStore(state => state.deleteGalleryFromBackend);
     
-    // States
-    const [model, setModel] = useState({ type: 'preset', url: '' });
-    const [bottom, setBottom] = useState({ type: 'product', url: '', prompt: '', id: null, item: null, colorCode: '', sizeCode: '' });
-    const [top, setTop] = useState({ type: 'product', url: '', prompt: '', id: null, item: null, colorCode: '', sizeCode: '' });
-    const [outer, setOuter] = useState({ type: 'product', url: '', prompt: '', id: null, item: null, colorCode: '', sizeCode: '' });
-    
-    // Target Codes State
-    const [targetCodesInput, setTargetCodesInput] = useState('');
-    const [targetCodes, setTargetCodes] = useState([]);
-    
-    // Gallery Popup State
-    const [selectedGalleryItem, setSelectedGalleryItem] = useState(null);
-    
-    // Selection Modal State
-    const [modalConfig, setModalConfig] = useState({ isOpen: false, layer: null });
+    // UI-only States
+    const [selectedGalleryItem, setSelectedGalleryItem] = useState<any>(null);
+    const [modalConfig, setModalConfig] = useState<{ isOpen: boolean; layer: 'top' | 'bottom' | 'outer' | null }>({ isOpen: false, layer: null });
     const [modalTab, setModalTab] = useState('product'); // 'product' or 'prompt'
     const [searchTerm, setSearchTerm] = useState('');
     const [promptText, setPromptText] = useState('');
@@ -48,11 +54,8 @@ const VtonPage = () => {
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [uploadName, setUploadName] = useState('');
     const [uploadHeight, setUploadHeight] = useState('');
-    const [uploadFile, setUploadFile] = useState(null);
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-
-    // AI Body Analysis State
-    const [bodyAnalysis, setBodyAnalysis] = useState(null);
 
     // Generation Hooks
     const {
@@ -75,7 +78,7 @@ const VtonPage = () => {
         }
     }, [allCustomModels, model.url]);
 
-    const openModal = (layer) => {
+    const openModal = (layer: 'top' | 'bottom' | 'outer') => {
         setModalConfig({ isOpen: true, layer });
         setModalTab('product');
         setSearchTerm('');
@@ -85,7 +88,7 @@ const VtonPage = () => {
 
     const closeModal = () => setModalConfig({ isOpen: false, layer: null });
 
-    const selectProductColor = (item, colorCode) => {
+    const selectProductColor = (item: any, colorCode: string | null) => {
         const layer = modalConfig.layer;
         let imgUrl = "";
         try {
@@ -103,20 +106,20 @@ const VtonPage = () => {
 
         if (imgUrl) {
             if (layer === 'bottom') setBottom(prev => ({ ...prev, url: imgUrl, type: 'product', item, colorCode, sizeCode: defaultSize }));
-            if (layer === 'top') setTop(prev => ({ ...prev, url: imgUrl, type: 'product', item, colorCode, sizeCode: defaultSize }));
-            if (layer === 'outer') setOuter(prev => ({ ...prev, url: imgUrl, type: 'product', item, colorCode, sizeCode: defaultSize }));
+            if (layer === 'top') setTop(prev => ({ ...prev, url: imgUrl, type: 'product', item, colorCode: defaultSize }));
+            if (layer === 'outer') setOuter(prev => ({ ...prev, url: imgUrl, type: 'product', item, colorCode: defaultSize }));
             closeModal();
         } else {
             alert("해당 컬러의 이미지를 찾을 수 없습니다.");
         }
     };
 
-    const changeColor = (layerName, direction) => {
+    const changeColor = (layerName: 'top' | 'bottom' | 'outer', direction: number) => {
         let currentState = layerName === 'top' ? top : layerName === 'bottom' ? bottom : outer;
         if (!currentState.item) return;
         
-        let colors = [];
-        let imgObj = null;
+        let colors: string[] = [];
+        let imgObj: any = null;
         try { 
             imgObj = JSON.parse(currentState.item.image); 
             colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size'); 
@@ -124,7 +127,7 @@ const VtonPage = () => {
         
         if (colors.length === 0) return;
         
-        let currentIndex = colors.indexOf(currentState.colorCode);
+        let currentIndex = colors.indexOf(currentState.colorCode || "");
         if (currentIndex === -1) currentIndex = 0;
         
         let newIndex = currentIndex + direction;
@@ -142,8 +145,8 @@ const VtonPage = () => {
         }
     };
 
-    const handleQuickSelect = (layerName, item) => {
-        let defaultColor = null;
+    const handleQuickSelect = (layerName: 'top' | 'bottom' | 'outer', item: any) => {
+        let defaultColor: string | null = null;
         try {
             const imgObj = JSON.parse(item.image);
             const colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size');
@@ -191,7 +194,7 @@ const VtonPage = () => {
                 closeModal();
             }
         } catch (e) {
-            alert('이미지 생성 실패:\n' + e.message);
+            alert('이미지 생성 실패:\n' + (e as any).message);
         } finally {
             setIsPromptGenerating(false);
         }
@@ -206,11 +209,12 @@ const VtonPage = () => {
         try {
             const formData = new FormData();
             formData.append('file', uploadFile);
-            const res = await fetch('https://lotte-backend.poodingcake.workers.dev', {
-                method: 'POST',
-                body: formData
+            const res = await apiClient.post('', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
             });
-            const data = await res.json();
+            const data = res.data;
             if (data.success && data.imageUrl) {
                 await saveCustomModelToBackend(uploadName, data.imageUrl, uploadHeight);
                 alert('모델이 등록되었습니다.');
@@ -220,23 +224,23 @@ const VtonPage = () => {
                 setUploadFile(null);
                 setModel({ type: 'preset', url: data.imageUrl });
             } else {
-                throw new Error('Upload failed');
+                throw new Error(data.message || 'Upload failed');
             }
         } catch (e) {
             console.error(e);
-            alert('업로드 실패: ' + e.message);
+            alert('업로드 실패: ' + (e as any).message);
         } finally {
             setIsUploading(false);
         }
     };
 
-    const handleSaveGallery = async (type, url) => {
+    const handleSaveGallery = async (type: string, url: string) => {
         if (!url) return;
         try {
             await saveGalleryToBackend(type, url);
             alert('갤러리에 저장되었습니다! (하단에서 확인하세요)');
         } catch (e) {
-            alert('저장 실패: ' + e.message);
+            alert('저장 실패: ' + (e as any).message);
         }
     };
 

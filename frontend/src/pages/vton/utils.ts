@@ -1,4 +1,4 @@
-export const getProductImage = (item) => {
+export const getProductImage = (item: any) => {
     if (!item || !item.image) return '';
     try {
         const imgObj = JSON.parse(item.image);

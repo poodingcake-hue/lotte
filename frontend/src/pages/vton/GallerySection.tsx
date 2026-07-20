@@ -1,13 +1,19 @@
 import React from 'react';
 
-const GallerySection = ({ allGallery, setSelectedGalleryItem, deleteGalleryFromBackend }) => {
+interface GallerySectionProps {
+    allGallery: any[];
+    setSelectedGalleryItem: (item: any) => void;
+    deleteGalleryFromBackend: (id: any) => Promise<void>;
+}
+
+const GallerySection = ({ allGallery, setSelectedGalleryItem, deleteGalleryFromBackend }: GallerySectionProps) => {
     return (
         <>
             <hr className="my-4 border-2" />
             <div style={{marginTop: '100px'}}></div>
             <h4 className="fw-bold mb-4 border-bottom pb-2" style={{color: 'var(--primary)'}}>📸 갤러리</h4>
             <div className="row g-2 mb-4">
-                {allGallery && allGallery.map(g => (
+                {allGallery && allGallery.map((g: any) => (
                     <div key={g.id} className="col-4 col-md-3 col-lg-2">
                         <div 
                             className="border rounded overflow-hidden shadow-sm gallery-item-container" 

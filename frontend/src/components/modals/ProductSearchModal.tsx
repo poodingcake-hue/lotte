@@ -2,7 +2,13 @@ import { useState, useMemo } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { getProductImage } from '../../utils/helpers';
 
-const ProductSearchModal = ({ isOpen, onClose, onSelect }) => {
+interface ProductSearchModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (item: any) => void;
+}
+
+const ProductSearchModal = ({ isOpen, onClose, onSelect }: ProductSearchModalProps) => {
   const { allItems } = useAppStore();
   const [keyword, setKeyword] = useState('');
 
@@ -52,7 +58,7 @@ const ProductSearchModal = ({ isOpen, onClose, onSelect }) => {
             autoFocus
           />
         </div>
-
+ 
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', alignContent: 'start' }}>
           {filteredItems.map(item => (
             <div 
@@ -63,7 +69,7 @@ const ProductSearchModal = ({ isOpen, onClose, onSelect }) => {
             >
               <div style={{ width: '100%', paddingBottom: '100%', position: 'relative', marginBottom: '10px', background: '#f8f9fa', borderRadius: '4px', overflow: 'hidden' }}>
                 <img 
-                  src={getProductImage(item) || 'https://via.placeholder.com/200?text=No+Img'} 
+                  src={getProductImage(item) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f8f9fa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23adb5bd">No Image</text></svg>'} 
                   alt={item.name} 
                   style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} 
                 />

@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore';
 import { getProductImage } from '../utils/helpers';
 import { useNavigate } from 'react-router-dom';
 
-const parseTime = (timeStr) => {
+const parseTime = (timeStr: any) => {
   if (!timeStr) return 0;
   const match = timeStr.match(/(\d{1,2}):(\d{1,2})/);
   if (match) return parseInt(match[1]) * 60 + parseInt(match[2]);
@@ -26,7 +26,7 @@ const SchedulePage = () => {
       Object.keys(allStockMap).forEach(code => masterCodes.add(String(code)));
     }
 
-    const dSet = new Set();
+    const dSet = new Set<string>();
     const today = new Date();
     // Use local YYYY-MM-DD
     const todayKst = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
@@ -58,7 +58,7 @@ const SchedulePage = () => {
       .filter(i => !i.isMaster && i.dateKey === selDate && masterCodes.has(String(i.code)))
       .sort((a, b) => parseTime(a.date) - parseTime(b.date));
 
-    const groups = {};
+    const groups: Record<string, any[]> = {};
     filtered.forEach(item => {
       const tmMatch = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
       const key = tmMatch ? tmMatch[1] : "시간미상";
@@ -75,11 +75,11 @@ const SchedulePage = () => {
     return <div id="loading-overlay" style={{ display: 'flex' }}><div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div></div>;
   }
 
-  const handleCardClick = (item) => {
+  const handleCardClick = (item: any) => {
     navigate(`/detail/${item.code}`);
   };
 
-  const getDisplayItem = (item) => {
+  const getDisplayItem = (item: any) => {
     if (!item.isMaster) {
       const master = allItems.find(m => m.isMaster && String(m.code) === String(item.code));
       if (master) {
@@ -125,7 +125,7 @@ const SchedulePage = () => {
                 <span>{time} 방송</span>
               </div>
               <div className="product-grid">
-                {scheduleGroups[time].map(rawItem => {
+                {(scheduleGroups[time] || []).map((rawItem: any) => {
                   const displayItem = getDisplayItem(rawItem);
                   const supplyObj = allSupplies?.find(s => String(s.code) === String(displayItem.code));
                   const overlay = (supplyObj && supplyObj.text) ? <div className="supplies-overlay">{supplyObj.text}</div> : null;
@@ -133,7 +133,7 @@ const SchedulePage = () => {
                   return (
                     <div key={rawItem.code} className="p-card" onClick={() => handleCardClick(rawItem)}>
                       <div className="p-img-box">
-                        <img src={getProductImage(displayItem) || 'https://via.placeholder.com/200?text=No+Img'} className="p-img" alt={displayItem.name} />
+                        <img src={getProductImage(displayItem) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f8f9fa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23adb5bd">No Image</text></svg>'} className="p-img" alt={displayItem.name} />
                         {overlay}
                       </div>
                       <div className="p-info">

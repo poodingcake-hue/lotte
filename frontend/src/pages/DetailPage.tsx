@@ -3,30 +3,33 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { getProductImage } from '../utils/helpers';
 import OutfitModal from '../components/modals/OutfitModal';
+import * as XLSX from 'xlsx';
 
-const isSameRental = (a, b) => {
+
+const isSameRental = (a: any, b: any) => {
   if (!a || !b) return false;
   if (a.id !== undefined && a.id !== null && b.id !== undefined && b.id !== null) {
     return String(a.id) === String(b.id);
   }
-  return String(a.code) == String(b.code) &&
-         String(a.renter || '') == String(b.renter || '') &&
-         String(a.color || '') == String(b.color || '') &&
-         String(a.size || '') == String(b.size || '') &&
-         String(a.date || '') == String(b.date || '');
+  return String(a.code) === String(b.code) &&
+         String(a.renter || '') === String(b.renter || '') &&
+         String(a.color || '') === String(b.color || '') &&
+         String(a.size || '') === String(b.size || '') &&
+         String(a.date || '') === String(b.date || '');
 };
 
 const DetailPage = () => {
-  const { id } = useParams();
+  const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const {
     allItems, allStockMap, allSupplies, allNotes,
     allRentals, allOutfits,
-    saveToGitHub,
+    saveToBackend,
     setAllRentals, setAllOutfits, setAllNotes, setAllSupplies, setAllStockMap,
     apiClient, setIsLoading, isLoading,
   } = useAppStore();
+
 
   // ─── 상품 정보 ───────────────────────────────────────────────
   const item = useMemo(() => {
@@ -42,8 +45,8 @@ const DetailPage = () => {
   const stockMap = useMemo(() => allStockMap[id] || [], [allStockMap, id]);
 
   const { sizes, colors } = useMemo(() => {
-    const sList = [], cList = [];
-    stockMap.forEach(s => {
+    const sList: string[] = [], cList: string[] = [];
+    stockMap.forEach((s: any) => {
       if (s.size && !sList.includes(s.size)) sList.push(s.size);
       if (s.color && !cList.includes(s.color)) cList.push(s.color);
     });
@@ -56,7 +59,7 @@ const DetailPage = () => {
     try { return JSON.parse(item.image); } catch { return {}; }
   }, [item]);
 
-  const toThumb = (url) => {
+  const toThumb = (url: string) => {
     return url;
   };
 
@@ -73,18 +76,22 @@ const DetailPage = () => {
   useEffect(() => setNoteText(noteObj?.text || ''),     [noteObj]);
 
   // 대여 바구니
-  const [cart,    setCart]    = useState([]);
+  const [cart,    setCart]    = useState<any[]>([]);
   const [renter,  setRenter]  = useState('');
   // 대여 반납 체크박스
-  const [checked, setChecked] = useState([]);
+  const [checked, setChecked] = useState<any[]>([]);
   // 재고 수정 모드
   const [editMode, setEditMode]     = useState(false);
-  const [stockEdits, setStockEdits] = useState({});
+  const [stockEdits, setStockEdits] = useState<Record<string, string>>({});
   const [newSizeName, setNewSizeName] = useState('');
   // 착장 모달
   const [outfitOpen, setOutfitOpen] = useState(false);
   // 커스텀 확인 모달 상태
-  const [confirmModal, setConfirmModal] = useState({
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    message: string;
+    onConfirm: (() => Promise<void>) | null;
+  }>({
     isOpen: false,
     message: '',
     onConfirm: null
@@ -93,7 +100,7 @@ const DetailPage = () => {
   const [activeImg, setActiveImg] = useState(null);
 
   // ─── 재고 숫자 클릭 → 바구니 ─────────────────────────────────
-  const addToCart = useCallback((color, size) => {
+  const addToCart = useCallback((color: string, size: string) => {
     setCart(prev => {
       const ex = prev.find(x => x.color === color && x.size === size);
       if (ex) return prev.map(x => x.color === color && x.size === size ? { ...x, qty: x.qty + 1 } : x);
@@ -108,7 +115,7 @@ const DetailPage = () => {
     if (idx > -1) { if (noteText) newNotes[idx] = { ...newNotes[idx], text: noteText }; else newNotes.splice(idx, 1); }
     else if (noteText) newNotes.push({ code: String(id), text: noteText });
     setAllNotes(newNotes);
-    await saveToGitHub('notes.json', newNotes);
+    await saveToBackend('notes.json', newNotes, id);
     alert('특이사항이 저장되었습니다.');
   };
 
@@ -118,23 +125,23 @@ const DetailPage = () => {
     if (idx > -1) { if (supplyText) newSup[idx] = { ...newSup[idx], text: supplyText }; else newSup.splice(idx, 1); }
     else if (supplyText) newSup.push({ code: String(id), text: supplyText });
     setAllSupplies(newSup);
-    await saveToGitHub('supplies.json', newSup);
+    await saveToBackend('supplies.json', newSup, id);
     alert('준비물이 저장되었습니다.');
   };
 
-  const handleDeleteOutfit = (host) => {
+  const handleDeleteOutfit = (host: string) => {
     setConfirmModal({
       isOpen: true,
       message: `${host} 님의 착장 정보를 삭제하시겠습니까?`,
       onConfirm: async () => {
         const next = (allOutfits || []).filter(o => !(String(o.code) === String(id) && o.host === host));
         setAllOutfits(next);
-        await saveToGitHub('outfits.json', next);
+        await saveToBackend('outfits.json', next, id);
       }
     });
   };
 
-  const handleDeleteRental = (r) => {
+  const handleDeleteRental = (r: any) => {
     setConfirmModal({
       isOpen: true,
       message: `${r.renter} 님의 대여 내역 (${r.color} / ${r.size})을 삭제하시겠습니까?`,
@@ -142,7 +149,7 @@ const DetailPage = () => {
         try {
           const next = (allRentals || []).filter(x => !isSameRental(x, r));
           setAllRentals(next);
-          await saveToGitHub('rentals.json', next);
+          await saveToBackend('rentals.json', next, id);
         } catch (err) {
           console.error(err);
         }
@@ -150,7 +157,7 @@ const DetailPage = () => {
     });
   };
 
-  const handleReturnRentals = (e) => {
+  const handleReturnRentals = (e?: React.FormEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -161,10 +168,10 @@ const DetailPage = () => {
       onConfirm: async () => {
         try {
           let next = [...(allRentals || [])];
-          const newLogs = [];
+          const newLogs: any[] = [];
           const timestamp = new Date().toISOString();
           
-          checked.forEach(r => {
+          checked.forEach((r: any) => {
             next = next.filter(x => !isSameRental(x, r));
             newLogs.push({
               code: r.code, color: r.color, size: r.size,
@@ -174,7 +181,7 @@ const DetailPage = () => {
           });
           setAllRentals(next);
           setChecked([]);
-          await saveToGitHub('rentals.json', next);
+          await saveToBackend('rentals.json', next, id);
           if (newLogs.length > 0) {
             await useAppStore.getState().saveHistoryToBackend(newLogs);
           }
@@ -190,10 +197,10 @@ const DetailPage = () => {
     if (cart.length === 0) return;
     try {
       const next = [...(allRentals || [])];
-      const newLogs = [];
+      const newLogs: any[] = [];
       const timestamp = new Date().toISOString();
       
-      cart.forEach(c => {
+      cart.forEach((c: any) => {
         next.push({ code: String(id), renter: renter.trim(), color: c.color, size: c.size, qty: c.qty, date: timestamp });
         newLogs.push({
           code: String(id), color: c.color, size: c.size,
@@ -203,27 +210,28 @@ const DetailPage = () => {
       });
       
       setAllRentals(next);
-      await saveToGitHub('rentals.json', next);
+      await saveToBackend('rentals.json', next, id);
       if (newLogs.length > 0) {
         await useAppStore.getState().saveHistoryToBackend(newLogs);
       }
       setCart([]);
       setRenter('');
       alert('대여 등록이 완료되었습니다.');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       alert('대여 등록 중 오류가 발생했습니다: ' + err.message);
     }
   };
 
-  const handleAddOutfits = async (entries) => {
+  const handleAddOutfits = async (entries: any[]) => {
     const next = [...(allOutfits || [])];
     entries.forEach(({ host, size }) => { if (host && size) next.push({ code: String(id), host, size }); });
-    setAllOutfits(next); await saveToGitHub('outfits.json', next);
+    setAllOutfits(next); await saveToBackend('outfits.json', next, id);
   };
 
+
   const handleSubmitStock = async () => {
-    const matrix = [];
+    const matrix: any[] = [];
     Object.entries(stockEdits).forEach(([key, qty]) => {
       const [color, size] = key.split('||');
       const actualSize = size === '__new__' ? newSizeName : size;
@@ -232,10 +240,10 @@ const DetailPage = () => {
     if (matrix.length === 0) { alert('입력된 수량이 없습니다.'); return; }
     setIsLoading(true);
     try {
-      const newMap = { ...allStockMap };
+      const newMap: Record<string, any[]> = { ...allStockMap };
       if (!newMap[id]) newMap[id] = [];
       
-      const newLogs = [];
+      const newLogs: any[] = [];
       const timestamp = new Date().toISOString();
       
       matrix.forEach(m => {
@@ -250,7 +258,7 @@ const DetailPage = () => {
         });
       });
       setAllStockMap(newMap);
-      const flat = [];
+      const flat: any[] = [];
       Object.keys(newMap).forEach(code => newMap[code].forEach(s => flat.push({ code, ...s })));
       await apiClient.post('?action=save_inventory', { type: 'save_inventory', data: flat });
       
@@ -265,18 +273,17 @@ const DetailPage = () => {
   };
 
   const handleDownloadExcel = () => {
-    if (!window.XLSX) { alert('Excel 라이브러리가 로드되지 않았습니다.'); return; }
     if (stockMap.length === 0) { alert('재고 데이터가 없습니다.'); return; }
-    const colorOrder = [];
+    const colorOrder: string[] = [];
     stockMap.forEach(s => { if (s.color && !colorOrder.includes(s.color)) colorOrder.push(s.color); });
     const data = stockMap.filter(s => s.color && s.size).map(s => {
       const rented = itemRentals.filter(r => r.color === s.color && r.size === s.size).reduce((a, b) => a + Number(b.qty), 0);
       return { '상품코드': id, '상품명': item ? `${item.brand} ${item.name}` : id, '색상': s.color, '사이즈': s.size, '현재재고': Number(s.qty) - rented };
     }).sort((a, b) => colorOrder.indexOf(a['색상']) - colorOrder.indexOf(b['색상']));
-    const wb = (window as any).XLSX.utils.book_new();
-    const ws = (window as any).XLSX.utils.json_to_sheet(data);
-    (window as any).XLSX.utils.book_append_sheet(wb, ws, '재고현황');
-    (window as any).XLSX.writeFile(wb, `[${item?.brand}] ${item?.name}(${id}).xlsx`);
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, '재고현황');
+    XLSX.writeFile(wb, `[${item?.brand}] ${item?.name}(${id}).xlsx`);
   };
 
   // ─── 메인 이미지 URL ─────────────────────────────────────────
@@ -334,7 +341,7 @@ const DetailPage = () => {
             <div className="img-container">
               <img
                 id="det-img"
-                src={mainImgUrl || 'https://via.placeholder.com/400'}
+                src={mainImgUrl || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="%23f8f9fa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" fill="%23adb5bd">이미지 없음</text></svg>'}
                 alt="상품이미지"
                 className="det-main-img"
                 onClick={() => window.open(`https://www.lotteimall.com/goods/viewGoodsDetail.lotte?goods_no=${item.code}`, '_blank')}
@@ -508,7 +515,7 @@ const DetailPage = () => {
                 </thead>
                 <tbody>
                   {itemRentals.length === 0
-                    ? <tr><td colSpan="5" style={{ padding: '16px 0', color: '#aaa', fontSize: '13px' }}>현재 대여 중인 내역이 없습니다.</td></tr>
+                    ? <tr><td colSpan={5} style={{ padding: '16px 0', color: '#aaa', fontSize: '13px' }}>현재 대여 중인 내역이 없습니다.</td></tr>
                     : itemRentals.map((r, i) => {
                       const d = r.date ? r.date.substring(5, 10) : '-';
                       const isChk = checked.some(x => isSameRental(x, r));
@@ -606,7 +613,7 @@ const DetailPage = () => {
               </button>
               <button type="button" className="m-btn m-btn-confirm" style={{ width: 'auto', padding: '8px 16px' }}
                 onClick={async () => {
-                  await confirmModal.onConfirm();
+                  if (confirmModal.onConfirm) await confirmModal.onConfirm();
                   setConfirmModal({ isOpen: false, message: '', onConfirm: null });
                 }}>
                 확인

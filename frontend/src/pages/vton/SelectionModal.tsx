@@ -1,5 +1,20 @@
 import React from 'react';
 
+interface SelectionModalProps {
+    modalConfig: { isOpen: boolean; layer: 'top' | 'bottom' | 'outer' | null };
+    closeModal: () => void;
+    modalTab: string;
+    setModalTab: (tab: string) => void;
+    searchTerm: string;
+    setSearchTerm: (term: string) => void;
+    items: any[];
+    selectProductColor: (item: any, color: string | null) => void;
+    promptText: string;
+    setPromptText: (text: string) => void;
+    handleGeneratePromptImage: () => void;
+    isPromptGenerating: boolean;
+}
+
 const SelectionModal = ({
     modalConfig,
     closeModal,
@@ -13,16 +28,16 @@ const SelectionModal = ({
     setPromptText,
     handleGeneratePromptImage,
     isPromptGenerating
-}) => {
+}: SelectionModalProps) => {
     if (!modalConfig.isOpen) return null;
 
-    const layerNames = { top: '상의', bottom: '하의', outer: '아우터' };
+    const layerNames: Record<string, string> = { top: '상의', bottom: '하의', outer: '아우터' };
 
     return (
         <div className="modal-backdrop" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1050, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
             <div className="modal-content bg-white rounded shadow" style={{width: '90%', maxWidth: '850px', maxHeight: '85vh', display: 'flex', flexDirection: 'column'}}>
                 <div className="modal-header p-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 className="m-0 fw-bold">{layerNames[modalConfig.layer]} 선택</h5>
+                    <h5 className="m-0 fw-bold">{modalConfig.layer ? layerNames[modalConfig.layer] : ''} 선택</h5>
                     <button className="btn-close" onClick={closeModal}></button>
                 </div>
                 <div className="modal-body p-3 overflow-auto" style={{flexGrow: 1}}>
@@ -35,8 +50,8 @@ const SelectionModal = ({
                             <input type="text" placeholder="브랜드 또는 상품명 검색" className="form-control mb-3" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             <div className="vton-modal-product-list" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
                                 {items.slice(0, 30).map((item, idx) => {
-                                    let colors = [];
-                                    let imgObj = null;
+                                    let colors: string[] = [];
+                                    let imgObj: any = null;
                                     try { imgObj = JSON.parse(item.image); colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size'); } catch(e) {}
                                     return (
                                         <div key={idx} className="p-3 border rounded d-flex align-items-center mb-2">
@@ -70,7 +85,7 @@ const SelectionModal = ({
                     {modalTab === 'prompt' && (
                         <div>
                             <div className="mb-2 fw-bold text-secondary">원하는 옷의 스타일을 영문으로 입력하세요</div>
-                            <textarea className="form-control mb-3" rows="4" placeholder="예: red leather jacket, white t-shirt" value={promptText} onChange={(e) => setPromptText(e.target.value)} />
+                            <textarea className="form-control mb-3" rows={4} placeholder="예: red leather jacket, white t-shirt" value={promptText} onChange={(e) => setPromptText(e.target.value)} />
                             <button className="btn btn-primary w-100 py-2 fw-bold" onClick={handleGeneratePromptImage} disabled={isPromptGenerating}>
                                 {isPromptGenerating ? '이미지 생성 중...' : '이미지 생성 및 적용하기'}
                             </button>

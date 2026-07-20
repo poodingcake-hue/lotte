@@ -1,6 +1,28 @@
 import React from 'react';
 
-const UploadModal = ({ uploadModalOpen, setUploadModalOpen, uploadName, setUploadName, uploadHeight, setUploadHeight, setUploadFile, handleUploadModel, isUploading }) => {
+interface UploadModalProps {
+    uploadModalOpen: boolean;
+    setUploadModalOpen: (v: boolean) => void;
+    uploadName: string;
+    setUploadName: (v: string) => void;
+    uploadHeight: string;
+    setUploadHeight: (v: string) => void;
+    setUploadFile: (file: File | null) => void;
+    handleUploadModel: () => void;
+    isUploading: boolean;
+}
+
+const UploadModal = ({
+    uploadModalOpen,
+    setUploadModalOpen,
+    uploadName,
+    setUploadName,
+    uploadHeight,
+    setUploadHeight,
+    setUploadFile,
+    handleUploadModel,
+    isUploading
+}: UploadModalProps) => {
     if (!uploadModalOpen) return null;
 
     return (
@@ -17,7 +39,13 @@ const UploadModal = ({ uploadModalOpen, setUploadModalOpen, uploadName, setUploa
                 </div>
                 <div className="mb-3">
                     <label className="form-label small fw-bold">이미지 파일 (WebP 권장)</label>
-                    <input type="file" className="form-control form-control-sm" accept="image/*" onChange={e => setUploadFile(e.target.files[0])} />
+                    <input type="file" className="form-control form-control-sm" accept="image/*" onChange={e => {
+                        if (e.target.files && e.target.files.length > 0) {
+                            setUploadFile(e.target.files[0]);
+                        } else {
+                            setUploadFile(null);
+                        }
+                    }} />
                 </div>
                 <div className="d-flex gap-2">
                     <button className="btn btn-secondary flex-grow-1" onClick={() => setUploadModalOpen(false)}>취소</button>

@@ -13,9 +13,9 @@ export const useVtonGeneration = () => {
     const [isVideoGenerating, setIsVideoGenerating] = useState(false);
     const [videoProgressText, setVideoProgressText] = useState('');
 
-    const startVtonProcess = async (model, top, bottom, outer, bodyAnalysis) => {
+    const startVtonProcess = async (model: any, top: any, bottom: any, outer: any, bodyAnalysis: any) => {
         if (!model.url) { alert('모델 이미지가 없습니다.'); return; }
-        const layers = [];
+        const layers: Array<{ url: string; cat: string; name: string }> = [];
         if (bottom.url) layers.push({ url: bottom.url, cat: 'bottoms', name: '하의' });
         if (top.url) layers.push({ url: top.url, cat: 'tops', name: '상의' });
         if (outer.url) layers.push({ url: outer.url, cat: 'tops', name: '아우터' });
@@ -92,7 +92,7 @@ export const useVtonGeneration = () => {
             }
         } catch (e) {
             console.error(e);
-            alert('VTON 합성 중 에러 발생:\n' + e.message);
+            alert('VTON 합성 중 에러 발생:\n' + (e as any).message);
             setProgressText('합성 실패');
         } finally {
             setIsGenerating(false);
@@ -120,7 +120,7 @@ export const useVtonGeneration = () => {
             }
         } catch (e) {
             console.error(e);
-            alert('에러 발생:\n' + e.message);
+            alert('에러 발생:\n' + (e as any).message);
         } finally {
             setIsGeneratingSheet(false);
         }
@@ -146,7 +146,7 @@ export const useVtonGeneration = () => {
             }
         } catch (e) {
             console.error(e);
-            alert('비디오 생성 에러:\n' + e.message);
+            alert('비디오 생성 에러:\n' + (e as any).message);
             setVideoProgressText('생성 실패');
         } finally {
             setIsVideoGenerating(false);

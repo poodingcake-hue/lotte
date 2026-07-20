@@ -1,6 +1,18 @@
 import React from 'react';
 import { getProductImage } from './utils';
 
+interface LayerBoxProps {
+    layerName: 'top' | 'bottom' | 'outer';
+    layerTitle: string;
+    state: any;
+    setState: any;
+    targetCodes: string[];
+    allItems: any[];
+    handleQuickSelect: (layerName: 'top' | 'bottom' | 'outer', item: any) => void;
+    openModal: (layerName: 'top' | 'bottom' | 'outer') => void;
+    changeColor: (layerName: 'top' | 'bottom' | 'outer', direction: number) => void;
+}
+
 const LayerBox = ({
     layerName,
     layerTitle,
@@ -11,7 +23,7 @@ const LayerBox = ({
     handleQuickSelect,
     openModal,
     changeColor
-}) => {
+}: LayerBoxProps) => {
     let matchedItems = [];
     if (targetCodes.length > 0) {
         matchedItems = allItems.filter(i => i.isMaster && targetCodes.includes(i.code));
@@ -89,10 +101,10 @@ const LayerBox = ({
                         value={state.sizeCode || ''}
                         onChange={(e) => {
                             const newSize = e.target.value;
-                            setState(prev => ({ ...prev, sizeCode: newSize }));
+                            setState((prev: any) => ({ ...prev, sizeCode: newSize }));
                         }}
                     >
-                        {(Array.isArray(state.item.sizes) ? state.item.sizes : String(state.item.sizes).split(',')).map(s => {
+                        {(Array.isArray(state.item.sizes) ? state.item.sizes : String(state.item.sizes).split(',')).map((s: any) => {
                             const trimmed = String(s).trim();
                             return <option key={trimmed} value={trimmed}>{trimmed} 사이즈</option>;
                         })}

@@ -1,5 +1,19 @@
 import React from 'react';
 
+interface ResultPanelProps {
+    isGenerating: boolean;
+    progressText: string;
+    finalResult: string;
+    generateCharacterSheet: () => Promise<void>;
+    isGeneratingSheet: boolean;
+    characterSheetResult: string;
+    generateVideo: () => Promise<void>;
+    isVideoGenerating: boolean;
+    videoProgressText: string;
+    videoResult: string;
+    handleSaveGallery: (type: string, url: string) => Promise<void>;
+}
+
 const ResultPanel = ({
     isGenerating,
     progressText,
@@ -12,7 +26,7 @@ const ResultPanel = ({
     videoProgressText,
     videoResult,
     handleSaveGallery
-}) => {
+}: ResultPanelProps) => {
     return (
         <div className="vton-result-section p-4 border rounded bg-white h-100 d-flex flex-column align-items-center justify-content-start shadow-sm position-relative">
             <h4 className="fw-bold w-100 text-center mb-4 text-primary border-bottom pb-2">최종 시뮬레이션 결과</h4>

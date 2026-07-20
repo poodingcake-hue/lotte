@@ -75,6 +75,22 @@ export interface GalleryItem {
     created_at: string;
 }
 
+export interface VtonLayerState {
+    type: 'product' | 'prompt';
+    url: string;
+    prompt?: string;
+    id?: string | null;
+    item?: any;
+    colorCode?: string | null;
+    sizeCode?: string | null;
+}
+
+export interface BodyAnalysis {
+    shoulderWidth: number | null;
+    legLength: number | null;
+    isAnalyzing: boolean;
+}
+
 export interface AppState {
     allItems: Item[];
     allStockMap: Record<string, InventoryItem[]>;
@@ -84,43 +100,66 @@ export interface AppState {
     allSupplies: SupplyItem[];
     allHistory: HistoryLog[];
     allWeather: any;
-    selDate: Date | null;
+    selDate: string | null;
     filteredItems: Item[];
+    rentalCart: any[];
     isLoading: boolean;
-    invSearchTerm: string;
-    invFilterCategory: string;
-    invFilterStock: string;
+    error: string | null;
     
-    initApp: () => Promise<void>;
-    setAllItems: (items: Item[]) => void;
-    setFilteredItems: (items: Item[]) => void;
+    // Inventory page filter persistence states
+    invSearchTerm: string;
+    invSelectedBrand: string;
+    invSelectedCate: string;
+    invVisibleCount: number;
+    
     setAllRentals: (rentals: RentalItem[]) => void;
     setAllOutfits: (outfits: OutfitItem[]) => void;
     setAllNotes: (notes: NoteItem[]) => void;
     setAllSupplies: (supplies: SupplyItem[]) => void;
     setAllStockMap: (map: Record<string, InventoryItem[]>) => void;
     setAllHistory: (history: HistoryLog[]) => void;
-    setSelDate: (date: Date | null) => void;
+    setSelDate: (date: string | null) => void;
     setIsLoading: (v: boolean) => void;
     setInvSearchTerm: (v: string) => void;
-    setInvFilterCategory: (v: string) => void;
-    setInvFilterStock: (v: string) => void;
+    setInvSelectedBrand: (v: string) => void;
+    setInvSelectedCate: (v: string) => void;
+    setInvVisibleCount: (v: number) => void;
+    addToCart: (item: any) => void;
+    clearCart: () => void;
     
-    updateHistoryInBackend: (updatedLogs: HistoryLog[]) => Promise<void>;
-    saveToGitHub: (fileName: string, data: any) => Promise<any>;
+    apiClient: any;
+    initApp: () => Promise<void>;
+    updateHistoryInBackend: (updatedLogs: any[]) => Promise<void>;
+    saveToBackend: (fileName: string, data: any, code: string) => Promise<void>;
     saveHistoryToBackend: (logs: any) => Promise<void>;
-    saveProductToBackend: (productData: any, newLogs: any) => Promise<void>;
-    [key: string]: any;
+    saveProductToBackend: (productData: any) => Promise<void>;
 }
 
 export interface VtonState {
     allCustomModels: CustomModel[];
     allGallery: GalleryItem[];
     
+    // Moved from component state to Zustand
+    model: { type: string; url: string };
+    top: VtonLayerState;
+    bottom: VtonLayerState;
+    outer: VtonLayerState;
+    targetCodesInput: string;
+    targetCodes: string[];
+    bodyAnalysis: BodyAnalysis | null;
+    
+    setModel: (model: { type: string; url: string } | ((prev: { type: string; url: string }) => { type: string; url: string })) => void;
+    setTop: (top: VtonLayerState | ((prev: VtonLayerState) => VtonLayerState)) => void;
+    setBottom: (bottom: VtonLayerState | ((prev: VtonLayerState) => VtonLayerState)) => void;
+    setOuter: (outer: VtonLayerState | ((prev: VtonLayerState) => VtonLayerState)) => void;
+    setTargetCodesInput: (v: string) => void;
+    setTargetCodes: (v: string[]) => void;
+    setBodyAnalysis: (v: BodyAnalysis | null | ((prev: BodyAnalysis | null) => BodyAnalysis | null)) => void;
+    
     setAllCustomModels: (models: CustomModel[]) => void;
     setAllGallery: (gallery: GalleryItem[]) => void;
     saveCustomModelToBackend: (name: string, url: string, height: number | string) => Promise<void>;
     saveGalleryToBackend: (gType: string, url: string) => Promise<void>;
     deleteGalleryFromBackend: (id: number) => Promise<void>;
-    [key: string]: any;
 }
+

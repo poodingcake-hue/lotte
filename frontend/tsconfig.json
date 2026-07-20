@@ -15,8 +15,8 @@
     "jsx": "react-jsx",
 
     /* Linting / Migration Mode */
-    "strict": false,
-    "noImplicitAny": false,
+    "strict": true,
+    "noImplicitAny": true,
     "allowJs": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,

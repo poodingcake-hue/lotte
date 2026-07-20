@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
+import { GAS_WEB_APP_URL } from '../../api/client';
 
-const loadScript = (src) => {
-    return new Promise((resolve, reject) => {
+const loadScript = (src: string) => {
+    return new Promise<void>((resolve, reject) => {
         if (document.querySelector(`script[src="${src}"]`)) {
             resolve();
             return;
@@ -14,11 +15,11 @@ const loadScript = (src) => {
     });
 };
 
-const runPoseEstimation = async (imageUrl, heightCm, setBodyAnalysis) => {
+const runPoseEstimation = async (imageUrl: string, heightCm: number, setBodyAnalysis: any) => {
     if (!imageUrl || !heightCm) return;
     setBodyAnalysis({ shoulderWidth: null, legLength: null, isAnalyzing: true });
     
-    const fallbackProportions = (h) => {
+    const fallbackProportions = (h: number) => {
         return {
             shoulderWidth: Math.round(h * 0.225 * 10) / 10,
             legLength: Math.round(h * 0.60 * 10) / 10,
@@ -27,22 +28,15 @@ const runPoseEstimation = async (imageUrl, heightCm, setBodyAnalysis) => {
     };
 
     try {
-        // Clean up any previously loaded conflicting scripts or globals
-        document.querySelectorAll('script[src*="tensorflow"]').forEach(s => s.remove());
-        document.querySelectorAll('script[src*="posenet"]').forEach(s => s.remove());
-        if (window.tf) {
-            try { delete window.tf; } catch(e) { window.tf = undefined; }
-        }
-        if (window.posenet) {
-            try { delete window.posenet; } catch(e) { window.posenet = undefined; }
+        if (!window.tf || !window.posenet) {
+            await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js');
+            await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js');
         }
 
-        await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js');
-        await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js');
-
-        const isExternal = !imageUrl.includes('lotte-backend.poodingcake.workers.dev') && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:');
+        const backendHost = new URL(GAS_WEB_APP_URL).hostname;
+        const isExternal = !imageUrl.includes(backendHost) && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:');
         const finalImageUrl = isExternal 
-            ? `https://lotte-backend.poodingcake.workers.dev/proxy?url=${encodeURIComponent(imageUrl)}`
+            ? `${GAS_WEB_APP_URL}/proxy?url=${encodeURIComponent(imageUrl)}`
             : `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
         
         const img = new Image();
@@ -56,8 +50,8 @@ const runPoseEstimation = async (imageUrl, heightCm, setBodyAnalysis) => {
                 });
 
                 if (pose && pose.keypoints) {
-                    const kp = {};
-                    pose.keypoints.forEach(k => {
+                    const kp: Record<string, any> = {};
+                    pose.keypoints.forEach((k: any) => {
                         if (k.score > 0.3) kp[k.part] = k.position;
                     });
 
@@ -128,6 +122,15 @@ const runPoseEstimation = async (imageUrl, heightCm, setBodyAnalysis) => {
     }
 };
 
+interface ModelSelectorProps {
+    model: { type: string; url: string };
+    setModel: any;
+    allCustomModels: any[];
+    setUploadModalOpen: (v: boolean) => void;
+    bodyAnalysis: any;
+    setBodyAnalysis: any;
+}
+
 const ModelSelector = ({
     model,
     setModel,
@@ -135,7 +138,7 @@ const ModelSelector = ({
     setUploadModalOpen,
     bodyAnalysis,
     setBodyAnalysis
-}) => {
+}: ModelSelectorProps) => {
     useEffect(() => {
         if (model.url && allCustomModels) {
             const matched = allCustomModels.find(m => m.url === model.url);
@@ -149,13 +152,13 @@ const ModelSelector = ({
             <h5 className="fw-bold mb-3 text-center text-dark">모델 선택</h5>
             <div className="vton-mode-tabs mb-3 d-flex flex-column gap-2">
                 <div className="d-flex gap-2">
-                    <button className={`btn btn-sm flex-grow-1 ${model.type === 'preset' ? 'btn-primary fw-bold' : 'btn-outline-secondary'}`} onClick={() => setModel(prev => ({...prev, type: 'preset'}))}>모델 선택</button>
-                    <button className={`btn btn-sm flex-grow-1 ${model.type === 'url' ? 'btn-primary fw-bold' : 'btn-outline-secondary'}`} onClick={() => setModel(prev => ({...prev, type: 'url'}))}>URL 입력</button>
+                    <button className={`btn btn-sm flex-grow-1 ${model.type === 'preset' ? 'btn-primary fw-bold' : 'btn-outline-secondary'}`} onClick={() => setModel((prev: any) => ({...prev, type: 'preset'}))}>모델 선택</button>
+                    <button className={`btn btn-sm flex-grow-1 ${model.type === 'url' ? 'btn-primary fw-bold' : 'btn-outline-secondary'}`} onClick={() => setModel((prev: any) => ({...prev, type: 'url'}))}>URL 입력</button>
                 </div>
             </div>
             {model.type === 'preset' ? (
                 <div className="d-flex flex-column gap-2 mb-3">
-                    <select className="form-select form-select-sm" value={model.url} onChange={(e) => setModel(prev => ({...prev, url: e.target.value}))}>
+                    <select className="form-select form-select-sm" value={model.url} onChange={(e) => setModel((prev: any) => ({...prev, url: e.target.value}))}>
                         {allCustomModels && allCustomModels.length > 0 ? (
                             allCustomModels.map(m => (
                                 <option key={m.id} value={m.url}>[내 모델] {m.name}{m.height ? ` (${m.height}cm)` : ''}</option>
@@ -167,7 +170,7 @@ const ModelSelector = ({
                     <button className="btn btn-sm btn-outline-primary fw-bold text-nowrap w-100" onClick={() => setUploadModalOpen(true)} title="모델 등록">+ 내 모델 등록하기</button>
                 </div>
             ) : (
-                <input type="text" className="form-control form-control-sm mb-3" placeholder="이미지 URL 입력" value={model.url} onChange={(e) => setModel(prev => ({...prev, url: e.target.value}))} />
+                <input type="text" className="form-control form-control-sm mb-3" placeholder="이미지 URL 입력" value={model.url} onChange={(e) => setModel((prev: any) => ({...prev, url: e.target.value}))} />
             )}
             <div className="flex-grow-1 d-flex justify-content-center align-items-center mt-2" style={{minHeight: '220px', background: '#f8f9fa', borderRadius: '8px', border: '2px dashed #e0e0e0'}}>
                 {model.url ? <img src={model.url} alt="Model" style={{maxWidth: '100%', maxHeight: '250px', objectFit: 'contain', padding: '10px'}} /> : <div className="text-muted fw-bold">이미지 없음</div>}

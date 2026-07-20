@@ -1,6 +1,12 @@
 import { useState } from 'react';
 
-const OutfitModal = ({ isOpen, onClose, onConfirm }) => {
+interface OutfitModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (entries: Array<{ host: string; size: string }>) => void;
+}
+
+const OutfitModal = ({ isOpen, onClose, onConfirm }: OutfitModalProps) => {
   const [rows, setRows] = useState([
     { host: '', size: '' },
     { host: '', size: '' },
@@ -9,7 +15,7 @@ const OutfitModal = ({ isOpen, onClose, onConfirm }) => {
 
   if (!isOpen) return null;
 
-  const handleChange = (idx, field, val) => {
+  const handleChange = (idx: number, field: string, val: string) => {
     setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: val } : r));
   };
 
