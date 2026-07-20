@@ -33,6 +33,32 @@ const SelectionModal = ({
 
     const layerNames: Record<string, string> = { top: '상의', bottom: '하의', outer: '아우터' };
 
+    const filteredItems = React.useMemo(() => {
+        // 1. Filter only master items
+        let list = items.filter(i => i.isMaster);
+
+        // 2. Filter by category based on modalConfig.layer
+        if (modalConfig.layer === 'top') {
+            list = list.filter(i => i.category === '상의');
+        } else if (modalConfig.layer === 'bottom') {
+            list = list.filter(i => i.category === '하의' || i.category === '팬츠');
+        } else if (modalConfig.layer === 'outer') {
+            list = list.filter(i => i.category === '아우터');
+        }
+
+        // 3. Filter by search term
+        if (searchTerm.trim()) {
+            const lower = searchTerm.toLowerCase();
+            list = list.filter(i => 
+                (i.name && i.name.toLowerCase().includes(lower)) ||
+                (i.code && String(i.code).toLowerCase().includes(lower)) ||
+                (i.brand && i.brand.toLowerCase().includes(lower))
+            );
+        }
+
+        return list;
+    }, [items, modalConfig.layer, searchTerm]);
+
     return (
         <div className="modal-backdrop" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1050, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
             <div className="modal-content bg-white rounded shadow" style={{width: '90%', maxWidth: '850px', maxHeight: '85vh', display: 'flex', flexDirection: 'column'}}>
@@ -49,7 +75,7 @@ const SelectionModal = ({
                         <div>
                             <input type="text" placeholder="브랜드 또는 상품명 검색" className="form-control mb-3" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             <div className="vton-modal-product-list" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                                {items.slice(0, 30).map((item, idx) => {
+                                {filteredItems.slice(0, 30).map((item, idx) => {
                                     let colors: string[] = [];
                                     let imgObj: any = null;
                                     try { imgObj = JSON.parse(item.image); colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size'); } catch(e) {}
@@ -61,24 +87,32 @@ const SelectionModal = ({
                                                 <div className="text-muted" style={{fontSize: '12px'}}>{item.code}</div>
                                             </div>
                                             <div style={{ width: '60%', display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '5px', alignItems: 'center' }}>
-                                                {colors.map((c, i) => {
-                                                    let cUrl = imgObj[c];
-                                                    const finalUrl = cUrl;
-                                                    return (
-                                                        <div key={i} onClick={() => selectProductColor(item, c)} style={{ cursor: 'pointer', textAlign: 'center', minWidth: '70px', transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
-                                                            <div style={{ width: '70px', height: '90px', background: '#f8f9fa', borderRadius: '4px', overflow: 'hidden', border: '1px solid #eee' }}>
-                                                                {finalUrl ? <img src={finalUrl} alt={c} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{fontSize:'10px', color:'#999', lineHeight:'90px'}}>No Img</div>}
-                                                            </div>
-                                                            <div style={{ fontSize: '11px', marginTop: '6px', color: '#555', fontWeight: 'bold' }}>{c}</div>
+                                                {colors.length === 0 ? (
+                                                    <div onClick={() => selectProductColor(item, null)} style={{ cursor: 'pointer', textAlign: 'center', minWidth: '70px', transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+                                                        <div style={{ width: '70px', height: '90px', background: '#f8f9fa', borderRadius: '4px', overflow: 'hidden', border: '1px solid #eee' }}>
+                                                            {item.image ? <img src={item.image} alt="기본" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{fontSize:'10px', color:'#999', lineHeight:'90px'}}>No Img</div>}
                                                         </div>
-                                                    );
-                                                })}
-                                                {colors.length === 0 && <div className="text-muted small p-2">등록된 색상 이미지가 없습니다.</div>}
+                                                        <div style={{ fontSize: '11px', marginTop: '6px', color: '#555', fontWeight: 'bold' }}>기본</div>
+                                                    </div>
+                                                ) : (
+                                                    colors.map((c, i) => {
+                                                        let cUrl = imgObj[c];
+                                                        const finalUrl = cUrl;
+                                                        return (
+                                                            <div key={i} onClick={() => selectProductColor(item, c)} style={{ cursor: 'pointer', textAlign: 'center', minWidth: '70px', transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+                                                                <div style={{ width: '70px', height: '90px', background: '#f8f9fa', borderRadius: '4px', overflow: 'hidden', border: '1px solid #eee' }}>
+                                                                    {finalUrl ? <img src={finalUrl} alt={c} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{fontSize:'10px', color:'#999', lineHeight:'90px'}}>No Img</div>}
+                                                                </div>
+                                                                <div style={{ fontSize: '11px', marginTop: '6px', color: '#555', fontWeight: 'bold' }}>{c}</div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
                                             </div>
                                         </div>
                                     );
                                 })}
-                                {items.length === 0 && <div className="text-center text-muted p-4 border rounded">검색 결과가 없습니다.</div>}
+                                {filteredItems.length === 0 && <div className="text-center text-muted p-4 border rounded">검색 결과가 없습니다.</div>}
                             </div>
                         </div>
                     )}
