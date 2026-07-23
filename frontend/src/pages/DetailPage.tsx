@@ -129,11 +129,34 @@ const DetailPage = () => {
         scale: 2
       });
 
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `lotte_capture_${id}.png`;
-      link.href = dataUrl;
-      link.click();
+      // 캔버스를 블롭으로 변환하여 클립보드에 복사 시도
+      await new Promise<void>((resolve, reject) => {
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            reject(new Error('Canvas 블롭 변환 실패'));
+            return;
+          }
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                [blob.type]: blob
+              })
+            ]);
+            alert('이미지가 클립보드에 복사되었습니다! 카카오톡 등 대화창에 바로 붙여넣기(Ctrl+V) 하실 수 있습니다.');
+            resolve();
+          } catch (clipErr) {
+            console.warn('클립보드 복사 실패, 파일 다운로드로 대체합니다:', clipErr);
+            // 클립보드 미지원 환경의 경우 파일 다운로드로 폴백
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `lotte_capture_${id}.png`;
+            link.href = dataUrl;
+            link.click();
+            alert('클립보드 복사 권한이 없거나 지원되지 않아 캡쳐본이 파일로 자동 다운로드되었습니다.');
+            resolve();
+          }
+        }, 'image/png');
+      });
     } catch (err: any) {
       console.error('Capture failed:', err);
       alert('화면 캡쳐 중 오류가 발생했습니다: ' + (err.message || err));
