@@ -61,13 +61,12 @@ const HistoryModal = ({ isOpen, onClose, productCode }: HistoryModalProps) => {
 
   const originalHistoryLogs = useMemo(() => {
     return [...productHistory].sort((a, b) => {
-      // 1. 등록일(일 단위) 오름차순 — 같은 날짜 안에서는 대여/반납처럼 시각이 서로 다른
-      //    이벤트들도 한 날짜로 묶이도록 정확한 타임스탬프가 아닌 '날짜(YYYY-MM-DD)'로만 비교
-      const dayA = String(a.date || '').split('T')[0];
-      const dayB = String(b.date || '').split('T')[0];
-      if (dayA !== dayB) return dayA < dayB ? -1 : 1;
+      // 1. 등록 시각(날짜+시간) 오름차순 — 같은 날이라도 대여/반납처럼 서로 다른 시각에
+      //    일어난 이벤트는 실제 시간 순서 그대로 보여야 하므로 정확한 타임스탬프로 비교
+      const dateDiff = (new Date(a.date) as any) - (new Date(b.date) as any);
+      if (dateDiff !== 0) return dateDiff;
 
-      // 2. 같은 날짜면 사이즈순
+      // 2. 정확히 같은 시각(같은 저장 묶음, 예: 재고 등록 매트릭스 한 번에 저장)이면 사이즈순
       const sizeIdxA = sizeOrder.indexOf(a.size);
       const sizeIdxB = sizeOrder.indexOf(b.size);
       if (sizeIdxA !== sizeIdxB) return sizeIdxA - sizeIdxB;
