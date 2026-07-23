@@ -738,10 +738,6 @@ const DetailPage = () => {
           color: '#333'
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0284c7', paddingBottom: '10px' }}>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#0284c7' }}>LOTTE PB 상품 정보 공유</span>
-          <span style={{ fontSize: '11px', color: '#999' }}>{new Date().toLocaleDateString()}</span>
-        </div>
 
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: '800', margin: '0 0 5px 0', color: '#111' }}>{item.brand} {item.name}</h2>
