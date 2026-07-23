@@ -77,6 +77,7 @@ const DetailPage = () => {
   useEffect(() => setNoteText(noteObj?.text || ''),     [noteObj]);
 
   const [isMobile, setIsMobile] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [captureImgUrl, setCaptureImgUrl] = useState('');
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -90,9 +91,8 @@ const DetailPage = () => {
   }, []);
 
   const handleCapturePage = async () => {
-    if (!captureRef.current) return;
     try {
-      setIsLoading(true);
+      setIsCapturing(true);
       
       // 외부 URL 이미지의 경우 브라우저 보안(CORS)으로 인한 캡쳐 캔버스 오염(Taint)을 방지하기 위해 프록시를 거쳐 Base64로 전환
       let resolvedImgUrl = mainImgUrl;
@@ -117,6 +117,10 @@ const DetailPage = () => {
       // 상태 변경 및 이미지 렌더링 동기화를 위해 대기
       await new Promise(r => setTimeout(r, 300));
       
+      if (!captureRef.current) {
+        throw new Error('캡쳐 영역(DOM)을 찾을 수 없습니다.');
+      }
+
       const canvas = await html2canvas(captureRef.current, {
         useCORS: true,
         allowTaint: false,
@@ -135,7 +139,7 @@ const DetailPage = () => {
       alert('화면 캡쳐 중 오류가 발생했습니다: ' + (err.message || err));
     } finally {
       setCaptureImgUrl('');
-      setIsLoading(false);
+      setIsCapturing(false);
     }
   };
 
@@ -399,9 +403,9 @@ const DetailPage = () => {
                   Excel
                 </button>
                 {isMobile && (
-                  <button className="btn-capture" onClick={handleCapturePage}>
+                  <button className="btn-capture" onClick={handleCapturePage} disabled={isCapturing}>
                     <span className="material-icons-round" style={{ fontSize: '14px' }}>photo_camera</span>
-                    캡쳐
+                    {isCapturing ? '캡쳐 중...' : '캡쳐'}
                   </button>
                 )}
               </div>
