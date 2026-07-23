@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { getProductImage } from '../utils/helpers';
@@ -74,6 +74,45 @@ const DetailPage = () => {
   const [noteText,   setNoteText]   = useState('');
   useEffect(() => setSupplyText(supplyObj?.text || ''), [supplyObj]);
   useEffect(() => setNoteText(noteObj?.text || ''),     [noteObj]);
+
+  const [isMobile, setIsMobile] = useState(false);
+  const captureRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleCapturePage = async () => {
+    if (!captureRef.current) return;
+    try {
+      setIsLoading(true);
+      await new Promise(r => setTimeout(r, 200));
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(captureRef.current, {
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: '#ffffff',
+        scale: 2
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `lotte_capture_${id}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Capture failed:', err);
+      alert('화면 캡쳐 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // 대여 바구니
   const [cart,    setCart]    = useState<any[]>([]);
@@ -334,6 +373,12 @@ const DetailPage = () => {
                   <span className="material-icons-round" style={{ fontSize: '14px' }}>description</span>
                   Excel
                 </button>
+                {isMobile && (
+                  <button className="btn-capture" onClick={handleCapturePage}>
+                    <span className="material-icons-round" style={{ fontSize: '14px' }}>photo_camera</span>
+                    캡쳐
+                  </button>
+                )}
               </div>
             </div>
 
@@ -622,6 +667,91 @@ const DetailPage = () => {
           </div>
         </div>
       )}
+      {/* Hidden Mobile Capture Card Template (Invisible, off-screen, but layouted for lossless capture) */}
+      <div 
+        ref={captureRef}
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: '-9999px',
+          width: '360px',
+          padding: '20px',
+          background: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '15px',
+          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          color: '#333'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0284c7', paddingBottom: '10px' }}>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#0284c7' }}>LOTTE PB 상품 정보 공유</span>
+          <span style={{ fontSize: '11px', color: '#999' }}>{new Date().toLocaleDateString()}</span>
+        </div>
+
+        <div>
+          <h2 style={{ fontSize: '18px', fontWeight: '800', margin: '0 0 5px 0', color: '#111' }}>{item.brand} {item.name}</h2>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>코드: {item.code}</span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', background: '#f0fdf4', color: '#15803d', padding: '2px 6px', borderRadius: '4px' }}>위치: {item.location || '-'}</span>
+          </div>
+        </div>
+
+        {mainImgUrl && (
+          <div style={{ width: '100%', height: '320px', overflow: 'hidden', borderRadius: '8px', border: '1px solid #f1f5f9', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f8fafc' }}>
+            <img 
+              src={mainImgUrl} 
+              alt="상품이미지" 
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+              crossOrigin="anonymous"
+            />
+          </div>
+        )}
+
+        {noteText && (
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #0284c7' }}>
+            <h4 style={{ fontSize: '12px', fontWeight: 'bold', margin: '0 0 4px 0', color: '#0284c7' }}>상품 특이사항</h4>
+            <p style={{ fontSize: '11px', margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.4', color: '#475569' }}>{noteText}</p>
+          </div>
+        )}
+
+        <div style={{ marginTop: '5px' }}>
+          <h4 style={{ fontSize: '13px', fontWeight: 'bold', margin: '0 0 8px 0', color: '#1e293b' }}>실시간 재고 현황</h4>
+          {colors.length === 0 ? (
+            <p style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', margin: 0, padding: '10px 0' }}>등록된 재고가 없습니다.</p>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'center' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  <th style={{ padding: '6px', border: '1px solid #e2e8f0', fontWeight: 'bold', color: '#475569' }}>색상</th>
+                  {sizes.map(s => (
+                    <th key={s} style={{ padding: '6px', border: '1px solid #e2e8f0', fontWeight: 'bold', color: '#475569' }}>{s}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {colors.map(c => (
+                  <tr key={c}>
+                    <td style={{ padding: '6px', border: '1px solid #e2e8f0', fontWeight: 'bold', background: '#f8fafc', color: '#475569' }}>{c}</td>
+                    {sizes.map(s => {
+                      const base   = stockMap.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
+                      const rented = itemRentals.filter(r => r.color === c && r.size === s).reduce((a, b) => a + Number(b.qty), 0);
+                      const qty    = base - rented;
+                      return (
+                        <td key={s} style={{ padding: '6px', border: '1px solid #e2e8f0', color: qty > 0 ? '#0284c7' : '#94a3b8', fontWeight: qty > 0 ? 'bold' : 'normal' }}>
+                          {qty}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </section>
   );
 };

@@ -36,40 +36,84 @@ export const useVtonGeneration = () => {
                 const modelShoulder = bodyAnalysis.shoulderWidth || 38.0;
                 const modelLeg = bodyAnalysis.legLength || 90.0;
                 
-                // Analyze Top fit
-                if (top.url && top.item) {
-                    let garmentShoulder = 38.0; 
-                    const sizeStr = String(top.sizeCode || '').trim();
-                    if (sizeStr === 'S' || sizeStr === '55' || sizeStr === '85') garmentShoulder = 37.0;
-                    else if (sizeStr === 'M' || sizeStr === '66' || sizeStr === '90') garmentShoulder = 39.0;
-                    else if (sizeStr === 'L' || sizeStr === '77' || sizeStr === '95') garmentShoulder = 41.0;
-                    else if (sizeStr === 'XL' || sizeStr === '88' || sizeStr === '100') garmentShoulder = 43.0;
+            // Analyze Top fit with exact size chart scale ratios if available
+            if (top.url && top.item) {
+                let garmentShoulder = 38.0; 
+                const sizeStr = String(top.sizeCode || '').trim();
+                if (sizeStr === 'S' || sizeStr === '55' || sizeStr === '85') garmentShoulder = 37.0;
+                else if (sizeStr === 'M' || sizeStr === '66' || sizeStr === '90') garmentShoulder = 39.0;
+                else if (sizeStr === 'L' || sizeStr === '77' || sizeStr === '95') garmentShoulder = 41.0;
+                else if (sizeStr === 'XL' || sizeStr === '88' || sizeStr === '100') garmentShoulder = 43.0;
 
-                    if (garmentShoulder - modelShoulder > 3) {
-                        fitPromptAdditions += " The top should fit loosely and oversized, with relaxed drop shoulders falling naturally.";
-                    } else if (modelShoulder - garmentShoulder > 2) {
-                        fitPromptAdditions += " The top fits tightly and slim-fit, hugging the model's body closely.";
-                    } else {
-                        fitPromptAdditions += " The top has a clean, neat regular fit.";
+                // Extract exact length_cm scaling if size chart data exists
+                let topScaleRatio = 1.0;
+                try {
+                    const imgObj = typeof top.item.image === 'string' ? JSON.parse(top.item.image) : top.item.image;
+                    if (imgObj && Array.isArray(imgObj.length_cm) && imgObj.length_cm.length > 0) {
+                        const sizes = imgObj.length_cm;
+                        const baseEntry = sizes[0]; // Smallest size
+                        const selectedEntry = sizes.find((s: any) => String(s.category).trim() === sizeStr) || baseEntry;
+                        
+                        const baseLen = parseFloat(baseEntry.length);
+                        const targetLen = parseFloat(selectedEntry.length);
+                        if (!isNaN(baseLen) && !isNaN(targetLen) && baseLen > 0) {
+                            topScaleRatio = targetLen / baseLen;
+                        }
                     }
+                } catch (e) {
+                    console.warn('Failed to parse top length_cm:', e);
                 }
-                
-                // Analyze Bottom fit
-                if (bottom.url && bottom.item) {
-                    let garmentLength = 95.0; 
-                    const sizeStr = String(bottom.sizeCode || '').trim();
-                    if (sizeStr === 'S' || sizeStr === '55' || sizeStr === '85') garmentLength = 92.0;
-                    else if (sizeStr === 'M' || sizeStr === '66' || sizeStr === '90') garmentLength = 95.0;
-                    else if (sizeStr === 'L' || sizeStr === '77' || sizeStr === '95') garmentLength = 98.0;
 
-                    if (garmentLength - modelLeg > 5) {
-                        fitPromptAdditions += " The pants are very long and baggy, draping down and slightly pooling or folding over the tops of the shoes.";
-                    } else if (modelLeg - garmentLength > 10) {
-                        fitPromptAdditions += " The pants have a cropped or ankle-length fit, ending slightly above the ankles.";
-                    } else {
-                        fitPromptAdditions += " The pants fit regularly, dropping straight down neatly to the ankles.";
-                    }
+                if (topScaleRatio > 1.02) {
+                    const pct = Math.round((topScaleRatio - 1.0) * 100);
+                    fitPromptAdditions += ` The top is size ${sizeStr}, which is ${pct}% larger in total length than the base size. Render the top with a proportionally longer hem and slightly relaxed fit.`;
+                } else if (garmentShoulder - modelShoulder > 3) {
+                    fitPromptAdditions += " The top should fit loosely and oversized, with relaxed drop shoulders falling naturally.";
+                } else if (modelShoulder - garmentShoulder > 2) {
+                    fitPromptAdditions += " The top fits tightly and slim-fit, hugging the model's body closely.";
+                } else {
+                    fitPromptAdditions += " The top has a clean, neat regular fit.";
                 }
+            }
+            
+            // Analyze Bottom fit with exact size chart scale ratios if available
+            if (bottom.url && bottom.item) {
+                let garmentLength = 95.0; 
+                const sizeStr = String(bottom.sizeCode || '').trim();
+                if (sizeStr === 'S' || sizeStr === '55' || sizeStr === '85') garmentLength = 92.0;
+                else if (sizeStr === 'M' || sizeStr === '66' || sizeStr === '90') garmentLength = 95.0;
+                else if (sizeStr === 'L' || sizeStr === '77' || sizeStr === '95') garmentLength = 98.0;
+
+                // Extract exact length_cm scaling if size chart data exists
+                let bottomScaleRatio = 1.0;
+                try {
+                    const imgObj = typeof bottom.item.image === 'string' ? JSON.parse(bottom.item.image) : bottom.item.image;
+                    if (imgObj && Array.isArray(imgObj.length_cm) && imgObj.length_cm.length > 0) {
+                        const sizes = imgObj.length_cm;
+                        const baseEntry = sizes[0]; // Smallest size
+                        const selectedEntry = sizes.find((s: any) => String(s.category).trim() === sizeStr) || baseEntry;
+                        
+                        const baseLen = parseFloat(baseEntry.length);
+                        const targetLen = parseFloat(selectedEntry.length);
+                        if (!isNaN(baseLen) && !isNaN(targetLen) && baseLen > 0) {
+                            bottomScaleRatio = targetLen / baseLen;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse bottom length_cm:', e);
+                }
+
+                if (bottomScaleRatio > 1.02) {
+                    const pct = Math.round((bottomScaleRatio - 1.0) * 100);
+                    fitPromptAdditions += ` The bottom is selected in size ${sizeStr}, which is ${pct}% longer than the smallest base size. Scale the pant leg length downwards by ${pct}% for a longer fit on the model.`;
+                } else if (garmentLength - modelLeg > 5) {
+                    fitPromptAdditions += " The pants are very long and baggy, draping down and slightly pooling or folding over the tops of the shoes.";
+                } else if (modelLeg - garmentLength > 10) {
+                    fitPromptAdditions += " The pants have a cropped or ankle-length fit, ending slightly above the ankles.";
+                } else {
+                    fitPromptAdditions += " The pants fit regularly, dropping straight down neatly to the ankles.";
+                }
+            }
             }
 
             setProgressText(`룩시트 일괄 합성 중... (Nano Banana)`);

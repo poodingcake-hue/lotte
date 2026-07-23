@@ -2,6 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import ProductSearchModal from '../components/modals/ProductSearchModal';
 import HistoryModal from '../components/modals/HistoryModal';
+import { removeBackground } from '../api/falClient';
+import { cropTransparentMargins } from '../utils/imageCrop';
 
 const RegisterPage = () => {
   const { allStockMap, apiClient, saveProductToBackend } = useAppStore();
@@ -21,6 +23,8 @@ const RegisterPage = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
   
   // Active box for pasting images ('main' or color name)
   const [activeImageBox, setActiveImageBox] = useState('main');
@@ -177,6 +181,63 @@ const RegisterPage = () => {
     }
   };
 
+  const handleAnalyzeSizeChart = async () => {
+    const imageUrl = imageObj.size;
+    if (!imageUrl) {
+      alert('상세사이즈 이미지를 먼저 등록해주세요!');
+      return;
+    }
+    
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          const base64 = result.substring(result.indexOf(',') + 1);
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      
+      const res = await apiClient.post('', {
+        type: 'analyze_size_chart',
+        data: {
+          imageBase64: base64Data,
+          mimeType: blob.type
+        }
+      });
+      
+      if (res.data.success && res.data.data && res.data.data.sizes) {
+        const parsedSizes = res.data.data.sizes;
+        // 마스터 정보(사이즈 콤마)는 덮어쓰지 않고 내부 데이터(image.length_cm)에만 저장합니다.
+        
+        const newImageObj = {
+          ...imageObj,
+          length_cm: parsedSizes
+        };
+        
+        setFormData(prev => ({
+          ...prev,
+          image: JSON.stringify(newImageObj)
+        }));
+        
+        alert('AI 치수 분석 완료! 사이즈 목록이 자동으로 입력되었습니다.');
+      } else {
+        alert('치수 분석 실패: ' + (res.data.error || '알 수 없는 에러가 발생했습니다.'));
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert('치수 분석 에러: ' + e.message);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+
   // Paste Event Listener for Global document
   useEffect(() => {
     const handlePaste = async (e: any) => {
@@ -224,13 +285,98 @@ const RegisterPage = () => {
     
     try {
         setIsUploading(true);
+        alert("저장을 시작합니다. (이미지 배경 제거(누끼) 작업이 포함되어 약 10~20초 정도 소요될 수 있습니다...)");
+        
+        // --- 1. 누끼(배경 제거) 작업 ---
+        const processedImageObj = { ...imageObj };
+        for (const key of Object.keys(processedImageObj)) {
+            // web, size, size_chart, length_cm 등 옷 이미지가 아닌 데이터는 제외
+            if (key !== 'web' && key !== 'size' && key !== 'size_chart' && key !== 'length_cm') {
+                try {
+                    let imgData = processedImageObj[key];
+                    if (!imgData) continue;
+                    
+                    console.log(`[누끼] 키: ${key}, 데이터 시작: ${imgData.substring(0, 60)}...`);
+                    
+                    // 이미 누끼 처리된 R2 URL이면 건너뛰기 (파일명에 "nukki"가 포함)
+                    if (imgData.includes('nukki')) {
+                        console.log(`[누끼] ${key}: 이미 누끼 처리 완료 → 건너뜀`);
+                        continue;
+                    }
+                    
+                    // R2 URL 또는 외부 URL → 프록시로 Base64 변환
+                    if (imgData.startsWith('http://') || imgData.startsWith('https://')) {
+                        console.log(`[누끼] ${key}: URL 감지 → 프록시로 Base64 변환 시도`);
+                        const proxyRes = await apiClient.post('', { type: 'proxy_image', data: { imageUrl: imgData } });
+                        if (proxyRes.data && proxyRes.data.success) {
+                            imgData = proxyRes.data.base64;
+                            console.log(`[누끼] ${key}: 프록시 성공, Base64 길이: ${imgData.length}`);
+                        } else {
+                            throw new Error("프록시 변환 실패: " + proxyRes.data?.message);
+                        }
+                    }
+
+                    // data:image 형태 → fal.ai 누끼 처리
+                    if (imgData.startsWith('data:image')) {
+                        console.log(`[누끼] ${key}: fal.ai 누끼 요청 시작...`);
+                        let nukkiResult = await removeBackground(imgData);
+                        console.log(`[누끼] ${key}: 누끼 완료! 결과: ${nukkiResult}`);
+
+                        // 투명 여백 자동 크롭 & 총장(cm) 비례 이미지 리사이즈 (1cm = 8px)
+                        try {
+                            console.log(`[누끼] ${key}: 이미지 여백 크롭 & 총장 비례 리사이즈 시작...`);
+                            
+                            let targetLengthCm: number | undefined = undefined;
+                            if (processedImageObj.length_cm && Array.isArray(processedImageObj.length_cm) && processedImageObj.length_cm.length > 0) {
+                                const baseEntry = processedImageObj.length_cm[0]; // 가장 작은 사이즈
+                                const parsedLen = parseFloat(baseEntry.length);
+                                if (!isNaN(parsedLen) && parsedLen > 0) {
+                                    targetLengthCm = parsedLen;
+                                    console.log(`[누끼] ${key}: 기준 총장(cm): ${targetLengthCm}cm → 목표 높이: ${targetLengthCm * 8}px`);
+                                }
+                            }
+                            
+                            const croppedBase64 = await cropTransparentMargins(nukkiResult, targetLengthCm);
+                            
+                            // 크롭/리사이즈된 이미지를 R2에 업로드
+                            const blob = await (await fetch(croppedBase64)).blob();
+                            const formData = new FormData();
+                            formData.append('file', blob, `nukki_cropped_${Date.now()}.png`);
+                            
+                            const uploadRes = await apiClient.post('', formData, {
+                                headers: { 'Content-Type': 'multipart/form-data' }
+                            });
+                            
+                            if (uploadRes.data && uploadRes.data.success) {
+                                nukkiResult = uploadRes.data.imageUrl;
+                                console.log(`[누끼] ${key}: 여백 크롭 & 리사이즈 완료! R2 저장: ${nukkiResult}`);
+                            }
+                        } catch (cropErr) {
+                            console.warn(`[누끼] ${key}: 크롭 과정 오류, 누끼 원본 유지:`, cropErr);
+                        }
+
+                        processedImageObj[key] = nukkiResult;
+                    } else {
+                        console.warn(`[누끼] ${key}: 처리 불가 (data:image로 시작하지 않음)`);
+                    }
+                } catch (e: any) {
+                    console.error(`[누끼] ${key}: 실패!!!`, e);
+                    alert(`누끼 실패 (${key}): ${e.message || e}. 원본 이미지로 저장합니다.`);
+                    // 실패 시 원본 이미지를 그대로 사용
+                }
+            }
+        }
+        // 상태 업데이트하여 화면에도 반영
+        setFormData(prev => ({ ...prev, image: JSON.stringify(processedImageObj) }));
+
+        // --- 2. 상품 저장 ---
         const newProduct = {
            ...formData,
-           image: JSON.stringify(imageObj),
+           image: JSON.stringify(processedImageObj),
            isMaster: true
         };
         await saveProductToBackend(newProduct);
-        alert("상품 정보(마스터 및 이미지)가 성공적으로 저장되었습니다!");
+        alert("상품 정보(마스터/이미지)가 성공적으로 등록되었습니다! 누끼 작업 완료!");
     } catch (error) {
         alert("상품 정보 저장에 실패했습니다. 다시 시도해주세요.");
     } finally {
@@ -389,7 +535,14 @@ const RegisterPage = () => {
             backgroundImage: displayUrl ? `url(${displayUrl})` : 'none',
             backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: '#fafafa'
+            backgroundColor: '#fafafa',
+            ...(displayUrl && boxKey !== 'main' && boxKey !== 'size' ? {
+              // Add checkerboard background to visualize transparency (nukki)
+              backgroundImage: `url(${displayUrl}), repeating-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), repeating-linear-gradient(45deg, #ccc 25%, #fafafa 25%, #fafafa 75%, #ccc 75%, #ccc)`,
+              backgroundPosition: 'center, 0 0, 4px 4px',
+              backgroundSize: 'contain, 8px 8px, 8px 8px'
+            } : {}),
+            position: 'relative'
           }}
         >
           {isUploading && isActive ? (
@@ -399,8 +552,30 @@ const RegisterPage = () => {
           ) : null}
         </div>
 
-        
-        
+        {boxKey === 'size' && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAnalyzeSizeChart();
+            }}
+            disabled={isAnalyzing}
+            className="m-btn"
+            style={{
+              marginTop: '5px',
+              padding: '4px 8px',
+              fontSize: '11px',
+              borderRadius: '4px',
+              background: imgUrl ? '#0284c7' : '#94a3b8',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              width: '100%'
+            }}
+          >
+            {isAnalyzing ? '분석 중...' : '🔍 AI 치수분석'}
+          </button>
+        )}
       </div>
     );
   };

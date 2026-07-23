@@ -58,3 +58,28 @@ async function pollFalRequest(statusUrl: string, responseUrl: string): Promise<a
     throw new Error('Fal API Polling Timeout (3 minutes exceeded)');
 }
 
+export async function removeBackground(imageBase64: string): Promise<string> {
+    try {
+        const res = await callFalRestApi("fal-ai/birefnet", { image_url: imageBase64 });
+        if (res && res.image && res.image.url) {
+            // fal.ai returns a URL to the transparent PNG. 
+            // We tell our backend to fetch it and upload it to our R2 bucket directly to avoid CORS and Base64 D1 limits.
+            const uploadRes = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'upload_url_to_r2', data: { url: res.image.url } })
+            });
+            
+            const uploadData = await uploadRes.json();
+            if (uploadData.success) {
+                return uploadData.imageUrl; // Returns R2 URL!
+            }
+            throw new Error(uploadData.message || "Failed to upload nukki image to R2");
+        }
+        throw new Error("Failed to get image url from fal.ai");
+    } catch (e) {
+        console.error("Background removal failed:", e);
+        throw e;
+    }
+}
+

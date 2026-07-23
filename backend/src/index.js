@@ -185,7 +185,8 @@ export default {
             });
           }
           
-          const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          const originalName = file.name || 'upload.png';
+          const filename = `${Date.now()}-${originalName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
           
           await env.IMAGE_BUCKET.put(filename, file.stream(), {
             httpMetadata: { contentType: file.type }
@@ -204,6 +205,86 @@ export default {
 
         // Route actions securely using separate handlers
         switch (type) {
+          case "analyze_size_chart": {
+              const { imageBase64, mimeType } = data;
+              const openaiKey = env.OPENAI_API_KEY;
+              if (!openaiKey) {
+                return new Response(JSON.stringify({ error: "OPENAI_API_KEY is not configured on the server.", envKeys: Object.keys(env) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              }
+
+              const prompt = `This is a simple commercial product size chart from a clothing catalog. Please extract the numeric measurements from the table.
+Please map size categories (like 55, 66, 77, 88 or S, M, L, XL) to their respective "총장" (total length / height / 기장) in cm, and optionally "어깨너비" (shoulder width) in cm if available.
+
+Return the result STRICTLY as a JSON object with this exact structure:
+{
+  "sizes": [
+    { "category": "M", "length": "68", "shoulder": "45" },
+    { "category": "L", "length": "70", "shoulder": "47" }
+  ]
+}
+Do not include any markdown formatting, code blocks, or extra text. Just the raw JSON object.`;
+
+              try {
+                const res = await fetch("https://api.openai.com/v1/chat/completions", {
+                  method: "POST",
+                  headers: {
+                    "Authorization": `Bearer ${openaiKey}`,
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                    model: "gpt-4o",
+                    messages: [
+                      {
+                        role: "user",
+                        content: [
+                          { type: "text", text: prompt },
+                          {
+                            type: "image_url",
+                            image_url: {
+                              url: `data:${mimeType || "image/png"};base64,${imageBase64}`
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  })
+                });
+  
+                if (!res.ok) {
+                    const errText = await res.text();
+                    console.error("OpenAI Error:", res.status, errText);
+                    return new Response(JSON.stringify({ error: `OpenAI API Error: ${errText}` }), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+  
+                const result = await res.json();
+                console.log("OpenAI Result:", JSON.stringify(result, null, 2));
+                const message = result.choices[0]?.message;
+                
+                if (message?.refusal) {
+                  console.error("OpenAI Refusal:", message.refusal);
+                  return new Response(JSON.stringify({ error: "OpenAI refused to process the image: " + message.refusal }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
+                const text = message?.content;
+                
+                if (!text) {
+                  throw new Error("OpenAI returned empty text: " + JSON.stringify(result));
+                }
+                
+                // Clean up markdown if any
+                let cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const parsed = JSON.parse(cleanText);
+  
+                return new Response(JSON.stringify({
+                  success: true,
+                  data: parsed
+                }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              } catch (e) {
+                console.error("Parse Error:", e);
+                return new Response(JSON.stringify({ error: "Failed to parse sizes." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              }
+            }
+
           case "fal_api_proxy": {
             const { modelUrl, payload } = data;
             const key = env.FAL_API_KEY;
@@ -220,6 +301,69 @@ export default {
             return new Response(JSON.stringify(await res.json()), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
+          case "upload_url_to_r2": {
+            const { url: sourceUrl } = data;
+            try {
+              const imgRes = await fetch(sourceUrl);
+              if (!imgRes.ok) throw new Error("Failed to fetch source image");
+              
+              const contentType = imgRes.headers.get("content-type") || "image/png";
+              const filename = `${Date.now()}-nukki.png`;
+              
+              await env.IMAGE_BUCKET.put(filename, imgRes.body, {
+                httpMetadata: { contentType }
+              });
+              
+              const imageUrl = `${url.origin}/images/${filename}`;
+              return new Response(JSON.stringify({ success: true, imageUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            } catch (e) {
+              return new Response(JSON.stringify({ success: false, message: e.message }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+          }
+
+          case "proxy_image": {
+            const { imageUrl } = data;
+            try {
+              let arrayBuffer;
+              let contentType = "image/png";
+
+              // 우리 서버(R2) URL이면 R2에서 직접 읽기 (HTTP fetch 대신)
+              const r2Match = imageUrl.match(/\/images\/(.+)$/);
+              if (r2Match && (imageUrl.includes('lotte-backend') || imageUrl.includes('localhost') || imageUrl.includes('127.0.0.1'))) {
+                const filename = decodeURIComponent(r2Match[1]);
+                const object = await env.IMAGE_BUCKET.get(filename);
+                if (!object) throw new Error("R2 object not found: " + filename);
+                arrayBuffer = await object.arrayBuffer();
+                contentType = object.httpMetadata?.contentType || "image/png";
+              } else {
+                // 외부 URL은 HTTP fetch (User-Agent 및 Referer 헤더 추가하여 403/차단 방지)
+                const imgRes = await fetch(imageUrl, {
+                  headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                    'Referer': 'https://www.lotteimall.com/'
+                  }
+                });
+                if (!imgRes.ok) throw new Error("Failed to fetch image: " + imgRes.status);
+                arrayBuffer = await imgRes.arrayBuffer();
+                contentType = imgRes.headers.get("content-type") || "image/jpeg";
+              }
+
+              // Chunked base64 encoding to prevent V8 stack overflow on large images
+              let binary = '';
+              const bytes = new Uint8Array(arrayBuffer);
+              const chunkSize = 8192;
+              for (let i = 0; i < bytes.length; i += chunkSize) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+              }
+              const base64Str = btoa(binary);
+
+              return new Response(JSON.stringify({ success: true, base64: `data:${contentType};base64,${base64Str}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            } catch (e) {
+              return new Response(JSON.stringify({ success: false, message: e.message }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+          }
+
           case "fal_api_status": {
             const { statusUrl } = data;
             const key = env.FAL_API_KEY;
@@ -232,7 +376,11 @@ export default {
             const { responseUrl } = data;
             const key = env.FAL_API_KEY;
             const res = await fetch(responseUrl, { headers: { 'Authorization': 'Key ' + key } });
-            if (!res.ok) return new Response(JSON.stringify({ error: 'Fetch result failed' }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            if (!res.ok) {
+              const text = await res.text();
+              console.error('Fal API Result Fetch Failed:', text);
+              return new Response(JSON.stringify({ error: 'Fetch result failed: ' + text }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
             return new Response(JSON.stringify(await res.json()), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
