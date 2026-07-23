@@ -18,16 +18,6 @@ export interface InventoryItem {
     qty: number;
 }
 
-export interface RentalItem {
-    id?: string;
-    code: string;
-    renter: string;
-    color: string;
-    size: string;
-    qty: number;
-    date: string;
-}
-
 export interface OutfitItem {
     id?: string;
     code: string;
@@ -57,6 +47,9 @@ export interface HistoryLog {
     actor: string;
     date: string;
     note?: string;
+    // For type 'RETURN': the id of the RENT log this return closes out. This is how
+    // "still outstanding" rentals are derived — no separate rentals table.
+    ref_id?: number | string | null;
     [key: string]: any;
 }
 
@@ -94,7 +87,6 @@ export interface BodyAnalysis {
 export interface AppState {
     allItems: Item[];
     allStockMap: Record<string, InventoryItem[]>;
-    allRentals: RentalItem[];
     allOutfits: OutfitItem[];
     allNotes: NoteItem[];
     allSupplies: SupplyItem[];
@@ -112,7 +104,6 @@ export interface AppState {
     invSelectedCate: string;
     invVisibleCount: number;
     
-    setAllRentals: (rentals: RentalItem[]) => void;
     setAllOutfits: (outfits: OutfitItem[]) => void;
     setAllNotes: (notes: NoteItem[]) => void;
     setAllSupplies: (supplies: SupplyItem[]) => void;
@@ -131,7 +122,9 @@ export interface AppState {
     initApp: () => Promise<void>;
     updateHistoryInBackend: (updatedLogs: any[]) => Promise<void>;
     saveToBackend: (fileName: string, data: any, code: string) => Promise<void>;
-    saveHistoryToBackend: (logs: any) => Promise<void>;
+    // Returns the saved logs with their backend-assigned ids attached (same order as input),
+    // so callers can immediately reference a row (e.g. a RETURN log's ref_id).
+    saveHistoryToBackend: (logs: any) => Promise<any[]>;
     saveProductToBackend: (productData: any) => Promise<void>;
 }
 

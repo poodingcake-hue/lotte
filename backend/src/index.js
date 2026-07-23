@@ -121,26 +121,28 @@ export default {
       // 4. GET / - Fetch unified application state batch
       if (request.method === "GET" && url.pathname === "/") {
         const batchResults = await env.DB.batch([
-            env.DB.prepare("SELECT * FROM inventory"),
-            env.DB.prepare("SELECT * FROM rentals"),
+            // Inventory is derived (SUM) from inventory_history, never stored/written directly.
+            // inventory_history is the single source of truth for stock levels.
+            env.DB.prepare("SELECT code, color, size, SUM(qty) as qty FROM inventory_history GROUP BY code, color, size"),
             env.DB.prepare("SELECT * FROM outfits"),
             env.DB.prepare("SELECT * FROM notes"),
             env.DB.prepare("SELECT * FROM supplies"),
             env.DB.prepare("SELECT * FROM products"),
+            // Rental checkouts (type RENT) and returns (type RETURN, linked back via ref_id) also
+            // live here — "who has what still outstanding" is derived from this, not a separate table.
             env.DB.prepare("SELECT * FROM inventory_history"),
             env.DB.prepare("SELECT * FROM custom_models ORDER BY created_at DESC"),
             env.DB.prepare("SELECT * FROM gallery ORDER BY created_at DESC")
         ]);
 
         const inventoryResults = batchResults[0].results;
-        const rentalsResults = batchResults[1].results;
-        const outfitsResults = batchResults[2].results;
-        const notesResults = batchResults[3].results;
-        const suppliesResults = batchResults[4].results;
-        const productsResults = batchResults[5].results;
-        const historyResults = batchResults[6].results;
-        const customModelsResults = batchResults[7].results;
-        const galleryResults = batchResults[8].results;
+        const outfitsResults = batchResults[1].results;
+        const notesResults = batchResults[2].results;
+        const suppliesResults = batchResults[3].results;
+        const productsResults = batchResults[4].results;
+        const historyResults = batchResults[5].results;
+        const customModelsResults = batchResults[6].results;
+        const galleryResults = batchResults[7].results;
 
         const formattedInventory = {};
         inventoryResults.forEach(item => {
@@ -156,7 +158,6 @@ export default {
 
         const responseData = {
           inventory: formattedInventory,
-          rentals: rentalsResults,
           outfits: outfitsResults,
           notes: notesResults,
           supplies: suppliesResults,
@@ -442,25 +443,6 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
             return new Response(JSON.stringify({ success: false, message: "Missing item details" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
-          // Concurrency-safe rentals updates scoped by product code
-          case "save_product_rentals": {
-            const { code, rentals } = data;
-            if (code) {
-              const statements = [env.DB.prepare("DELETE FROM rentals WHERE code = ?").bind(code)];
-              if (rentals && rentals.length > 0) {
-                const stmt = env.DB.prepare("INSERT INTO rentals (code, renter, color, size, qty, date) VALUES (?, ?, ?, ?, ?, ?)");
-                rentals.forEach(r => {
-                  statements.push(stmt.bind(code, r.renter, r.color || "", r.size || "", r.qty || 1, r.date || ""));
-                });
-              }
-              for (let i = 0; i < statements.length; i += 100) {
-                await env.DB.batch(statements.slice(i, i + 100));
-              }
-              return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-            }
-            return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-          }
-
           // Concurrency-safe outfits updates scoped by product code
           case "save_product_outfits": {
             const { code, outfits } = data;
@@ -508,53 +490,35 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
             return new Response(JSON.stringify({ success: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
-          // Key-specific code-based clean delete-insert for inventory
-          case "save_inventory": {
-             const statements = [];
-             if (data && data.length > 0) {
-                 const codes = [...new Set(data.map(item => item.code))];
-                 codes.forEach(code => {
-                     statements.push(env.DB.prepare("DELETE FROM inventory WHERE code = ?").bind(code));
-                 });
-                 
-                 const stmt = env.DB.prepare("INSERT INTO inventory (code, color, size, qty) VALUES (?, ?, ?, ?)");
-                 data.forEach(item => {
-                     statements.push(stmt.bind(item.code, item.color, item.size, item.qty));
-                 });
-             }
-             for (let i = 0; i < statements.length; i += 100) {
-                 await env.DB.batch(statements.slice(i, i + 100));
-             }
-             return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-          }
-
-          // Bulk history log saving
+          // Bulk history log saving. Returns the auto-assigned id of each inserted row (same
+          // order as `data`) so callers can immediately reference a row (e.g. a RETURN log's
+          // ref_id pointing back at the RENT log it closes out) without waiting for a reload.
           case "save_history": {
-             const statements = [];
+             const ids = [];
              if (data && data.length > 0) {
-                 const stmt = env.DB.prepare("INSERT INTO inventory_history (code, color, size, type, qty, actor, date, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                 data.forEach(item => {
-                     statements.push(stmt.bind(item.code, item.color, item.size, item.type, item.qty, item.actor || "", item.date || "", item.note || ""));
-                 });
+                 const stmt = env.DB.prepare("INSERT INTO inventory_history (code, color, size, type, qty, actor, date, note, ref_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                 const statements = data.map(item => stmt.bind(
+                     item.code, item.color, item.size, item.type, item.qty,
+                     item.actor || "", item.date || "", item.note || "",
+                     item.ref_id !== undefined && item.ref_id !== null ? item.ref_id : null
+                 ));
+                 for (let i = 0; i < statements.length; i += 100) {
+                     const batchResults = await env.DB.batch(statements.slice(i, i + 100));
+                     batchResults.forEach(r => ids.push(r.meta.last_row_id));
+                 }
              }
-             for (let i = 0; i < statements.length; i += 100) {
-                 await env.DB.batch(statements.slice(i, i + 100));
-             }
-             return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+             return new Response(JSON.stringify({ success: true, ids }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
           // Selective history logs updates
+          // Inventory is derived from inventory_history, so editing a past log entry only
+          // needs to update that row — the aggregated stock total reflects it automatically.
           case "update_history": {
              const statements = [];
              if (data && data.length > 0) {
                  const updateHistoryStmt = env.DB.prepare("UPDATE inventory_history SET qty = ?, date = ?, note = ? WHERE id = ?");
-                 const updateInventoryStmt = env.DB.prepare("UPDATE inventory SET qty = qty + ? WHERE code = ? AND color = ? AND size = ?");
-                 
                  data.forEach(item => {
                      statements.push(updateHistoryStmt.bind(item.qty, item.date || "", item.note || "", item.id));
-                     if (item.deltaQty !== 0) {
-                         statements.push(updateInventoryStmt.bind(item.deltaQty, item.code, item.color, item.size));
-                     }
                  });
              }
              for (let i = 0; i < statements.length; i += 100) {
@@ -583,20 +547,6 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
                 }
             }
             return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-          }
-
-          case "save_rentals": {
-             const statements = [env.DB.prepare("DELETE FROM rentals")];
-             if (data && data.length > 0) {
-                 const stmt = env.DB.prepare("INSERT INTO rentals (code, renter, color, size, qty, date) VALUES (?, ?, ?, ?, ?, ?)");
-                 data.forEach(item => {
-                     statements.push(stmt.bind(item.code, item.renter, item.color || "", item.size || "", item.qty || 1, item.date || ""));
-                 });
-             }
-             for (let i = 0; i < statements.length; i += 100) {
-                 await env.DB.batch(statements.slice(i, i + 100));
-             }
-             return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
           case "save_outfits": {

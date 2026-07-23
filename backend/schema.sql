@@ -1,3 +1,6 @@
+-- LEGACY / UNUSED: superseded by inventory_history (SUM(qty) GROUP BY code,color,size
+-- is computed on every read). Kept only so older deployments don't error on missing table;
+-- the app never reads or writes it anymore.
 CREATE TABLE IF NOT EXISTS inventory (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT NOT NULL,
@@ -6,6 +9,9 @@ CREATE TABLE IF NOT EXISTS inventory (
     qty INTEGER NOT NULL DEFAULT 0
 );
 
+-- LEGACY / UNUSED: superseded by inventory_history rows of type RENT/RETURN (a RETURN row's
+-- ref_id points back at the RENT row it closes out). Kept only so older deployments don't
+-- error on missing table; the app never reads or writes it anymore.
 CREATE TABLE IF NOT EXISTS rentals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT NOT NULL,
@@ -57,6 +63,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Single source of truth for stock levels: current stock is always SUM(qty) GROUP BY
+-- code,color,size over this table, never stored separately. type is one of
+-- IN / ADJUST / RENT / RETURN. A RETURN row's ref_id references the id of the RENT row
+-- it closes out, which is how "still outstanding" rentals are derived (no separate table).
 CREATE TABLE IF NOT EXISTS inventory_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT NOT NULL,
@@ -66,7 +76,8 @@ CREATE TABLE IF NOT EXISTS inventory_history (
     qty INTEGER NOT NULL,
     actor TEXT,
     date TEXT NOT NULL,
-    note TEXT
+    note TEXT,
+    ref_id INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS custom_models (

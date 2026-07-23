@@ -97,11 +97,9 @@ const RegisterPage = () => {
       image: item.image || ''
     });
 
-    const newMatrixData: Record<string, string | number> = {};
-    existingStock.forEach((stock: any) => {
-      newMatrixData[`${stock.color}_${stock.size}`] = stock.qty;
-    });
-    setMatrixData(newMatrixData as Record<string, string>);
+    // Matrix is always "how many to add now" — never prefilled with existing stock,
+    // so it never doubles as an editable "current total" field.
+    setMatrixData({});
   };
 
   const handleMatrixChange = (color: string, size: string, value: string) => {
@@ -384,105 +382,54 @@ const RegisterPage = () => {
     }
   };
 
-  // ... inventory save logic (truncated for brevity here, see full replacement below)
+  // Matrix cells are always "how many to add right now" — never a delta against
+  // whatever the current total happens to be. Every positive cell becomes a
+  // brand-new IN event in inventory_history; empty/0 cells are simply skipped.
   const handleSaveInventory = async () => {
     if (!formData.code) { alert('상품을 먼저 불러오세요.'); return; }
-    
+
     const newLogs: any[] = [];
-    const newStockMap: Record<string, any[]> = { ...allStockMap };
-    let currentStock = newStockMap[formData.code] || [];
     const timestamp = new Date().toISOString();
-    const flat: any[] = [];
-    
+
+    const addLog = (color: string, size: string, note: string) => {
+      const raw = matrixData[`${color}_${size}`];
+      if (raw === undefined) return;
+      const qty = Number(raw);
+      if (qty > 0) {
+        newLogs.push({ code: formData.code, color, size, type: 'IN', qty, date: timestamp, actor: '관리자', note });
+      }
+    };
+
     colors.forEach(c => {
-      sizes.forEach(s => {
-        const key = `${c}_${s}`;
-        if (matrixData[key] !== undefined) {
-           const qty = Number(matrixData[key]);
-           if (qty >= 0) {
-             const existing = currentStock.find(x => x.color === c && x.size === s);
-             const oldQty = existing ? existing.qty : 0;
-             if (qty !== oldQty) {
-               const delta = qty - oldQty;
-               newLogs.push({ code: formData.code, color: c, size: s, type: isAdditional ? (delta > 0 ? 'IN' : 'ADJUST') : 'IN', qty: delta, date: timestamp, actor: '관리자', note: isAdditional ? '기존 재고 수정/추가' : '신규 재고 등록' });
-             }
-           }
-        }
-      });
-      extraSizes.forEach(s => {
-        if (!s) return;
-        const key = `${c}_${s}`;
-        if (matrixData[key] !== undefined) {
-           const qty = Number(matrixData[key]);
-           if (qty >= 0) {
-             const existing = currentStock.find(x => x.color === c && x.size === s);
-             const oldQty = existing ? existing.qty : 0;
-             if (qty !== oldQty) {
-               const delta = qty - oldQty;
-               newLogs.push({ code: formData.code, color: c, size: s, type: isAdditional ? (delta > 0 ? 'IN' : 'ADJUST') : 'IN', qty: delta, date: timestamp, actor: '관리자', note: '신규 사이즈 추가' });
-             }
-           }
-        }
-      });
+      sizes.forEach(s => addLog(c, s, isAdditional ? '재고 추가 입고' : '신규 재고 등록'));
+      extraSizes.forEach(s => { if (s) addLog(c, s, '신규 사이즈 추가'); });
     });
 
     extraColors.forEach(c => {
       if (!c) return;
-      sizes.forEach(s => {
-        const key = `${c}_${s}`;
-        if (matrixData[key] !== undefined) {
-           const qty = Number(matrixData[key]);
-           if (qty >= 0) {
-             const existing = currentStock.find(x => x.color === c && x.size === s);
-             const oldQty = existing ? existing.qty : 0;
-             if (qty !== oldQty) {
-               const delta = qty - oldQty;
-               newLogs.push({ code: formData.code, color: c, size: s, type: 'IN', qty: delta, date: timestamp, actor: '관리자', note: '신규 색상 추가' });
-             }
-           }
-        }
-      });
-      extraSizes.forEach(s => {
-        if (!s) return;
-        const key = `${c}_${s}`;
-        if (matrixData[key] !== undefined) {
-           const qty = Number(matrixData[key]);
-           if (qty >= 0) {
-             const existing = currentStock.find(x => x.color === c && x.size === s);
-             const oldQty = existing ? existing.qty : 0;
-             if (qty !== oldQty) {
-               const delta = qty - oldQty;
-               newLogs.push({ code: formData.code, color: c, size: s, type: 'IN', qty: delta, date: timestamp, actor: '관리자', note: '신규 색상/사이즈 추가' });
-             }
-           }
-        }
-      });
+      sizes.forEach(s => addLog(c, s, '신규 색상 추가'));
+      extraSizes.forEach(s => { if (s) addLog(c, s, '신규 색상/사이즈 추가'); });
     });
 
-    if (newLogs.length === 0 && isAdditional) { alert('변경된 재고 수량이 없습니다.'); return; }
+    if (newLogs.length === 0) { alert('입고할 수량을 입력해주세요.'); return; }
 
     try {
-      const updatedItemStock: any[] = [];
-      Object.keys(matrixData).forEach(key => {
-        const qty = Number((matrixData as any)[key]);
-        if (qty > 0) {
-           const lastUnderscore = key.lastIndexOf('_');
-           const color = key.substring(0, lastUnderscore);
-           const size = key.substring(lastUnderscore + 1);
-           updatedItemStock.push({ color, size, qty });
-        }
+      // Optimistic local update: add the entered quantities on top of whatever's there.
+      const newStockMap: Record<string, any[]> = { ...allStockMap };
+      const currentStock = (newStockMap[formData.code] || []).map(x => ({ ...x }));
+      newLogs.forEach(log => {
+        const existing = currentStock.find(x => x.color === log.color && x.size === log.size);
+        if (existing) existing.qty = Number(existing.qty) + log.qty;
+        else currentStock.push({ color: log.color, size: log.size, qty: log.qty });
       });
-      newStockMap[formData.code] = updatedItemStock;
-      
-      // Fix: Only send the inventory for the CURRENT product to avoid race conditions and database corruption
-      if (newStockMap[formData.code]) {
-        newStockMap[formData.code].forEach(s => flat.push({ code: formData.code, ...s }));
-      }
-      
-      const { apiClient, saveHistoryToBackend, setAllStockMap } = useAppStore.getState();
-      await apiClient.post('?action=save_inventory', { type: 'save_inventory', data: flat });
-      if (newLogs.length > 0) { await saveHistoryToBackend(newLogs); }
+      newStockMap[formData.code] = currentStock;
+
+      // Inventory is derived from inventory_history — saving stock means only
+      // appending the IN events above, never writing a stock snapshot directly.
+      const { saveHistoryToBackend, setAllStockMap } = useAppStore.getState();
+      await saveHistoryToBackend(newLogs);
       setAllStockMap(newStockMap);
+      setMatrixData({});
       alert('재고 저장이 완료되었습니다.');
     } catch (e) {
       console.error(e);
@@ -711,16 +658,11 @@ const RegisterPage = () => {
                       {colors.map(c => (
                         <tr key={c} style={{ borderBottom: '1px solid #f1f1f1' }}>
                           <td style={{ padding: '15px', fontWeight: 'bold', color: '#444', borderRight: '1px solid #f1f1f1', background: '#fafafa', whiteSpace: 'nowrap' }}>{c}</td>
-                          {sizes.map(s => {
-                            const existing = stockMap.find(x => x.color === c && x.size === s);
-                            const existingQty = existing ? existing.qty : 0;
-                            const placeholder = existingQty > 0 ? `기존: ${existingQty}개` : "0";
-                            return (
+                          {sizes.map(s => (
                               <td key={`${c}-${s}`} style={{ padding: '5px' }}>
-                                <input type="number" min="0" className="matrix-input" placeholder={placeholder} value={matrixData[`${c}_${s}`] || ''} onChange={(e) => handleMatrixChange(c, s, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }} />
+                                <input type="number" min="0" className="matrix-input" placeholder="0" value={matrixData[`${c}_${s}`] || ''} onChange={(e) => handleMatrixChange(c, s, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }} />
                               </td>
-                            );
-                          })}
+                          ))}
                           {extraSizes.map((val, idx) => (
                              <td key={`extra-td-${idx}`} style={{ padding: '5px' }}>
                                {val ? <input type="number" min="0" className="matrix-input" value={matrixData[`${c}_${val}`] || ''} onChange={(e) => handleMatrixChange(c, val, e.target.value)} style={{ width: '60px', padding: '8px', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }} /> : null}

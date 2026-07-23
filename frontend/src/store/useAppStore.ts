@@ -7,7 +7,6 @@ import { AppState } from '../types';
 export const useAppStore = create<AppState>((set, get) => ({
   allItems: [],
   allStockMap: {},
-  allRentals: [],
   allOutfits: [],
   allNotes: [],
   allSupplies: [],
@@ -26,7 +25,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   invVisibleCount: 40,
 
   // Setters for mutable arrays (for optimistic updates in DetailPage, etc.)
-  setAllRentals: (rentals) => set({ allRentals: rentals }),
   setAllOutfits: (outfits) => set({ allOutfits: outfits }),
   setAllNotes: (notes) => set({ allNotes: notes }),
   setAllSupplies: (supplies) => set({ allSupplies: supplies }),
@@ -47,7 +45,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Save to backend D1 database
   saveToBackend: async (fileName: string, data: any, productCode: string) => {
     const typeMap: Record<string, string> = {
-      'rentals.json': 'save_product_rentals',
       'outfits.json': 'save_product_outfits',
       'notes.json': 'save_note',
       'supplies.json': 'save_supply'
@@ -55,7 +52,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     try {
       let payload: any = null;
-      
+
       if (fileName === 'notes.json') {
         const note = data.find((n: any) => String(n.code) === String(productCode));
         payload = { code: productCode, text: note ? note.text : '' };
@@ -65,9 +62,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       } else if (fileName === 'outfits.json') {
         const outfits = data.filter((o: any) => String(o.code) === String(productCode));
         payload = { code: productCode, outfits };
-      } else if (fileName === 'rentals.json') {
-        const rentals = data.filter((r: any) => String(r.code) === String(productCode));
-        payload = { code: productCode, rentals };
       }
 
       await apiClient.post('', { type: typeMap[fileName], data: payload });
@@ -93,11 +87,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  // Returns the saved logs with their real backend-assigned ids attached (same order as
+  // input) so callers can immediately reference a row — e.g. a RETURN log's ref_id
+  // pointing at the RENT log it closes out — without waiting for a full reload.
   saveHistoryToBackend: async (newHistoryLogs: any) => {
     try {
-      await apiClient.post('', { type: 'save_history', data: newHistoryLogs });
-      // Update local state by appending
-      set(state => ({ allHistory: [...state.allHistory, ...newHistoryLogs] }));
+      const res = await apiClient.post('', { type: 'save_history', data: newHistoryLogs });
+      const ids: any[] = res.data?.ids || [];
+      const logsWithIds = newHistoryLogs.map((log: any, i: number) => ({ ...log, id: ids[i] }));
+      set(state => ({ allHistory: [...state.allHistory, ...logsWithIds] }));
+      return logsWithIds;
     } catch (e) {
       console.error('Error saving history:', e);
       throw e;
@@ -161,7 +160,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       const backendRes = await apiClient.get(`?action=getAll&v=${ts}`);
       const backendData = backendRes.data;
 
-      const rentals = backendData.rentals || [];
       const outfits = backendData.outfits || [];
       const notes = backendData.notes || [];
       const supplies = backendData.supplies || [];
@@ -170,48 +168,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       const gallery = backendData.gallery || [];
       
       
-      const finalInventory: Record<string, any> = {};
-      
-      if (history.length > 0) {
-        // ALWAYS reconstruct inventory dynamically from history to bypass backend inventory duplicate bugs
-        const tempInv: Record<string, Record<string, number>> = {};
-        history.forEach((log: any) => {
-          const c = String(log.code);
-          if (!tempInv[c]) tempInv[c] = {};
-          const key = `${log.color}_${log.size}`;
-          if (!tempInv[c][key]) tempInv[c][key] = 0;
-          tempInv[c][key] += (Number(log.qty) || 0);
-        });
+      // Inventory is derived (SUM) from inventory_history on the backend (GET / handler),
+      // so it's already the aggregated truth here — no client-side reconstruction needed.
+      const finalInventory = (backendData.inventory || {}) as Record<string, any>;
 
-        Object.keys(tempInv).forEach(code => {
-          finalInventory[code] = Object.keys(tempInv[code]).map(key => {
-            const lastUnderscore = key.lastIndexOf('_');
-            const color = key.substring(0, lastUnderscore);
-            const size = key.substring(lastUnderscore + 1);
-            return { color, size, qty: tempInv[code][key] };
-          });
-        });
-      } else {
-        // Fallback to raw inventory if history is completely empty
-        const rawInventory = (backendData.inventory || {}) as Record<string, any>;
-        Object.keys(rawInventory).forEach(code => {
-          const items = rawInventory[code];
-          if (Array.isArray(items)) {
-            const map: Record<string, number> = {};
-            items.forEach((item: any) => {
-              const key = `${item.color}_${item.size}`;
-              map[key] = (Number(item.qty) || 0);
-            });
-            finalInventory[code] = Object.keys(map).map(key => {
-              const lastUnderscore = key.lastIndexOf('_');
-              const color = key.substring(0, lastUnderscore);
-              const size = key.substring(lastUnderscore + 1);
-              return { color, size, qty: map[key] };
-            });
-          }
-        });
-      }
-      
       let allItems = [];
       const schedules = (masterData.items || []).filter((i: any) => !i.isMaster);
       const originalMasters = (masterData.items || []).filter((i: any) => i.isMaster);
@@ -251,10 +211,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       useVtonStore.getState().setAllCustomModels(customModels);
       useVtonStore.getState().setAllGallery(gallery);
 
-      set({ 
+      set({
         allItems,
         allStockMap: finalInventory,
-        allRentals: rentals,
         allOutfits: outfits,
         allNotes: notes,
         allSupplies: supplies,

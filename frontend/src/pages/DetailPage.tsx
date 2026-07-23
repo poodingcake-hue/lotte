@@ -25,9 +25,9 @@ const DetailPage = () => {
 
   const {
     allItems, allStockMap, allSupplies, allNotes,
-    allRentals, allOutfits,
+    allHistory, allOutfits,
     saveToBackend,
-    setAllRentals, setAllOutfits, setAllNotes, setAllSupplies, setAllStockMap,
+    setAllOutfits, setAllNotes, setAllSupplies, setAllStockMap,
     apiClient, setIsLoading, isLoading,
   } = useAppStore();
 
@@ -68,7 +68,19 @@ const DetailPage = () => {
   const supplyObj  = useMemo(() => allSupplies?.find(s => String(s.code) === String(id)), [allSupplies, id]);
   const noteObj    = useMemo(() => allNotes?.find(n => String(n.code) === String(id)),    [allNotes,    id]);
   const itemOutfits = useMemo(() => allOutfits?.filter(o => String(o.code) === String(id)) || [], [allOutfits, id]);
-  const itemRentals = useMemo(() => allRentals?.filter(r => String(r.code) === String(id)) || [], [allRentals, id]);
+
+  // "미반납 대여" 목록 = RENT 로그 중, 자신을 ref_id로 가리키는 RETURN 로그가 아직 없는 것들.
+  // 별도 rentals 테이블 없이 inventory_history만으로 파생 (재고 합계와 절대 어긋날 수 없음).
+  const itemRentals = useMemo(() => {
+    const logs = (allHistory || []).filter(h => String(h.code) === String(id) && (h.type === 'RENT' || h.type === 'RETURN'));
+    const closedRentIds = new Set(
+      logs.filter(h => h.type === 'RETURN' && h.ref_id !== undefined && h.ref_id !== null).map(h => String(h.ref_id))
+    );
+    return logs
+      .filter(h => h.type === 'RENT' && !closedRentIds.has(String(h.id)))
+      .map(h => ({ id: h.id, code: h.code, renter: h.actor, color: h.color, size: h.size, qty: Math.abs(Number(h.qty)), date: h.date }))
+      .sort((a, b) => (new Date(a.date) as any) - (new Date(b.date) as any));
+  }, [allHistory, id]);
 
   // ─── Local state ─────────────────────────────────────────────
   const [supplyText, setSupplyText] = useState('');
@@ -232,17 +244,24 @@ const DetailPage = () => {
     });
   };
 
+  // 대여 삭제(오등록 취소): "반납"과 동일하게 RETURN 로그로 마감 처리한다. history를 실제로
+  // 지우진 않지만(감사기록 보존), ref_id로 연결된 RETURN이 생기는 순간 itemRentals(미반납 목록)에서
+  // 사라지고 재고 합계도 정상적으로 복구된다.
   const handleDeleteRental = (r: any) => {
     setConfirmModal({
       isOpen: true,
       message: `${r.renter} 님의 대여 내역 (${r.color} / ${r.size})을 삭제하시겠습니까?`,
       onConfirm: async () => {
         try {
-          const next = (allRentals || []).filter(x => !isSameRental(x, r));
-          setAllRentals(next);
-          await saveToBackend('rentals.json', next, id);
+          const timestamp = new Date().toISOString();
+          await useAppStore.getState().saveHistoryToBackend([{
+            code: r.code, color: r.color, size: r.size,
+            type: 'RETURN', qty: Number(r.qty || 1), date: timestamp,
+            actor: r.renter, note: '대여 취소/삭제', ref_id: r.id
+          }]);
         } catch (err) {
           console.error(err);
+          alert('삭제 처리 중 오류가 발생했습니다.');
         }
       }
     });
@@ -258,26 +277,17 @@ const DetailPage = () => {
       message: `선택한 ${checked.length}개의 대여 항목을 반납 처리하시겠습니까?`,
       onConfirm: async () => {
         try {
-          let next = [...(allRentals || [])];
-          const newLogs: any[] = [];
           const timestamp = new Date().toISOString();
-          
-          checked.forEach((r: any) => {
-            next = next.filter(x => !isSameRental(x, r));
-            newLogs.push({
-              code: r.code, color: r.color, size: r.size,
-              type: 'IN', qty: Number(r.qty || 1), date: timestamp,
-              actor: r.renter, note: '대여 반납'
-            });
-          });
-          setAllRentals(next);
+          const newLogs = checked.map((r: any) => ({
+            code: r.code, color: r.color, size: r.size,
+            type: 'RETURN', qty: Number(r.qty || 1), date: timestamp,
+            actor: r.renter, note: '대여 반납', ref_id: r.id
+          }));
+          await useAppStore.getState().saveHistoryToBackend(newLogs);
           setChecked([]);
-          await saveToBackend('rentals.json', next, id);
-          if (newLogs.length > 0) {
-            await useAppStore.getState().saveHistoryToBackend(newLogs);
-          }
         } catch (err) {
           console.error(err);
+          alert('반납 처리 중 오류가 발생했습니다.');
         }
       }
     });
@@ -287,24 +297,14 @@ const DetailPage = () => {
     if (!renter.trim()) { alert('대여자 성함을 입력해주세요.'); return; }
     if (cart.length === 0) return;
     try {
-      const next = [...(allRentals || [])];
-      const newLogs: any[] = [];
       const timestamp = new Date().toISOString();
-      
-      cart.forEach((c: any) => {
-        next.push({ code: String(id), renter: renter.trim(), color: c.color, size: c.size, qty: c.qty, date: timestamp });
-        newLogs.push({
-          code: String(id), color: c.color, size: c.size,
-          type: 'OUT', qty: -Number(c.qty || 1), date: timestamp,
-          actor: renter.trim(), note: '방송 대여(반출)'
-        });
-      });
-      
-      setAllRentals(next);
-      await saveToBackend('rentals.json', next, id);
-      if (newLogs.length > 0) {
-        await useAppStore.getState().saveHistoryToBackend(newLogs);
-      }
+      const newLogs = cart.map((c: any) => ({
+        code: String(id), color: c.color, size: c.size,
+        type: 'RENT', qty: -Number(c.qty || 1), date: timestamp,
+        actor: renter.trim(), note: '방송 대여(반출)'
+      }));
+
+      await useAppStore.getState().saveHistoryToBackend(newLogs);
       setCart([]);
       setRenter('');
       alert('대여 등록이 완료되었습니다.');
@@ -349,10 +349,10 @@ const DetailPage = () => {
         });
       });
       setAllStockMap(newMap);
-      const flat: any[] = [];
-      Object.keys(newMap).forEach(code => newMap[code].forEach(s => flat.push({ code, ...s })));
-      await apiClient.post('?action=save_inventory', { type: 'save_inventory', data: flat });
-      
+
+      // Inventory is derived from inventory_history — only append the delta events below.
+      // (Never write a full stock snapshot: that previously overwrote every other
+      // product's inventory with this tab's possibly-stale local state.)
       if (newLogs.length > 0) {
         await useAppStore.getState().saveHistoryToBackend(newLogs);
       }
@@ -367,9 +367,10 @@ const DetailPage = () => {
     if (stockMap.length === 0) { alert('재고 데이터가 없습니다.'); return; }
     const colorOrder: string[] = [];
     stockMap.forEach(s => { if (s.color && !colorOrder.includes(s.color)) colorOrder.push(s.color); });
+    // stockMap 수량(s.qty)은 이미 inventory_history SUM으로 대여(RENT) 반출분이 반영된 값이므로
+    // 여기서 itemRentals를 또 빼면 대여 수량만큼 이중차감된다.
     const data = stockMap.filter(s => s.color && s.size).map(s => {
-      const rented = itemRentals.filter(r => r.color === s.color && r.size === s.size).reduce((a, b) => a + Number(b.qty), 0);
-      return { '상품코드': id, '상품명': item ? `${item.brand} ${item.name}` : id, '색상': s.color, '사이즈': s.size, '현재재고': Number(s.qty) - rented };
+      return { '상품코드': id, '상품명': item ? `${item.brand} ${item.name}` : id, '색상': s.color, '사이즈': s.size, '현재재고': Number(s.qty) };
     }).sort((a, b) => colorOrder.indexOf(a['색상']) - colorOrder.indexOf(b['색상']));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
@@ -502,9 +503,10 @@ const DetailPage = () => {
                           <tr key={c}>
                             <td className="bg-light fw-bold">{c}</td>
                             {sizes.map(s => {
-                              const base   = stockMap.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
-                              const rented = itemRentals.filter(r => r.color === c && r.size === s).reduce((a, b) => a + Number(b.qty), 0);
-                              const qty    = base - rented;
+                              // base는 이미 inventory_history SUM으로 대여(RENT) 반출분이 반영된 값이라
+                              // 여기서 itemRentals를 또 빼면 이중차감된다 (base 자체가 가용재고).
+                              const base = stockMap.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
+                              const qty  = base;
                               return (
                                 <td key={s}
                                   onClick={() => addToCart(c, s)}
@@ -784,9 +786,9 @@ const DetailPage = () => {
                   <tr key={c}>
                     <td style={{ padding: '6px', border: '1px solid #e2e8f0', fontWeight: 'bold', background: '#f8fafc', color: '#475569' }}>{c}</td>
                     {sizes.map(s => {
-                      const base   = stockMap.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
-                      const rented = itemRentals.filter(r => r.color === c && r.size === s).reduce((a, b) => a + Number(b.qty), 0);
-                      const qty    = base - rented;
+                      // base는 이미 inventory_history SUM으로 대여(RENT) 반출분이 반영된 값 (이중차감 방지)
+                      const base = stockMap.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
+                      const qty  = base;
                       return (
                         <td key={s} style={{ padding: '6px', border: '1px solid #e2e8f0', color: qty > 0 ? '#0284c7' : '#94a3b8', fontWeight: qty > 0 ? 'bold' : 'normal' }}>
                           {qty}

@@ -8,7 +8,7 @@ interface HistoryModalProps {
 }
 
 const HistoryModal = ({ isOpen, onClose, productCode }: HistoryModalProps) => {
-  const { allHistory, allItems, allStockMap, updateHistoryInBackend } = useAppStore();
+  const { allHistory, allItems, updateHistoryInBackend } = useAppStore();
   const [editedLogs, setEditedLogs] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -29,53 +29,53 @@ const HistoryModal = ({ isOpen, onClose, productCode }: HistoryModalProps) => {
     }
   };
 
-  const sizeOrder = useMemo(() => {
-    if (!productCode || !allStockMap[productCode]) return [];
-    const sizes: any[] = [];
-    allStockMap[productCode].forEach((item: any) => {
-      if (!sizes.includes(item.size)) sizes.push(item.size);
-    });
-    return sizes;
-  }, [allStockMap, productCode]);
+  // 로그 구분 라벨. RENT/RETURN 도입 이전(과거) 로그는 대여를 'OUT', 반납을 'IN'+note로만
+  // 기록해뒀으므로, 그 과거 로그들도 note로 식별해서 '대여'/'반납'으로 표시한다.
+  const getTypeLabel = (log: any) => {
+    if (log.type === 'RETURN') return '반납';
+    if (log.type === 'RENT') return '대여';
+    if (log.type === 'OUT') return '대여';
+    if (log.type === 'IN' && log.note === '대여 반납') return '반납';
+    if (log.type === 'IN') return '입고';
+    return '조정';
+  };
 
-  const colorOrder = useMemo(() => {
-    if (!productCode || !allStockMap[productCode]) return [];
+  // 이 상품의 히스토리 로그만 추림 (아직 정렬 전)
+  const productHistory = useMemo(() => {
+    if (!productCode) return [];
+    return (allHistory || []).filter(log => String(log.code) === String(productCode));
+  }, [allHistory, productCode]);
+
+  // 사이즈/컬러의 "등록 순서" = 등록일 오름차순으로 훑었을 때 각 사이즈/컬러가 처음 등장한 순서.
+  // (allStockMap은 현재 집계된 재고 스냅샷일 뿐 등록 순서를 보장하지 않으므로 기준으로 쓰지 않는다)
+  const { sizeOrder, colorOrder } = useMemo(() => {
+    const byDateAsc = [...productHistory].sort((a, b) => (new Date(a.date) as any) - (new Date(b.date) as any));
+    const sizes: any[] = [];
     const colors: any[] = [];
-    allStockMap[productCode].forEach((item: any) => {
-      if (!colors.includes(item.color)) colors.push(item.color);
+    byDateAsc.forEach(log => {
+      if (!sizes.includes(log.size)) sizes.push(log.size);
+      if (!colors.includes(log.color)) colors.push(log.color);
     });
-    return colors;
-  }, [allStockMap, productCode]);
+    return { sizeOrder: sizes, colorOrder: colors };
+  }, [productHistory]);
 
   const originalHistoryLogs = useMemo(() => {
-    if (!productCode) return [];
-    return (allHistory || [])
-      .filter(log => String(log.code) === String(productCode))
-      .sort((a, b) => {
-        // 1. 사이즈순 정렬 (재고 데이터에 들어온 순서 기준)
-        const sizeIdxA = sizeOrder.indexOf(a.size);
-        const sizeIdxB = sizeOrder.indexOf(b.size);
-        if (sizeIdxA !== -1 && sizeIdxB !== -1 && sizeIdxA !== sizeIdxB) {
-          return sizeIdxA - sizeIdxB;
-        }
-        if (a.size !== b.size) {
-          return String(a.size).localeCompare(String(b.size));
-        }
-        
-        // 2. 색상순 정렬 (재고 데이터에 들어온 순서 기준)
-        const colorIdxA = colorOrder.indexOf(a.color);
-        const colorIdxB = colorOrder.indexOf(b.color);
-        if (colorIdxA !== -1 && colorIdxB !== -1 && colorIdxA !== colorIdxB) {
-          return colorIdxA - colorIdxB;
-        }
-        if (a.color !== b.color) {
-          return String(a.color).localeCompare(String(b.color));
-        }
-        
-        // 3. 날짜 역순 정렬
-        return ((new Date(b.date) as any) - (new Date(a.date) as any));
-      });
-  }, [allHistory, productCode, sizeOrder, colorOrder]);
+    return [...productHistory].sort((a, b) => {
+      // 1. 등록일(일 단위) 오름차순 — 같은 날짜 안에서는 대여/반납처럼 시각이 서로 다른
+      //    이벤트들도 한 날짜로 묶이도록 정확한 타임스탬프가 아닌 '날짜(YYYY-MM-DD)'로만 비교
+      const dayA = String(a.date || '').split('T')[0];
+      const dayB = String(b.date || '').split('T')[0];
+      if (dayA !== dayB) return dayA < dayB ? -1 : 1;
+
+      // 2. 같은 날짜면 사이즈순
+      const sizeIdxA = sizeOrder.indexOf(a.size);
+      const sizeIdxB = sizeOrder.indexOf(b.size);
+      if (sizeIdxA !== sizeIdxB) return sizeIdxA - sizeIdxB;
+
+      // 3. 그다음 컬러순
+      return colorOrder.indexOf(a.color) - colorOrder.indexOf(b.color);
+    });
+  }, [productHistory, sizeOrder, colorOrder]);
 
   // Reset edits when modal opens or closes
   useEffect(() => {
@@ -189,8 +189,9 @@ const HistoryModal = ({ isOpen, onClose, productCode }: HistoryModalProps) => {
                       <td style={tdStyle}>{log.color}</td>
                       <td style={tdStyle}>{log.size}</td>
                       <td style={tdStyle}>
-                         <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: log.type === 'IN' ? '#d1fae5' : '#fee2e2', color: log.type === 'IN' ? '#065f46' : '#991b1b' }}>
-                           {log.type === 'IN' ? '입고' : log.type === 'OUT' ? '대여' : '조정'}
+                         {/* 색상은 실제 수량 부호(+입고/-반출) 기준 */}
+                         <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', background: Number(log.qty) >= 0 ? '#d1fae5' : '#fee2e2', color: Number(log.qty) >= 0 ? '#065f46' : '#991b1b' }}>
+                           {getTypeLabel(log)}
                          </span>
                       </td>
                       <td style={tdStyle}>

@@ -28,7 +28,8 @@ async function seed() {
         console.log("Seeded supplies");
     }
     
-    // inventory and products (from data.json)
+    // inventory (from data.json) — inventory is derived from inventory_history, so
+    // seeding it means writing IN events, not a direct inventory snapshot.
     if (fs.existsSync('data.json')) {
         const master = JSON.parse(fs.readFileSync('data.json', 'utf8'));
         let flatInventory = [];
@@ -39,8 +40,13 @@ async function seed() {
                 });
             });
         }
-        await fetch(workerUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "save_inventory", data: flatInventory }) });
-        console.log("Seeded inventory");
+        const seedTimestamp = new Date().toISOString();
+        const historyLogs = flatInventory.map(item => ({
+            code: item.code, color: item.color, size: item.size,
+            type: 'IN', qty: item.qty, date: seedTimestamp, actor: 'seed', note: '초기 데이터 시딩'
+        }));
+        await fetch(workerUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "save_history", data: historyLogs }) });
+        console.log("Seeded inventory (as history events)");
 
         if (master.items && master.items.length > 0) {
             await fetch(workerUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "save_products", data: master.items }) });
