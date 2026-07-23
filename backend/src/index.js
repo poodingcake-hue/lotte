@@ -243,37 +243,62 @@ Return the result STRICTLY as a JSON object with this exact structure (example s
 Do not include any markdown formatting, code blocks, or extra text. Just the raw JSON object.`;
 
               try {
-                const res = await fetch("https://api.openai.com/v1/chat/completions", {
-                  method: "POST",
-                  headers: {
-                    "Authorization": `Bearer ${openaiKey}`,
-                    "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify({
-                    model: "gpt-4o",
-                    messages: [
-                      {
-                        role: "user",
-                        content: [
-                          { type: "text", text: prompt },
-                          {
-                            type: "image_url",
-                            image_url: {
-                              url: `data:${mimeType || "image/png"};base64,${imageBase64}`
-                            }
+                const openaiRequestBody = JSON.stringify({
+                  model: "gpt-4o",
+                  messages: [
+                    {
+                      role: "user",
+                      content: [
+                        { type: "text", text: prompt },
+                        {
+                          type: "image_url",
+                          image_url: {
+                            url: `data:${mimeType || "image/png"};base64,${imageBase64}`
                           }
-                        ]
-                      }
-                    ]
-                  })
+                        }
+                      ]
+                    }
+                  ]
                 });
-  
-                if (!res.ok) {
-                    const errText = await res.text();
-                    console.error("OpenAI Error:", res.status, errText);
-                    return new Response(JSON.stringify({ error: `OpenAI API Error: ${errText}` }), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+                // Cloudflare Worker → OpenAI 호출이 가끔 OpenAI가 막아둔 리전의 출구 IP로 나가면서
+                // 403(unsupported_country_region_territory)이나 네트워크 단절이 뜬다. 매 시도마다
+                // 다른 경로로 나갈 수 있어 몇 번 재시도하면 대부분 통과되므로, 재시도 가능한 실패에
+                // 한해 최대 3번까지 다시 시도한다 (요청 자체가 잘못된 4xx는 재시도하지 않는다).
+                const MAX_ATTEMPTS = 3;
+                let res, lastErrText = '';
+                for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+                  try {
+                    res = await fetch("https://api.openai.com/v1/chat/completions", {
+                      method: "POST",
+                      headers: {
+                        "Authorization": `Bearer ${openaiKey}`,
+                        "Content-Type": "application/json"
+                      },
+                      body: openaiRequestBody
+                    });
+                  } catch (networkErr) {
+                    console.error(`OpenAI fetch network error (attempt ${attempt}/${MAX_ATTEMPTS}):`, networkErr);
+                    res = null;
+                    if (attempt === MAX_ATTEMPTS) {
+                      return new Response(JSON.stringify({ error: "OpenAI 서버 연결에 반복적으로 실패했습니다. 잠시 후 다시 시도해주세요." }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                    }
+                    await new Promise(r => setTimeout(r, 300 * attempt));
+                    continue;
+                  }
+
+                  if (res.ok) break;
+
+                  lastErrText = await res.text();
+                  console.error(`OpenAI Error (attempt ${attempt}/${MAX_ATTEMPTS}):`, res.status, lastErrText);
+
+                  const isRetryable = res.status === 403 || res.status >= 500;
+                  if (!isRetryable || attempt === MAX_ATTEMPTS) {
+                    return new Response(JSON.stringify({ error: `OpenAI API Error: ${lastErrText}` }), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                  }
+                  await new Promise(r => setTimeout(r, 300 * attempt));
                 }
-  
+
                 const result = await res.json();
                 console.log("OpenAI Result:", JSON.stringify(result, null, 2));
                 const message = result.choices[0]?.message;

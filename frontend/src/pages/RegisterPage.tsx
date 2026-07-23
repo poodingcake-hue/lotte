@@ -297,12 +297,27 @@ const RegisterPage = () => {
     };
   }, [activeImageBox, imageObj]); // Dependencies ensure we use current activeImageBox
 
+  // "상품 기본 정보" 저장 버튼 전용: 마스터 정보(코드/브랜드/상품명/카테고리/색상/사이즈)만 저장하고
+  // 이미지는 손대지 않는다 (누끼/리사이즈는 "이미지 등록" 저장 버튼에서만 실행됨).
+  const handleSaveBasicInfo = async () => {
+    if (!formData.code) {
+       alert("상품코드를 먼저 입력해주세요!");
+       return;
+    }
+    try {
+      await saveProductToBackend({ ...formData, isMaster: true });
+      alert("상품 기본 정보가 저장되었습니다.");
+    } catch (error) {
+      alert("상품 기본 정보 저장에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
   const handleSaveProduct = async () => {
     if (!formData.code) {
        alert("상품코드를 먼저 입력해주세요!");
        return;
     }
-    
+
     try {
         setIsUploading(true);
         alert("저장을 시작합니다. (이미지 배경 제거(누끼) 작업이 포함되어 약 10~20초 정도 소요될 수 있습니다...)");
@@ -310,8 +325,9 @@ const RegisterPage = () => {
         // --- 1. 누끼(배경 제거) 작업 ---
         const processedImageObj = { ...imageObj };
         for (const key of Object.keys(processedImageObj)) {
-            // web, size, size_chart, length_cm 등 옷 이미지가 아닌 데이터는 제외
-            if (key !== 'web' && key !== 'size' && key !== 'size_chart' && key !== 'length_cm') {
+            // web, main(전체이미지, 참고용 원본 그대로 저장), size, size_chart, length_cm 등은
+            // 누끼/리사이즈 대상이 아님 — 컬러별 옷 이미지만 누끼 + 총장 비례 리사이즈 처리한다.
+            if (key !== 'web' && key !== 'main' && key !== 'size' && key !== 'size_chart' && key !== 'length_cm') {
                 try {
                     let imgData = processedImageObj[key];
                     if (!imgData) continue;
@@ -509,7 +525,11 @@ const RegisterPage = () => {
               // Add checkerboard background to visualize transparency (nukki)
               backgroundImage: `url(${displayUrl}), repeating-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), repeating-linear-gradient(45deg, #ccc 25%, #fafafa 25%, #fafafa 75%, #ccc 75%, #ccc)`,
               backgroundPosition: 'center, 0 0, 4px 4px',
-              backgroundSize: 'contain, 8px 8px, 8px 8px'
+              backgroundSize: 'contain, 8px 8px, 8px 8px',
+              // 체크보드 레이어(2,3번째)는 박스 전체를 타일로 채워야 하는데, 위쪽 base 스타일의
+              // backgroundRepeat: 'no-repeat'가 단일 값이라 모든 레이어에 적용되면서 체크보드가
+              // 왼쪽 위 8px 한 칸만 찍히고 끝나던 버그. 레이어별로 따로 지정해서 고침.
+              backgroundRepeat: 'no-repeat, repeat, repeat'
             } : {}),
             position: 'relative'
           }}
@@ -558,7 +578,7 @@ const RegisterPage = () => {
           <div className="dash-card">
             <div className="dash-title-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="dash-title">상품 기본 정보</span>
-              <button className="m-btn m-btn-confirm" onClick={handleSaveProduct} style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', width: 'auto', flex: 'none' }}>저장</button>
+              <button className="m-btn m-btn-confirm" onClick={handleSaveBasicInfo} style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', width: 'auto', flex: 'none' }}>저장</button>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', marginTop: '15px', marginBottom: '10px' }}>
