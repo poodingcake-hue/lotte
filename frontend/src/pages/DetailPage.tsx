@@ -4,6 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import { getProductImage } from '../utils/helpers';
 import OutfitModal from '../components/modals/OutfitModal';
 import * as XLSX from 'xlsx';
+import html2canvas from 'html2canvas';
 
 
 const isSameRental = (a: any, b: any) => {
@@ -76,6 +77,7 @@ const DetailPage = () => {
   useEffect(() => setNoteText(noteObj?.text || ''),     [noteObj]);
 
   const [isMobile, setIsMobile] = useState(false);
+  const [captureImgUrl, setCaptureImgUrl] = useState('');
   const captureRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,8 +93,30 @@ const DetailPage = () => {
     if (!captureRef.current) return;
     try {
       setIsLoading(true);
-      await new Promise(r => setTimeout(r, 200));
-      const html2canvas = (await import('html2canvas')).default;
+      
+      // 외부 URL 이미지의 경우 브라우저 보안(CORS)으로 인한 캡쳐 캔버스 오염(Taint)을 방지하기 위해 프록시를 거쳐 Base64로 전환
+      let resolvedImgUrl = mainImgUrl;
+      if (mainImgUrl && mainImgUrl.startsWith('http') && 
+          !mainImgUrl.includes('lotte-backend.poodingcake.workers.dev') && 
+          !mainImgUrl.includes('localhost') && 
+          !mainImgUrl.includes('127.0.0.1')) {
+        try {
+          console.log('[캡쳐] 외부 이미지 감지 → 프록시 변환 시도:', mainImgUrl);
+          const res = await apiClient.post('', { type: 'proxy_image', data: { imageUrl: mainImgUrl } });
+          if (res.data && res.data.success) {
+            resolvedImgUrl = res.data.base64;
+            console.log('[캡쳐] 프록시 변환 성공!');
+          }
+        } catch (e) {
+          console.warn('[캡쳐] 외부 이미지 프록시 변환 실패 (원본 사용):', e);
+        }
+      }
+
+      setCaptureImgUrl(resolvedImgUrl);
+      
+      // 상태 변경 및 이미지 렌더링 동기화를 위해 대기
+      await new Promise(r => setTimeout(r, 300));
+      
       const canvas = await html2canvas(captureRef.current, {
         useCORS: true,
         allowTaint: false,
@@ -106,10 +130,11 @@ const DetailPage = () => {
       link.download = `lotte_capture_${id}.png`;
       link.href = dataUrl;
       link.click();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Capture failed:', err);
-      alert('화면 캡쳐 중 오류가 발생했습니다.');
+      alert('화면 캡쳐 중 오류가 발생했습니다: ' + (err.message || err));
     } finally {
+      setCaptureImgUrl('');
       setIsLoading(false);
     }
   };
@@ -699,10 +724,10 @@ const DetailPage = () => {
           </div>
         </div>
 
-        {mainImgUrl && (
+        {(captureImgUrl || mainImgUrl) && (
           <div style={{ width: '100%', height: '320px', overflow: 'hidden', borderRadius: '8px', border: '1px solid #f1f5f9', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f8fafc' }}>
             <img 
-              src={mainImgUrl} 
+              src={captureImgUrl || mainImgUrl} 
               alt="상품이미지" 
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
               crossOrigin="anonymous"
