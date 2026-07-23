@@ -207,20 +207,37 @@ export default {
         // Route actions securely using separate handlers
         switch (type) {
           case "analyze_size_chart": {
-              const { imageBase64, mimeType } = data;
+              const { imageBase64, mimeType, category } = data;
               const openaiKey = env.OPENAI_API_KEY;
               if (!openaiKey) {
                 return new Response(JSON.stringify({ error: "OPENAI_API_KEY is not configured on the server.", envKeys: Object.keys(env) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
               }
 
-              const prompt = `This is a simple commercial product size chart from a clothing catalog. Please extract the numeric measurements from the table.
-Please map size categories (like 55, 66, 77, 88 or S, M, L, XL) to their respective "총장" (total length / height / 기장) in cm, and optionally "어깨너비" (shoulder width) in cm if available.
+              // 실제 사이즈표를 카테고리별/MD별로 여러 건 비교한 결과, 원본 라벨 표기(총기장 vs
+              // 총장(아웃심), 힙둘레 vs 힙(턱접고)/힙(턱펴고), 소매장 vs 소매기장 등)는 상품마다
+              // 제각각이지만, 의미상 대응되는 항목은 카테고리별로 공통이었다. 그래서 카테고리별
+              // 목표(canonical) 필드로 고정하고, GPT가 원본 라벨을 의미로 매핑해서 채우게 한다.
+              const CATEGORY_FIELDS = {
+                "하의": ["총장", "허리둘레", "엉덩이둘레", "허벅지둘레", "밑단둘레"],
+                "상의": ["총장", "어깨너비", "가슴둘레", "소매기장", "밑단둘레"],
+                "아우터": ["총장", "어깨너비", "가슴둘레", "소매기장", "밑단둘레"],
+              };
+              const fields = CATEGORY_FIELDS[category] || CATEGORY_FIELDS["상의"];
+              const exampleObj = fields.reduce((acc, f, i) => ({ ...acc, [f]: String(60 + i) }), { category: "M" });
 
-Return the result STRICTLY as a JSON object with this exact structure:
+              const prompt = `This is a commercial clothing product size chart table image. Row labels vary by product even within the same garment type (e.g., "총기장" or "총장(아웃심)" instead of "총장"; "힙둘레" or separate "힙(턱접고)"/"힙(턱펴고)" instead of "엉덩이둘레"; "소매장" instead of "소매기장"; "허리" instead of "허리둘레").
+
+Extract the numeric cm measurements for each size column, and map them SEMANTICALLY onto exactly these target fields: ${fields.join(", ")}.
+Rules:
+- Use the target field names exactly as given above, regardless of the original row label wording in the image.
+- If a target field has no corresponding row in the image, omit that key for that size entry entirely — do not guess or invent a value.
+- If a measurement appears as two variants (e.g., "힙(턱접고)" and "힙(턱펴고)"), prefer the "턱펴고" (unfolded) value; if only one variant exists, use that.
+- Ignore any rows that don't correspond to one of the target fields (e.g., 무릎, 암홀, 소매통, 소매부리, 목넓이, 목깊이).
+
+Return the result STRICTLY as a JSON object with this exact structure (example shape, not real values):
 {
   "sizes": [
-    { "category": "M", "length": "68", "shoulder": "45" },
-    { "category": "L", "length": "70", "shoulder": "47" }
+    ${JSON.stringify(exampleObj)}
   ]
 }
 Do not include any markdown formatting, code blocks, or extra text. Just the raw JSON object.`;
@@ -267,13 +284,23 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
                 }
 
                 const text = message?.content;
-                
+
                 if (!text) {
                   throw new Error("OpenAI returned empty text: " + JSON.stringify(result));
                 }
-                
+
                 // Clean up markdown if any
                 let cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                // GPT는 message.refusal 필드 없이, content 자리에 "I'm sorry, I can't assist
+                // with that." 같은 자연어 거절 문구를 그냥 텍스트로 돌려줄 때가 있다. 이런 경우
+                // JSON.parse가 실패해서 뭉뚱그린 "파싱 실패" 에러로만 보이던 걸, 여기서 먼저
+                // 걸러내서 "AI가 거절했다"는 걸 명확히 알려준다.
+                if (!cleanText.startsWith('{')) {
+                  console.error("OpenAI Natural-language Refusal:", cleanText);
+                  return new Response(JSON.stringify({ error: "AI가 이 이미지 분석을 거부했습니다. 다른 이미지로 다시 시도해보세요. (원문: " + cleanText.slice(0, 200) + ")" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+
                 const parsed = JSON.parse(cleanText);
   
                 return new Response(JSON.stringify({

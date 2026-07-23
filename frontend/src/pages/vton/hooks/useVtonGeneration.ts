@@ -54,8 +54,8 @@ export const useVtonGeneration = () => {
                         const baseEntry = sizes[0]; // Smallest size
                         const selectedEntry = sizes.find((s: any) => String(s.category).trim() === sizeStr) || baseEntry;
                         
-                        const baseLen = parseFloat(baseEntry.length);
-                        const targetLen = parseFloat(selectedEntry.length);
+                        const baseLen = parseFloat(baseEntry['총장']);
+                        const targetLen = parseFloat(selectedEntry['총장']);
                         if (!isNaN(baseLen) && !isNaN(targetLen) && baseLen > 0) {
                             topScaleRatio = targetLen / baseLen;
                         }
@@ -93,8 +93,8 @@ export const useVtonGeneration = () => {
                         const baseEntry = sizes[0]; // Smallest size
                         const selectedEntry = sizes.find((s: any) => String(s.category).trim() === sizeStr) || baseEntry;
                         
-                        const baseLen = parseFloat(baseEntry.length);
-                        const targetLen = parseFloat(selectedEntry.length);
+                        const baseLen = parseFloat(baseEntry['총장']);
+                        const targetLen = parseFloat(selectedEntry['총장']);
                         if (!isNaN(baseLen) && !isNaN(targetLen) && baseLen > 0) {
                             bottomScaleRatio = targetLen / baseLen;
                         }

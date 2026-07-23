@@ -7,6 +7,7 @@ import InventoryPage from './pages/InventoryPage';
 import RegisterPage from './pages/RegisterPage';
 import DetailPage from './pages/DetailPage';
 import VtonPage from './pages/vton/index';
+import RentalPage from './pages/RentalPage';
 import { useAppStore } from './store/useAppStore';
 import './App.css';
 
@@ -27,6 +28,7 @@ function App() {
         <Route path="/register" element={<main className="main-content"><RegisterPage /></main>} />
         <Route path="/detail/:id" element={<main className="main-content"><DetailPage /></main>} />
         <Route path="/vton" element={<main style={{width: '100%', padding: '0 20px'}}><VtonPage /></main>} />
+        <Route path="/rental" element={<main className="main-content"><RentalPage /></main>} />
       </Routes>
     </Router>
   );

@@ -45,6 +45,18 @@ const RegisterPage = () => {
     }
   }, [formData.image]);
 
+  // AI 치수분석 결과(카테고리별로 필드가 다름 — 하의는 허리둘레/엉덩이둘레/허벅지둘레, 상의·아우터는
+  // 어깨너비/가슴둘레/소매기장 등)를 표로 보여주기 위해, 실제 들어있는 필드를 그대로 열로 사용한다.
+  const sizeAnalysisFields = useMemo(() => {
+    const sizes = imageObj.length_cm;
+    if (!Array.isArray(sizes) || sizes.length === 0) return [];
+    const fieldSet = new Set<string>();
+    sizes.forEach((entry: any) => {
+      Object.keys(entry || {}).forEach(k => { if (k !== 'category') fieldSet.add(k); });
+    });
+    return Array.from(fieldSet);
+  }, [imageObj.length_cm]);
+
   const updateImageObj = (key: string, url: string) => {
     const newObj = { ...imageObj, [key]: url };
     setFormData(prev => ({ ...prev, image: JSON.stringify(newObj) }));
@@ -185,7 +197,11 @@ const RegisterPage = () => {
       alert('상세사이즈 이미지를 먼저 등록해주세요!');
       return;
     }
-    
+    if (!formData.code) {
+      alert('상품코드를 먼저 입력해주세요!');
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
       const response = await fetch(imageUrl);
@@ -205,7 +221,8 @@ const RegisterPage = () => {
         type: 'analyze_size_chart',
         data: {
           imageBase64: base64Data,
-          mimeType: blob.type
+          mimeType: blob.type,
+          category: formData.category
         }
       });
       
@@ -217,13 +234,18 @@ const RegisterPage = () => {
           ...imageObj,
           length_cm: parsedSizes
         };
-        
+        const newImageStr = JSON.stringify(newImageObj);
+
         setFormData(prev => ({
           ...prev,
-          image: JSON.stringify(newImageObj)
+          image: newImageStr
         }));
-        
-        alert('AI 치수 분석 완료! 사이즈 목록이 자동으로 입력되었습니다.');
+
+        // 이미지등록 쪽 "상품 저장" 버튼을 누르지 않아도 치수분석 결과가 바로 DB에 반영되도록,
+        // 여기서 현재 폼 데이터를 그대로 upsert한다 (이미지 누끼 처리는 하지 않음 — 그건 상품 저장의 몫).
+        await saveProductToBackend({ ...formData, image: newImageStr, isMaster: true });
+
+        alert('AI 치수 분석 완료! 사이즈 목록이 자동으로 입력되고 데이터베이스에 저장되었습니다.');
       } else {
         alert('치수 분석 실패: ' + (res.data.error || '알 수 없는 에러가 발생했습니다.'));
       }
@@ -327,7 +349,7 @@ const RegisterPage = () => {
                             let targetLengthCm: number | undefined = undefined;
                             if (processedImageObj.length_cm && Array.isArray(processedImageObj.length_cm) && processedImageObj.length_cm.length > 0) {
                                 const baseEntry = processedImageObj.length_cm[0]; // 가장 작은 사이즈
-                                const parsedLen = parseFloat(baseEntry.length);
+                                const parsedLen = parseFloat(baseEntry['총장']);
                                 if (!isNaN(parsedLen) && parsedLen > 0) {
                                     targetLengthCm = parsedLen;
                                     console.log(`[누끼] ${key}: 기준 총장(cm): ${targetLengthCm}cm → 목표 높이: ${targetLengthCm * 8}px`);
@@ -520,7 +542,7 @@ const RegisterPage = () => {
               width: '100%'
             }}
           >
-            {isAnalyzing ? '분석 중...' : '🔍 AI 치수분석'}
+            {isAnalyzing ? '분석 및 저장 중...' : '🔍 AI 치수분석 및 저장'}
           </button>
         )}
       </div>
@@ -565,6 +587,32 @@ const RegisterPage = () => {
               <input type="text" name="sizes" className="modal-input" placeholder="" value={formData.sizes} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
             </div>
           </div>
+
+          {sizeAnalysisFields.length > 0 && (
+            <div className="dash-card" style={{ marginTop: '20px' }}>
+              <div className="dash-title-row">
+                <span className="dash-title">AI 치수분석 결과</span>
+              </div>
+              <div style={{ overflowX: 'auto', marginTop: '10px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <thead>
+                    <tr>
+                      <th style={sizeThStyle}>사이즈</th>
+                      {sizeAnalysisFields.map(f => <th key={f} style={sizeThStyle}>{f}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {imageObj.length_cm.map((entry: any, i: number) => (
+                      <tr key={i}>
+                        <td style={sizeTdStyle}>{entry.category}</td>
+                        {sizeAnalysisFields.map(f => <td key={f} style={sizeTdStyle}>{entry[f] ?? '-'}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Images & Matrix */}
@@ -704,6 +752,22 @@ const RegisterPage = () => {
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} productCode={formData.code} />
     </section>
   );
+};
+
+const sizeThStyle = {
+  padding: '6px 8px',
+  textAlign: 'left' as const,
+  fontWeight: 'bold' as const,
+  color: '#334155',
+  borderBottom: '2px solid #cbd5e1',
+  whiteSpace: 'nowrap' as const
+};
+
+const sizeTdStyle = {
+  padding: '6px 8px',
+  color: '#475569',
+  borderBottom: '1px solid #eee',
+  whiteSpace: 'nowrap' as const
 };
 
 export default RegisterPage;

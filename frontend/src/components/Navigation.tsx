@@ -24,6 +24,9 @@ const Navigation = () => {
           <Link to="/vton" className="hide-on-mobile">
             <button id="nav-vton" className={`nav-item ${currentPath === '/vton' ? 'active' : ''}`}>가상착장</button>
           </Link>
+          <Link to="/rental" className="hide-on-mobile">
+            <button id="nav-rental" className={`nav-item ${currentPath === '/rental' ? 'active' : ''}`}>대여현황</button>
+          </Link>
         </div>
       </div>
     </nav>
