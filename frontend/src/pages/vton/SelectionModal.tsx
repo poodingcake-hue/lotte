@@ -78,7 +78,7 @@ const SelectionModal = ({
                                 {filteredItems.slice(0, 30).map((item, idx) => {
                                     let colors: string[] = [];
                                     let imgObj: any = null;
-                                    try { imgObj = JSON.parse(item.image); colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size'); } catch(e) {}
+                                    try { imgObj = JSON.parse(item.image); colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size' && k !== 'length_cm'); } catch(e) {}
                                     return (
                                         <div key={idx} className="p-3 border rounded d-flex align-items-center mb-2">
                                             <div style={{ width: '40%', paddingRight: '15px' }}>

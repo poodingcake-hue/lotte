@@ -78,6 +78,27 @@ const VtonPage = () => {
         }
     }, [allCustomModels, model.url]);
 
+    // 상의/하의/아우터 박스가 각자 따로 박스 높이에 맞춰 그려지면, 실제로는 총장이 2배 가까이
+    // 차이나는 옷들도 미리보기에서 비슷한 크기로 보여서 실제 크기 차이를 알 수 없었다. 그래서 세
+    // 박스 중 가장 긴 총장을 기준으로 나머지를 비례해서 작게 그리도록, 여기서 공통 기준을 계산한다.
+    const getBaseLengthCm = (item: any): number | null => {
+        if (!item || !item.image) return null;
+        try {
+            const imgObj = typeof item.image === 'string' ? JSON.parse(item.image) : item.image;
+            const sizes = imgObj?.length_cm;
+            if (!Array.isArray(sizes) || sizes.length === 0) return null;
+            const len = parseFloat(sizes[0]['총장']);
+            return !isNaN(len) && len > 0 ? len : null;
+        } catch (e) {
+            return null;
+        }
+    };
+    const topLengthCm = getBaseLengthCm(top.item);
+    const bottomLengthCm = getBaseLengthCm(bottom.item);
+    const outerLengthCm = getBaseLengthCm(outer.item);
+    const availableLengths = [topLengthCm, bottomLengthCm, outerLengthCm].filter((v): v is number => v !== null);
+    const maxLengthCm = availableLengths.length > 0 ? Math.max(...availableLengths) : null;
+
     const openModal = (layer: 'top' | 'bottom' | 'outer') => {
         setModalConfig({ isOpen: true, layer });
         setModalTab('product');
@@ -122,7 +143,7 @@ const VtonPage = () => {
         let imgObj: any = null;
         try { 
             imgObj = JSON.parse(currentState.item.image); 
-            colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size'); 
+            colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size' && k !== 'length_cm');
         } catch(e) { return; }
         
         if (colors.length === 0) return;
@@ -149,7 +170,7 @@ const VtonPage = () => {
         let defaultColor: string | null = null;
         try {
             const imgObj = JSON.parse(item.image);
-            const colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size');
+            const colors = Object.keys(imgObj).filter(k => k !== 'main' && k !== 'size' && k !== 'length_cm');
             if (colors.length > 0) defaultColor = colors[0];
         } catch(e) {}
         
@@ -283,13 +304,13 @@ const VtonPage = () => {
                     />
                 </div>
                 <div className="d-flex flex-column" style={{ flex: '1 1 16%', minWidth: '220px' }}>
-                    <LayerBox layerName="top" layerTitle="상의" state={top} setState={setTop} targetCodes={targetCodes} allItems={allItems} handleQuickSelect={handleQuickSelect} openModal={openModal} changeColor={changeColor} />
+                    <LayerBox layerName="top" layerTitle="상의" state={top} setState={setTop} targetCodes={targetCodes} allItems={allItems} handleQuickSelect={handleQuickSelect} openModal={openModal} changeColor={changeColor} lengthCm={topLengthCm} maxLengthCm={maxLengthCm} />
                 </div>
                 <div className="d-flex flex-column" style={{ flex: '1 1 16%', minWidth: '220px' }}>
-                    <LayerBox layerName="bottom" layerTitle="하의" state={bottom} setState={setBottom} targetCodes={targetCodes} allItems={allItems} handleQuickSelect={handleQuickSelect} openModal={openModal} changeColor={changeColor} />
+                    <LayerBox layerName="bottom" layerTitle="하의" state={bottom} setState={setBottom} targetCodes={targetCodes} allItems={allItems} handleQuickSelect={handleQuickSelect} openModal={openModal} changeColor={changeColor} lengthCm={bottomLengthCm} maxLengthCm={maxLengthCm} />
                 </div>
                 <div className="d-flex flex-column" style={{ flex: '1 1 16%', minWidth: '220px' }}>
-                    <LayerBox layerName="outer" layerTitle="아우터" state={outer} setState={setOuter} targetCodes={targetCodes} allItems={allItems} handleQuickSelect={handleQuickSelect} openModal={openModal} changeColor={changeColor} />
+                    <LayerBox layerName="outer" layerTitle="아우터" state={outer} setState={setOuter} targetCodes={targetCodes} allItems={allItems} handleQuickSelect={handleQuickSelect} openModal={openModal} changeColor={changeColor} lengthCm={outerLengthCm} maxLengthCm={maxLengthCm} />
                 </div>
                 <div className="d-flex flex-column" style={{ flex: '0 0 35%', minWidth: '450px' }}>
                     <ResultPanel 

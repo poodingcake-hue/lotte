@@ -11,7 +11,17 @@ interface LayerBoxProps {
     handleQuickSelect: (layerName: 'top' | 'bottom' | 'outer', item: any) => void;
     openModal: (layerName: 'top' | 'bottom' | 'outer') => void;
     changeColor: (layerName: 'top' | 'bottom' | 'outer', direction: number) => void;
+    // 상의/하의/아우터 세 박스 중 가장 긴 총장(cm)을 기준으로, 이 박스의 옷 총장이 그 대비 몇 %인지
+    // 계산해서 미리보기 이미지 높이에 반영한다. 둘 다 없으면(치수 데이터 미확보) 기존처럼 박스에
+    // 꽉 채워 보여준다.
+    lengthCm?: number | null;
+    maxLengthCm?: number | null;
 }
+
+// 가장 긴 옷 기준 표시 높이(px) — 세 박스 중 최장인 옷이 이 높이로 그려지고, 나머지는 비례해서 작아짐.
+const REFERENCE_BOX_HEIGHT = 260;
+// 극단적으로 짧은 옷(예: 니트 나시)이 안 보일 정도로 작아지지 않도록 하는 최소 비율.
+const MIN_HEIGHT_RATIO = 0.35;
 
 const LayerBox = ({
     layerName,
@@ -22,8 +32,15 @@ const LayerBox = ({
     allItems,
     handleQuickSelect,
     openModal,
-    changeColor
+    changeColor,
+    lengthCm,
+    maxLengthCm
 }: LayerBoxProps) => {
+    let displayHeight = 180;
+    if (lengthCm && maxLengthCm && maxLengthCm > 0) {
+        const ratio = Math.max(lengthCm / maxLengthCm, MIN_HEIGHT_RATIO);
+        displayHeight = Math.round(REFERENCE_BOX_HEIGHT * ratio);
+    }
     let matchedItems = [];
     if (targetCodes.length > 0) {
         matchedItems = allItems.filter(i => i.isMaster && targetCodes.includes(i.code));
@@ -59,10 +76,10 @@ const LayerBox = ({
             )}
             
             <div className="vton-tooltip-container w-100 flex-grow-1 d-flex flex-column">
-                <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center w-100 mb-2 position-relative" style={{minHeight: '180px', background: '#f8f9fa', borderRadius: '8px', border: '2px dashed #e0e0e0', overflow:'hidden'}}>
+                <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center w-100 mb-2 position-relative" style={{minHeight: `${REFERENCE_BOX_HEIGHT}px`, background: '#f8f9fa', borderRadius: '8px', border: '2px dashed #e0e0e0', overflow:'hidden'}}>
                     {state.url ? (
                         <>
-                            <img src={state.url} alt={layerTitle} style={{maxWidth: '100%', maxHeight: '180px', objectFit: 'contain', padding: '5px'}} />
+                            <img src={state.url} alt={layerTitle} style={{maxWidth: '100%', height: displayHeight, objectFit: 'contain', padding: '5px'}} />
                             {state.item && (
                                 <>
                                     <button className="btn btn-sm btn-dark position-absolute border border-white" style={{left: 5, top: '50%', transform:'translateY(-50%)', opacity:0.8, padding:'2px 6px', borderRadius:'50%'}} onClick={() => changeColor(layerName, -1)}>{"<"}</button>
