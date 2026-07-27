@@ -3110,6 +3110,19 @@
       "isMaster": false
     },
     {
+      "code": "12916191",
+      "image": "",
+      "brand": "",
+      "name": "[힐리퍼] ★롯데단독+MD요청★ [2+2세트] 힐리퍼(남성용 2개 + 여성용 2개)",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-07-27 18:25",
+      "dateKey": "2026-07-27",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12916184",
       "image": "",
       "brand": "",
@@ -3117,7 +3130,7 @@
       "category": "",
       "colors": "",
       "sizes": "",
-      "date": "2026-07-27 18:30",
+      "date": "2026-07-27 18:25",
       "dateKey": "2026-07-27",
       "location": "-",
       "isMaster": false
@@ -3130,7 +3143,7 @@
       "category": "",
       "colors": "",
       "sizes": "",
-      "date": "2026-07-27 18:30",
+      "date": "2026-07-27 18:25",
       "dateKey": "2026-07-27",
       "location": "-",
       "isMaster": false
@@ -3143,20 +3156,7 @@
       "category": "",
       "colors": "",
       "sizes": "",
-      "date": "2026-07-27 18:30",
-      "dateKey": "2026-07-27",
-      "location": "-",
-      "isMaster": false
-    },
-    {
-      "code": "12916191",
-      "image": "",
-      "brand": "",
-      "name": "[힐리퍼] ★롯데단독+MD요청★ [2+2세트] 힐리퍼(남성용 2개 + 여성용 2개)",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-07-27 18:30",
+      "date": "2026-07-27 18:25",
       "dateKey": "2026-07-27",
       "location": "-",
       "isMaster": false
@@ -3169,7 +3169,7 @@
       "category": "",
       "colors": "",
       "sizes": "",
-      "date": "2026-07-27 18:30",
+      "date": "2026-07-27 18:25",
       "dateKey": "2026-07-27",
       "location": "-",
       "isMaster": false
@@ -3182,7 +3182,7 @@
       "category": "",
       "colors": "",
       "sizes": "",
-      "date": "2026-07-27 18:30",
+      "date": "2026-07-27 18:25",
       "dateKey": "2026-07-27",
       "location": "-",
       "isMaster": false
@@ -5887,32 +5887,6 @@
       "colors": "",
       "sizes": "",
       "date": "2026-07-31 08:15",
-      "dateKey": "2026-07-31",
-      "location": "-",
-      "isMaster": false
-    },
-    {
-      "code": "12857435",
-      "image": "",
-      "brand": "",
-      "name": "[오제끄] ★올해마지막/역대최저가★[롯데단독스페셜패키지]★총 50개★오제끄 빙쿨 체취감소 쿨링 프로즌 바디시트 5매입 * 10봉",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-07-31 09:25",
-      "dateKey": "2026-07-31",
-      "location": "-",
-      "isMaster": false
-    },
-    {
-      "code": "12865640",
-      "image": "",
-      "brand": "",
-      "name": "[오제끄] ★올해마지막/역대최저가★[롯데단독대용량패키지]★총 100개★ 오제끄 빙쿨 체취감소 쿨링 프로즌 바디시트 5매입 * 20봉",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-07-31 09:25",
       "dateKey": "2026-07-31",
       "location": "-",
       "isMaster": false
