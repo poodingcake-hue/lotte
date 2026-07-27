@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # 푸시 전 rebase를 하려면 얕은 클론이 아니어야 합니다.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -42,10 +45,22 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           git add frontend/public/weather.json
-          
-          if ! git diff --cached --quiet; then
-            git commit -m "Update weather via KMA API"
-            git push
-          else
+
+          if git diff --cached --quiet; then
             echo "No changes to commit"
+            exit 0
           fi
+          git commit -m "Update weather via KMA API"
+
+          # 편성표 워크플로와 푸시가 겹치면 non-fast-forward로 밀려나므로 rebase 후 재시도
+          for i in 1 2 3; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then
+              echo "Pushed"
+              exit 0
+            fi
+            git rebase --abort || true
+            echo "Push failed - retry ($i/3)"
+            sleep 5
+          done
+          echo "Push failed after 3 attempts"
+          exit 1

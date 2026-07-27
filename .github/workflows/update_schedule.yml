@@ -16,6 +16,9 @@ jobs:
     steps:
     - name: 체크아웃
       uses: actions/checkout@v4
+      with:
+        # 푸시 전 rebase를 하려면 얕은 클론이 아니어야 합니다.
+        fetch-depth: 0
 
     - name: 파이썬 설정
       uses: actions/setup-python@v5
@@ -37,5 +40,23 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add frontend/public/data.json
+
         # 변경 사항이 있을 때만 커밋
-        git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto update schedule to data.json" && git push)
+        if git diff --staged --quiet; then
+          echo "변경 사항 없음 - 커밋 생략"
+          exit 0
+        fi
+        git commit -m "chore: auto update schedule to data.json"
+
+        # 날씨 워크플로(매시간 푸시)와 겹치면 non-fast-forward로 밀려나므로 rebase 후 재시도
+        for i in 1 2 3; do
+          if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then
+            echo "푸시 완료"
+            exit 0
+          fi
+          git rebase --abort || true
+          echo "푸시 실패 - 재시도 ($i/3)"
+          sleep 5
+        done
+        echo "3회 시도 후에도 푸시 실패"
+        exit 1
