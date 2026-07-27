@@ -1,7 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { getProductImage } from '../utils/helpers';
 import { useNavigate } from 'react-router-dom';
+import WeatherBadge from '../components/WeatherBadge';
+import ScheduleFullListModal from '../components/modals/ScheduleFullListModal';
 
 const parseTime = (timeStr: any) => {
   if (!timeStr) return 0;
@@ -11,8 +13,9 @@ const parseTime = (timeStr: any) => {
 };
 
 const SchedulePage = () => {
-  const { allItems, allStockMap, selDate, setSelDate, initApp, isLoading, allSupplies } = useAppStore();
+  const { allItems, allStockMap, selDate, setSelDate, initApp, isLoading, allSupplies, allWeather } = useAppStore();
   const navigate = useNavigate();
+  const [fullListTime, setFullListTime] = useState<string | null>(null);
 
   useEffect(() => {
     if (allItems.length === 0 && !isLoading) {
@@ -20,12 +23,16 @@ const SchedulePage = () => {
     }
   }, [allItems, isLoading, initApp]);
 
-  const dates = useMemo(() => {
-    const masterCodes = new Set(allItems.filter(i => i.isMaster).map(i => String(i.code)));
+  // 등록된(=보유 중인) 상품 코드. 편성표 본문은 이 코드에 해당하는 상품만 노출한다.
+  const masterCodes = useMemo(() => {
+    const codes = new Set(allItems.filter(i => i.isMaster).map(i => String(i.code)));
     if (allStockMap) {
-      Object.keys(allStockMap).forEach(code => masterCodes.add(String(code)));
+      Object.keys(allStockMap).forEach(code => codes.add(String(code)));
     }
+    return codes;
+  }, [allItems, allStockMap]);
 
+  const dates = useMemo(() => {
     const dSet = new Set<string>();
     const today = new Date();
     // Use local YYYY-MM-DD
@@ -38,7 +45,7 @@ const SchedulePage = () => {
     });
     
     return Array.from(dSet).sort();
-  }, [allItems, allStockMap]);
+  }, [allItems, masterCodes]);
 
   useEffect(() => {
     if (!selDate && dates.length > 0) {
@@ -46,28 +53,48 @@ const SchedulePage = () => {
     }
   }, [dates, selDate, setSelDate]);
 
-  const scheduleGroups = useMemo(() => {
-    if (!selDate) return {};
-    
-    const masterCodes = new Set(allItems.filter(i => i.isMaster).map(i => String(i.code)));
-    if (allStockMap) {
-      Object.keys(allStockMap).forEach(code => masterCodes.add(String(code)));
-    }
-
-    const filtered = allItems
-      .filter(i => !i.isMaster && i.dateKey === selDate && masterCodes.has(String(i.code)))
-      .sort((a, b) => parseTime(a.date) - parseTime(b.date));
-
+  const groupByTime = (items: any[]) => {
     const groups: Record<string, any[]> = {};
-    filtered.forEach(item => {
+    items.forEach(item => {
       const tmMatch = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
       const key = tmMatch ? tmMatch[1] : "시간미상";
       if (!groups[key]) groups[key] = [];
       groups[key].push(item);
     });
-
     return groups;
-  }, [allItems, allStockMap, selDate]);
+  };
+
+  // 선택한 날짜에 편성된 상품 전체 (미등록 상품 포함) — '전체내역 보기'용
+  const fullScheduleGroups = useMemo(() => {
+    if (!selDate) return {};
+
+    const sorted = allItems
+      .filter(i => !i.isMaster && i.dateKey === selDate)
+      .sort((a, b) => parseTime(a.date) - parseTime(b.date));
+
+    // 대표 상품과 '함께 방송하는 상품'에 같은 코드가 중복 수집될 수 있어 시간대별로 중복을 제거한다
+    const groups = groupByTime(sorted);
+    Object.keys(groups).forEach(key => {
+      const seen = new Set<string>();
+      groups[key] = groups[key].filter(item => {
+        const code = String(item.code);
+        if (seen.has(code)) return false;
+        seen.add(code);
+        return true;
+      });
+    });
+    return groups;
+  }, [allItems, selDate]);
+
+  const scheduleGroups = useMemo(() => {
+    if (!selDate) return {};
+
+    const filtered = allItems
+      .filter(i => !i.isMaster && i.dateKey === selDate && masterCodes.has(String(i.code)))
+      .sort((a, b) => parseTime(a.date) - parseTime(b.date));
+
+    return groupByTime(filtered);
+  }, [allItems, masterCodes, selDate]);
 
   const sortedTimes = Object.keys(scheduleGroups).sort((a, b) => parseTime(a) - parseTime(b));
 
@@ -107,7 +134,7 @@ const SchedulePage = () => {
             <button 
               key={d} 
               className={`date-btn ${d === selDate ? 'active' : ''}`}
-              onClick={() => setSelDate(d)}
+              onClick={() => { setSelDate(d); setFullListTime(null); }}
             >
               {dayName}<br />{dateNum}
             </button>
@@ -123,6 +150,7 @@ const SchedulePage = () => {
             <div key={time}>
               <div className="time-divider">
                 <span>{time} 방송</span>
+                <WeatherBadge weather={allWeather} date={selDate} time={time} />
               </div>
               <div className="product-grid">
                 {(scheduleGroups[time] || []).map((rawItem: any) => {
@@ -143,11 +171,37 @@ const SchedulePage = () => {
                     </div>
                   );
                 })}
+
+                <button
+                  type="button"
+                  className="p-card schedule-more-card"
+                  onClick={() => setFullListTime(time)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="schedule-more-icon">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                    <path d="M14 17.5h7M17.5 14v7" />
+                  </svg>
+                  <span className="schedule-more-label">전체내역 보기</span>
+                  <span className="schedule-more-count">{(fullScheduleGroups[time] || []).length}개 상품</span>
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      <ScheduleFullListModal
+        isOpen={fullListTime !== null}
+        onClose={() => setFullListTime(null)}
+        date={selDate}
+        time={fullListTime || ''}
+        items={fullListTime ? (fullScheduleGroups[fullListTime] || []) : []}
+        registeredCodes={masterCodes}
+        getDisplayItem={getDisplayItem}
+        onSelect={(code) => { setFullListTime(null); navigate(`/detail/${code}`); }}
+      />
     </section>
   );
 };

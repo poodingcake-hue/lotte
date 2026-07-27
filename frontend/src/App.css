@@ -859,6 +859,36 @@ input[type=number] {
     border-bottom: 2px solid #eee;
 }
 
+/* 편성표 시간대별 '전체내역 보기' 타일 (.p-card 위에 덧입힘) */
+.schedule-more-card {
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 10px;
+    font-family: inherit;
+    text-align: center;
+    color: var(--primary);
+    background: #fbfbfd;
+    border-style: dashed;
+    border-color: #dfe3ea;
+}
+
+.schedule-more-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.schedule-more-label {
+    font-size: 12.5px;
+    font-weight: 800;
+}
+
+.schedule-more-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: #98a2b3;
+}
+
 /* === 편성표 카드 스타일 (schedule) === */
 .schedule-card {
     display: flex;
