@@ -859,34 +859,51 @@ input[type=number] {
     border-bottom: 2px solid #eee;
 }
 
-/* 편성표 시간대별 '전체내역 보기' 타일 (.p-card 위에 덧입힘) */
-.schedule-more-card {
+/* 시간대 우측 끝의 '전체내역' 토글 — 날씨 뱃지와 같은 크기/모양 */
+.schedule-more-btn {
+    margin-left: auto;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 16px 10px;
-    font-family: inherit;
-    text-align: center;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 3px 8px;
+    height: 25px;
+    color: #888;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: 0.15s;
+}
+
+.schedule-more-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.schedule-more-btn:hover {
     color: var(--primary);
-    background: #fbfbfd;
-    border-style: dashed;
-    border-color: #dfe3ea;
+    border-color: #e2e6ff;
 }
 
-.schedule-more-icon {
-    width: 26px;
-    height: 26px;
+.schedule-more-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
 }
 
-.schedule-more-label {
-    font-size: 12.5px;
-    font-weight: 800;
+/* 우리가 보유한 상품 표시 */
+.p-card.is-owned {
+    border: 2px solid #f8bbd0;
 }
 
-.schedule-more-count {
-    font-size: 11px;
-    font-weight: 600;
-    color: #98a2b3;
+.p-card.is-unowned {
+    cursor: default;
+}
+
+.p-card.is-unowned:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 /* === 편성표 카드 스타일 (schedule) === */

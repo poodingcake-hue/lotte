@@ -3,7 +3,6 @@ import { useAppStore } from '../store/useAppStore';
 import { getProductImage } from '../utils/helpers';
 import { useNavigate } from 'react-router-dom';
 import WeatherBadge from '../components/WeatherBadge';
-import ScheduleFullListModal from '../components/modals/ScheduleFullListModal';
 
 const parseTime = (timeStr: any) => {
   if (!timeStr) return 0;
@@ -15,7 +14,17 @@ const parseTime = (timeStr: any) => {
 const SchedulePage = () => {
   const { allItems, allStockMap, selDate, setSelDate, initApp, isLoading, allSupplies, allWeather } = useAppStore();
   const navigate = useNavigate();
-  const [fullListTime, setFullListTime] = useState<string | null>(null);
+  // 전체내역(미보유 상품 포함)을 펼쳐 둔 시간대
+  const [expandedTimes, setExpandedTimes] = useState<Set<string>>(new Set());
+
+  const toggleTime = (time: string) => {
+    setExpandedTimes(prev => {
+      const next = new Set(prev);
+      if (next.has(time)) next.delete(time);
+      else next.add(time);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (allItems.length === 0 && !isLoading) {
@@ -53,37 +62,31 @@ const SchedulePage = () => {
     }
   }, [dates, selDate, setSelDate]);
 
+  // 대표 상품과 '함께 방송하는 상품'에 같은 코드가 중복 수집될 수 있어 시간대별로 중복을 제거한다
   const groupByTime = (items: any[]) => {
     const groups: Record<string, any[]> = {};
+    const seen: Record<string, Set<string>> = {};
     items.forEach(item => {
       const tmMatch = item.date ? item.date.match(/(\d{1,2}:\d{1,2})/) : null;
       const key = tmMatch ? tmMatch[1] : "시간미상";
-      if (!groups[key]) groups[key] = [];
+      if (!groups[key]) { groups[key] = []; seen[key] = new Set(); }
+      const code = String(item.code);
+      if (seen[key].has(code)) return;
+      seen[key].add(code);
       groups[key].push(item);
     });
     return groups;
   };
 
-  // 선택한 날짜에 편성된 상품 전체 (미등록 상품 포함) — '전체내역 보기'용
+  // 선택한 날짜에 편성된 상품 전체 (미보유 상품 포함) — '전체내역'용
   const fullScheduleGroups = useMemo(() => {
     if (!selDate) return {};
 
-    const sorted = allItems
-      .filter(i => !i.isMaster && i.dateKey === selDate)
-      .sort((a, b) => parseTime(a.date) - parseTime(b.date));
-
-    // 대표 상품과 '함께 방송하는 상품'에 같은 코드가 중복 수집될 수 있어 시간대별로 중복을 제거한다
-    const groups = groupByTime(sorted);
-    Object.keys(groups).forEach(key => {
-      const seen = new Set<string>();
-      groups[key] = groups[key].filter(item => {
-        const code = String(item.code);
-        if (seen.has(code)) return false;
-        seen.add(code);
-        return true;
-      });
-    });
-    return groups;
+    return groupByTime(
+      allItems
+        .filter(i => !i.isMaster && i.dateKey === selDate)
+        .sort((a, b) => parseTime(a.date) - parseTime(b.date))
+    );
   }, [allItems, selDate]);
 
   const scheduleGroups = useMemo(() => {
@@ -121,6 +124,16 @@ const SchedulePage = () => {
     return item;
   };
 
+  // 보유 상품을 먼저, 펼친 경우 나머지 편성 상품을 뒤에 이어 붙인다
+  const getRenderItems = (time: string) => {
+    const owned = scheduleGroups[time] || [];
+    if (!expandedTimes.has(time)) return owned;
+
+    const ownedCodes = new Set(owned.map(i => String(i.code)));
+    const others = (fullScheduleGroups[time] || []).filter(i => !ownedCodes.has(String(i.code)));
+    return [...owned, ...others];
+  };
+
   return (
     <section className="page-section active" id="page-schedule">
       <div id="dateScroller" className="date-scroller">
@@ -134,7 +147,7 @@ const SchedulePage = () => {
             <button 
               key={d} 
               className={`date-btn ${d === selDate ? 'active' : ''}`}
-              onClick={() => { setSelDate(d); setFullListTime(null); }}
+              onClick={() => { setSelDate(d); setExpandedTimes(new Set()); }}
             >
               {dayName}<br />{dateNum}
             </button>
@@ -146,62 +159,62 @@ const SchedulePage = () => {
         {sortedTimes.length === 0 ? (
           <p style={{ padding: '20px' }}>해당 날짜에 편성된 일정이 없습니다.</p>
         ) : (
-          sortedTimes.map(time => (
-            <div key={time}>
-              <div className="time-divider">
-                <span>{time} 방송</span>
-                <WeatherBadge weather={allWeather} date={selDate} time={time} />
-              </div>
-              <div className="product-grid">
-                {(scheduleGroups[time] || []).map((rawItem: any) => {
-                  const displayItem = getDisplayItem(rawItem);
-                  const supplyObj = allSupplies?.find(s => String(s.code) === String(displayItem.code));
-                  const overlay = (supplyObj && supplyObj.text) ? <div className="supplies-overlay">{supplyObj.text}</div> : null;
-                  
-                  return (
-                    <div key={rawItem.code} className="p-card" onClick={() => handleCardClick(rawItem)}>
-                      <div className="p-img-box">
-                        <img src={getProductImage(displayItem) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f8f9fa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23adb5bd">No Image</text></svg>'} className="p-img" alt={displayItem.name} />
-                        {overlay}
-                      </div>
-                      <div className="p-info">
-                        <div className="p-brand">{displayItem.brand || ''}</div>
-                        <div className="p-name">{displayItem.name || ''}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+          sortedTimes.map(time => {
+            const isExpanded = expandedTimes.has(time);
 
-                <button
-                  type="button"
-                  className="p-card schedule-more-card"
-                  onClick={() => setFullListTime(time)}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="schedule-more-icon">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                    <path d="M14 17.5h7M17.5 14v7" />
-                  </svg>
-                  <span className="schedule-more-label">전체내역 보기</span>
-                  <span className="schedule-more-count">{(fullScheduleGroups[time] || []).length}개 상품</span>
-                </button>
+            return (
+              <div key={time}>
+                <div className="time-divider">
+                  <span>{time} 방송</span>
+                  <WeatherBadge weather={allWeather} date={selDate} time={time} />
+                  <button
+                    type="button"
+                    className={`schedule-more-btn ${isExpanded ? 'active' : ''}`}
+                    onClick={() => toggleTime(time)}
+                    title={isExpanded ? '보유 상품만 보기' : `전체내역 보기 (${(fullScheduleGroups[time] || []).length}개)`}
+                    aria-label={isExpanded ? '보유 상품만 보기' : '전체내역 보기'}
+                    aria-expanded={isExpanded}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                      {isExpanded
+                        ? <path d="M14 17.5h7" />
+                        : <path d="M14 17.5h7M17.5 14v7" />}
+                    </svg>
+                  </button>
+                </div>
+                <div className="product-grid">
+                  {getRenderItems(time).map((rawItem: any) => {
+                    const isOwned = masterCodes.has(String(rawItem.code));
+                    const displayItem = isOwned ? getDisplayItem(rawItem) : rawItem;
+                    const supplyObj = allSupplies?.find(s => String(s.code) === String(displayItem.code));
+                    const overlay = (supplyObj && supplyObj.text) ? <div className="supplies-overlay">{supplyObj.text}</div> : null;
+
+                    return (
+                      <div
+                        key={rawItem.code}
+                        className={`p-card ${isOwned ? 'is-owned' : 'is-unowned'}`}
+                        onClick={isOwned ? () => handleCardClick(rawItem) : undefined}
+                      >
+                        <div className="p-img-box">
+                          <img src={getProductImage(displayItem) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f8f9fa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23adb5bd">No Image</text></svg>'} className="p-img" alt={displayItem.name} />
+                          {overlay}
+                        </div>
+                        <div className="p-info">
+                          <div className="p-brand">{displayItem.brand || ''}</div>
+                          <div className="p-name">{displayItem.name || ''}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
-
-      <ScheduleFullListModal
-        isOpen={fullListTime !== null}
-        onClose={() => setFullListTime(null)}
-        date={selDate}
-        time={fullListTime || ''}
-        items={fullListTime ? (fullScheduleGroups[fullListTime] || []) : []}
-        registeredCodes={masterCodes}
-        getDisplayItem={getDisplayItem}
-        onSelect={(code) => { setFullListTime(null); navigate(`/detail/${code}`); }}
-      />
     </section>
   );
 };
