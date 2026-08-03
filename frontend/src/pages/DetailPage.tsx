@@ -27,7 +27,7 @@ const DetailPage = () => {
     allItems, allStockMap, allSupplies, allNotes,
     allHistory, allOutfits,
     saveToBackend,
-    setAllOutfits, setAllNotes, setAllSupplies, setAllStockMap,
+    setAllOutfits, setAllNotes, setAllSupplies,
     apiClient, setIsLoading, isLoading,
   } = useAppStore();
 
@@ -331,28 +331,21 @@ const DetailPage = () => {
     if (matrix.length === 0) { alert('입력된 수량이 없습니다.'); return; }
     setIsLoading(true);
     try {
-      const newMap: Record<string, any[]> = { ...allStockMap };
-      if (!newMap[id]) newMap[id] = [];
-      
       const newLogs: any[] = [];
       const timestamp = new Date().toISOString();
-      
+
       matrix.forEach(m => {
-        const ex = newMap[id].find(x => x.color === m.color && x.size === m.size);
-        if (ex) ex.qty = Number(ex.qty) + Number(m.qty);
-        else newMap[id].push({ color: m.color, size: m.size, qty: m.qty });
-        
         newLogs.push({
           code: String(id), color: m.color, size: m.size,
           type: 'ADJUST', qty: Number(m.qty), date: timestamp,
           actor: '관리자', note: '재고 추가/조정 (수기입력)'
         });
       });
-      setAllStockMap(newMap);
 
       // Inventory is derived from inventory_history — only append the delta events below.
       // (Never write a full stock snapshot: that previously overwrote every other
       // product's inventory with this tab's possibly-stale local state.)
+      // saveHistoryToBackend가 저장한 qty를 allStockMap에 합산하므로 여기서 직접 갱신하지 않는다.
       if (newLogs.length > 0) {
         await useAppStore.getState().saveHistoryToBackend(newLogs);
       }

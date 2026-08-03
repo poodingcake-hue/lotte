@@ -452,21 +452,12 @@ const RegisterPage = () => {
     if (newLogs.length === 0) { alert('입고할 수량을 입력해주세요.'); return; }
 
     try {
-      // Optimistic local update: add the entered quantities on top of whatever's there.
-      const newStockMap: Record<string, any[]> = { ...allStockMap };
-      const currentStock = (newStockMap[formData.code] || []).map(x => ({ ...x }));
-      newLogs.forEach(log => {
-        const existing = currentStock.find(x => x.color === log.color && x.size === log.size);
-        if (existing) existing.qty = Number(existing.qty) + log.qty;
-        else currentStock.push({ color: log.color, size: log.size, qty: log.qty });
-      });
-      newStockMap[formData.code] = currentStock;
-
       // Inventory is derived from inventory_history — saving stock means only
       // appending the IN events above, never writing a stock snapshot directly.
-      const { saveHistoryToBackend, setAllStockMap } = useAppStore.getState();
+      // saveHistoryToBackend가 저장한 qty를 allStockMap에 그대로 합산하므로
+      // 여기서 따로 setAllStockMap을 호출하면 이중 반영된다.
+      const { saveHistoryToBackend } = useAppStore.getState();
       await saveHistoryToBackend(newLogs);
-      setAllStockMap(newStockMap);
       setMatrixData({});
       alert('재고 저장이 완료되었습니다.');
     } catch (e) {

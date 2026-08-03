@@ -105,9 +105,16 @@ const HistoryModal = ({ isOpen, onClose, productCode }: HistoryModalProps) => {
       if (!original) {
         throw new Error(`Original log not found for id: ${id}`);
       }
-      const newQty = Number(edited.qty);
+      // 입력칸에는 수량을 부호 없이 적기 마련이라, 대여(RENT) 행을 "3"으로 고치면
+      // -3이 아니라 +3이 저장돼 차감이 아니라 가산이 된다(재고가 대여 수량의 2배로 부풀음).
+      // 부호 규약(RENT 음수 / IN·RETURN 양수)을 타입 기준으로 강제한다. ADJUST는 부호가 자유라 그대로 둔다.
+      const rawQty = Number(edited.qty);
+      const newQty =
+        original.type === 'RENT' ? -Math.abs(rawQty)
+        : (original.type === 'IN' || original.type === 'RETURN') ? Math.abs(rawQty)
+        : rawQty;
       const oldQty = Number(original.qty);
-      
+
       return {
         id: Number(id),
         code: original.code,

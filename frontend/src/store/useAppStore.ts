@@ -95,7 +95,25 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await apiClient.post('', { type: 'save_history', data: newHistoryLogs });
       const ids: any[] = res.data?.ids || [];
       const logsWithIds = newHistoryLogs.map((log: any, i: number) => ({ ...log, id: ids[i] }));
-      set(state => ({ allHistory: [...state.allHistory, ...logsWithIds] }));
+
+      // 재고는 inventory_history의 SUM(qty)에서 파생된다. 서버 재조회 없이 화면을 맞추려면
+      // 방금 저장한 로그의 qty를 그대로(부호 포함) allStockMap에 더해야 한다.
+      // RENT는 음수, RETURN/IN은 양수라 이 합산 하나로 반출/반납/입고가 모두 반영된다.
+      // 호출부에서 따로 setAllStockMap을 하면 이중 반영되므로 하지 말 것.
+      set(state => {
+        const stockMap = { ...state.allStockMap };
+        logsWithIds.forEach((log: any) => {
+          const delta = Number(log.qty);
+          if (!delta) return;
+          const code = String(log.code);
+          const items = (stockMap[code] || []).map(x => ({ ...x }));
+          const idx = items.findIndex(i => i.color === log.color && i.size === log.size);
+          if (idx !== -1) items[idx].qty = Number(items[idx].qty) + delta;
+          else items.push({ color: log.color, size: log.size, qty: delta });
+          stockMap[code] = items;
+        });
+        return { allHistory: [...state.allHistory, ...logsWithIds], allStockMap: stockMap };
+      });
       return logsWithIds;
     } catch (e) {
       console.error('Error saving history:', e);
