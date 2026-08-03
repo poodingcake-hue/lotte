@@ -1,23 +1,35 @@
 import { useMemo, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 
-const formatDate = (dateString: string) => {
+const pad = (n: number) => String(n).padStart(2, '0');
+
+// 대여현황은 날짜만 다룬다(시각은 표시하지 않음). <input type="date">가 요구하는
+// 로컬 기준 YYYY-MM-DD 문자열로 변환한다.
+const toDateInputValue = (dateString: string) => {
   if (!dateString) return '';
-  try {
-    const d = new Date(dateString);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  } catch {
-    return dateString;
-  }
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+// 날짜만 바꾸고 시각은 원본 그대로 유지한다. 이력 정렬과 같은 날 안에서의 순서가
+// 시각에 의존하므로, 날짜 수정 때문에 시각이 00:00으로 밀리면 순서가 뒤엉킨다.
+const withDatePart = (originalIso: string, ymd: string) => {
+  const [y, m, day] = ymd.split('-').map(Number);
+  if (!y || !m || !day) return null;
+  const base = new Date(originalIso);
+  const d = isNaN(base.getTime()) ? new Date(y, m - 1, day) : new Date(base);
+  d.setFullYear(y, m - 1, day);
+  return d.toISOString();
 };
 
 const RentalPage = () => {
-  const { allHistory, allItems, saveHistoryToBackend } = useAppStore();
+  const { allHistory, allItems, saveHistoryToBackend, updateHistoryInBackend } = useAppStore();
   const [selectedBrand, setSelectedBrand] = useState('');
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [isReturning, setIsReturning] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [savingDateId, setSavingDateId] = useState<string | null>(null);
 
   const codeToProduct = useMemo(() => {
     const map: Record<string, any> = {};
@@ -61,6 +73,11 @@ const RentalPage = () => {
         size: h.size || '',
         color: h.color || '',
         qty: Math.abs(Number(h.qty)),
+        // 화면에는 절대값을 보여주지만, 수정 저장 시에는 부호가 있는 원본 qty를 그대로
+        // 돌려보내야 한다. update_history가 qty를 통째로 UPDATE하므로 절대값을 보내면
+        // RENT(-1)가 +1로 뒤집혀 재고가 깨진다. note도 같이 덮어쓰므로 원본을 보존한다.
+        rawQty: Number(h.qty),
+        note: h.note || '',
         renter: h.actor || '',
         date: h.date,
       }))
@@ -88,6 +105,29 @@ const RentalPage = () => {
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
+  };
+
+  const handleDateChange = async (row: any, ymd: string) => {
+    if (!ymd) return;
+    const nextIso = withDatePart(row.date, ymd);
+    if (!nextIso || nextIso === row.date) return;
+
+    setSavingDateId(row.id);
+    try {
+      await updateHistoryInBackend([{
+        id: Number(row.id),
+        code: row.code, color: row.color, size: row.size,
+        qty: row.rawQty,      // 부호 있는 원본 값 그대로 (재고 영향 없음)
+        deltaQty: 0,          // 수량은 안 바꾸므로 재고 델타 없음
+        date: nextIso,
+        note: row.note,
+      }]);
+    } catch (err) {
+      console.error(err);
+      alert('날짜 수정 중 오류가 발생했습니다.');
+    } finally {
+      setSavingDateId(null);
+    }
   };
 
   const handleReturn = async () => {
@@ -171,7 +211,16 @@ const RentalPage = () => {
                       <td>{r.color}</td>
                       <td>{r.qty}</td>
                       <td>{r.renter}</td>
-                      <td>{formatDate(r.date)}</td>
+                      <td>
+                        <input
+                          type="date"
+                          className="form-control form-control-sm border-0 bg-light"
+                          style={{ minWidth: '140px' }}
+                          value={toDateInputValue(r.date)}
+                          disabled={savingDateId === r.id}
+                          onChange={(e) => handleDateChange(r, e.target.value)}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
