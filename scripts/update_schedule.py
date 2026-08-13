@@ -91,26 +91,36 @@ async def scrape_lotte_schedule():
                 await page.wait_for_selector("ul.time_list", timeout=20000)
                 
                 time_list = await page.query_selector_all("ul.time_list > li")
-                # 오늘(d_offset == 0)은 이미 지난 어제 방송이 노출되지 않으므로 처음부터 True로 시작하여 오후 시간대가 스킵되는 버그 방지
-                started_today = True if d_offset == 0 else False 
-                
-                for i, li in enumerate(time_list):
+
+                # 1차 패스: 방송 시각만 먼저 읽어 둔다
+                entries = []
+                for li in time_list:
                     time_elem = await li.query_selector(".time")
                     if not time_elem: continue
                     time_text = await time_elem.inner_text()
-                    time_only = re.findall(r'\d{2}:\d{2}', time_text)[-1] if re.findall(r'\d{2}:\d{2}', time_text) else "00:00"
-                    
+                    times = re.findall(r'\d{2}:\d{2}', time_text)
+                    entries.append((li, times[-1] if times else "00:00"))
+
+                # 롯데는 날짜 탭 맨 앞에 '전날 밤' 방송을 함께 노출한다. (오늘 탭도 마찬가지)
+                # 목록은 시간순이므로 시각이 처음으로 되감기는(=자정을 넘는) 지점을 찾아 그 앞을 잘라낸다.
+                # 앞쪽 시간대만 보고 판단하면 사이트가 '현재시각 이후'만 노출할 때 오후 방송이 통째로 날아가므로
+                # 되감김이 실제로 있을 때만, 그리고 앞 블록이 전부 오후/밤일 때만 전날 방송으로 간주한다.
+                start_pos = 0
+                for idx in range(1, len(entries)):
+                    if entries[idx][1] >= entries[idx - 1][1]:
+                        continue
+                    if all(int(t.split(':')[0]) >= 12 for _, t in entries[:idx]):
+                        start_pos = idx
+                        print(f"  전날 밤 방송 {idx}건 제외 (~{entries[idx - 1][1]})")
+                    break
+
+                for li, time_only in entries[start_pos:]:
                     hour = int(time_only.split(':')[0])
-                    
-                    # 전날 밤 방송 제외 로직
-                    if not started_today:
-                        if hour >= 12: continue
-                        else: started_today = True
-                    
+
                     # 02:00 ~ 05:59 방송 제외 로직
                     if 2 <= hour <= 4:
                         continue
-                    
+
                     broadcast_datetime = f"{date_val} {time_only}"
                     class_attr = await li.get_attribute("class")
                     p_match = re.search(r'time_(\d+)', class_attr)
