@@ -3516,7 +3516,7 @@
       "code": "12918375",
       "image": "",
       "brand": "",
-      "name": "[뉴케어] ★홈쇼핑 최초공개★ 뉴케어 당플랜코어 144팩(24팩x6박스) + 당플랜 안심차 9팩",
+      "name": "[뉴케어] -",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -3747,6 +3747,19 @@
       "isMaster": false
     },
     {
+      "code": "12914876",
+      "image": "",
+      "brand": "",
+      "name": "[바이아우어] ★올해 단한번 마지막! 81샴푸 총8L이상★[맥주효모짐승용량]바이아우어 대용량 블랙비어 81샴푸1,020ml * 8개+ (리뷰시)볼륨미스트250ml",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-15 13:55",
+      "dateKey": "2026-08-15",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12914737",
       "image": "",
       "brand": "",
@@ -3768,6 +3781,45 @@
       "colors": "",
       "sizes": "",
       "date": "2026-08-15 13:55",
+      "dateKey": "2026-08-15",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12919471",
+      "image": "",
+      "brand": "",
+      "name": "[올가힐링스] ★마지막방송★ 퍼퓸 바디미스트 기본패키지 (100ml * 7병)",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-15 15:10",
+      "dateKey": "2026-08-15",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12919473",
+      "image": "",
+      "brand": "",
+      "name": "[올가힐링스] ★마지막방송★ 퍼퓸 바디미스트 100ml * 10병 + (리뷰시) 키라니아 샴푸 증정!",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-15 15:10",
+      "dateKey": "2026-08-15",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12919482",
+      "image": "",
+      "brand": "",
+      "name": "[올가힐링스] 올가힐링스 프레스티지 퍼퓸바디미스트(페어 드 바닐라)",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-15 15:10",
       "dateKey": "2026-08-15",
       "location": "-",
       "isMaster": false
@@ -5047,6 +5099,32 @@
       "isMaster": false
     },
     {
+      "code": "12919191",
+      "image": "",
+      "brand": "",
+      "name": "[캐롤프랑크] ★TV홈쇼핑 최초공개★ 캐롤프랑크 사우나크림 동지현 패키지 (특대용량 375ml * 2통 + 스파츌러 2개)",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-17 10:25",
+      "dateKey": "2026-08-17",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12919192",
+      "image": "",
+      "brand": "",
+      "name": "[캐롤프랑크] ★TV홈쇼핑 최초공개★ 캐롤프랑크 사우나크림 특대용량 375ml 단품 + 스파츌러 1개",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-17 10:25",
+      "dateKey": "2026-08-17",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12916683",
       "image": "",
       "brand": "",
@@ -5229,10 +5307,10 @@
       "isMaster": false
     },
     {
-      "code": "12916874",
+      "code": "12916872",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 퓨어캐시미어 숄카라 니트코트",
+      "name": "[LBL] 26FW 퓨어캐시미어100 버킷햇",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -5242,10 +5320,10 @@
       "isMaster": false
     },
     {
-      "code": "12916872",
+      "code": "12916874",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 퓨어캐시미어100 버킷햇",
+      "name": "[LBL] 26FW 퓨어캐시미어 숄카라 니트코트",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -6103,7 +6181,7 @@
       "code": "12918239",
       "image": "",
       "brand": "",
-      "name": "[대원제약] ◎면역특별구성[8개월]대원헬스 면역 장대원 8박스+오메가파이터 2박스",
+      "name": "[대원제약] ◎면역유산균특별구성[8개월]대원헬스 면역 장대원 8박스+오메가파이터 2박스",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -7135,19 +7213,6 @@
       "colors": "",
       "sizes": "",
       "date": "2026-08-20 20:45",
-      "dateKey": "2026-08-20",
-      "location": "-",
-      "isMaster": false
-    },
-    {
-      "code": "12891322",
-      "image": "",
-      "brand": "",
-      "name": "[세제패키지] 파워효소 액체세제2.3L 3개 + 리필 1.2L 4개",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-08-20 22:50",
       "dateKey": "2026-08-20",
       "location": "-",
       "isMaster": false
