@@ -2577,19 +2577,6 @@
       "isMaster": false
     },
     {
-      "code": "12918893",
-      "image": "",
-      "brand": "",
-      "name": "[상담예약] 참좋은여행 규슈 4일 패키지",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-08-17 05:15",
-      "dateKey": "2026-08-17",
-      "location": "-",
-      "isMaster": false
-    },
-    {
       "code": "12883061",
       "image": "",
       "brand": "",
@@ -2785,19 +2772,6 @@
       "isMaster": false
     },
     {
-      "code": "12916683",
-      "image": "",
-      "brand": "",
-      "name": "[조르쥬 레쉬] 26FW 버튼 포인트 카라 니트 4종",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-08-17 11:35",
-      "dateKey": "2026-08-17",
-      "location": "-",
-      "isMaster": false
-    },
-    {
       "code": "12913424",
       "image": "",
       "brand": "",
@@ -2815,6 +2789,19 @@
       "image": "",
       "brand": "",
       "name": "[조르쥬 레쉬] 26FW 투턱 배럴 팬츠 3종(G6PBW)",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-17 11:35",
+      "dateKey": "2026-08-17",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12916683",
+      "image": "",
+      "brand": "",
+      "name": "[조르쥬 레쉬] 26FW 버튼 포인트 카라 니트 4종",
       "category": "",
       "colors": "",
       "sizes": "",
