@@ -2954,19 +2954,6 @@
       "isMaster": false
     },
     {
-      "code": "12919179",
-      "image": "",
-      "brand": "",
-      "name": "[LBL] 26FW NEW소프트 퓨어캐시미어100 니트",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-08-17 18:35",
-      "dateKey": "2026-08-17",
-      "location": "-",
-      "isMaster": false
-    },
-    {
       "code": "12916259",
       "image": "",
       "brand": "",
@@ -2980,10 +2967,10 @@
       "isMaster": false
     },
     {
-      "code": "12916874",
+      "code": "12917785",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 퓨어캐시미어 숄카라 니트코트",
+      "name": "[LBL] 26FW 시그니처 무드자켓",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -3006,10 +2993,23 @@
       "isMaster": false
     },
     {
-      "code": "12917785",
+      "code": "12919179",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 시그니처 무드자켓",
+      "name": "[LBL] 26FW NEW소프트 퓨어캐시미어100 니트",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-08-17 18:35",
+      "dateKey": "2026-08-17",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12916874",
+      "image": "",
+      "brand": "",
+      "name": "[LBL] 26FW 퓨어캐시미어 숄카라 니트코트",
       "category": "",
       "colors": "",
       "sizes": "",
