@@ -6,7 +6,7 @@ import { removeBackground } from '../api/falClient';
 import { cropTransparentMargins } from '../utils/imageCrop';
 
 const RegisterPage = () => {
-  const { allStockMap, apiClient, saveProductToBackend } = useAppStore();
+  const { allStockMap, allHistory, apiClient, saveProductToBackend } = useAppStore();
   const [formData, setFormData] = useState({
     code: '',
     brand: '',
@@ -74,13 +74,9 @@ const RegisterPage = () => {
     const sList: string[] = [];
     const cList: string[] = [];
 
-    // Prioritize inventory colors and sizes by pushing them FIRST
-    existingStock.forEach((s: any) => {
-      if (s.size && !sList.includes(String(s.size))) sList.push(String(s.size));
-      if (s.color && !cList.includes(String(s.color))) cList.push(String(s.color));
-    });
-
-    // Then add master colors and sizes if not already present
+    // 사이즈는 마스터에 등록된 입력 순서를 FIRST로 깐다.
+    // 재고를 먼저 넣으면 백엔드 GROUP BY의 사전순이 들어오고, 이 값이 그대로
+    // 저장되면서 products.sizes에 보존돼 있던 입력 순서를 덮어써 버린다.
     if (item.sizes) {
       const ms = Array.isArray(item.sizes) ? item.sizes : String(item.sizes).split(',');
       ms.forEach((s: any) => {
@@ -88,6 +84,44 @@ const RegisterPage = () => {
         if (trimmed && !sList.includes(trimmed)) sList.push(trimmed);
       });
     }
+
+    // 이관 잔재인 '-' 자리표시자는 담지 않는다. 그대로 저장되면 products.sizes/colors가
+    // 오염되고, 재고 매트릭스에도 '-' 칸이 생겨 새 재고가 거기에 쌓인다.
+    const isPlaceholder = (v: any) => {
+      const t = String(v ?? '').trim();
+      return t === '' || t === '-';
+    };
+
+    // 마스터에 없는 사이즈는 재고 입력 순서(inventory_history 삽입 순서)로 붙인다.
+    const entryOrder: string[] = [];
+    [...(allHistory || [])]
+      .filter((l: any) => String(l.code) === String(item.code))
+      .sort((a: any, b: any) => {
+        const d = (new Date(a.date) as any) - (new Date(b.date) as any);
+        return d !== 0 ? d : Number(a.id || 0) - Number(b.id || 0);
+      })
+      .forEach((l: any) => {
+        const s = String(l.size || '').trim();
+        if (s && !entryOrder.includes(s)) entryOrder.push(s);
+      });
+
+    [...existingStock]
+      .sort((a: any, b: any) => {
+        const ia = entryOrder.indexOf(String(a.size)), ib = entryOrder.indexOf(String(b.size));
+        if (ia === ib) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      })
+      .forEach((s: any) => {
+        if (s.size && !isPlaceholder(s.size) && !sList.includes(String(s.size))) sList.push(String(s.size));
+      });
+
+    // 색상 순서는 건드리지 않는다 (기존대로 재고 우선 -> 마스터 순).
+    existingStock.forEach((s: any) => {
+      if (s.color && !isPlaceholder(s.color) && !cList.includes(String(s.color))) cList.push(String(s.color));
+    });
+
     if (item.colors) {
       const mc = Array.isArray(item.colors) ? item.colors : String(item.colors).split(',');
       mc.forEach((c: any) => {

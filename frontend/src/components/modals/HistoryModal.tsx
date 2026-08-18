@@ -46,18 +46,36 @@ const HistoryModal = ({ isOpen, onClose, productCode }: HistoryModalProps) => {
     return (allHistory || []).filter(log => String(log.code) === String(productCode));
   }, [allHistory, productCode]);
 
-  // 사이즈/컬러의 "등록 순서" = 등록일 오름차순으로 훑었을 때 각 사이즈/컬러가 처음 등장한 순서.
+  // 사이즈 순서는 마스터 등록 시 입력한 순서(products.sizes)를 따른다.
+  const masterSizes = useMemo(() => {
+    const master = allItems.find(i => String(i.code) === String(productCode) && i.isMaster);
+    return (master?.sizes ? String(master.sizes).split(',') : [])
+      .map((s: string) => s.trim())
+      .filter(Boolean);
+  }, [allItems, productCode]);
+
+  // 컬러의 "등록 순서" = 등록일 오름차순으로 훑었을 때 각 컬러가 처음 등장한 순서.
   // (allStockMap은 현재 집계된 재고 스냅샷일 뿐 등록 순서를 보장하지 않으므로 기준으로 쓰지 않는다)
   const { sizeOrder, colorOrder } = useMemo(() => {
-    const byDateAsc = [...productHistory].sort((a, b) => (new Date(a.date) as any) - (new Date(b.date) as any));
-    const sizes: any[] = [];
+    // 한 번에 저장된 묶음은 date가 전부 같으므로 id로 실제 삽입 순서를 가른다.
+    const byDateAsc = [...productHistory].sort((a, b) => {
+      const d = (new Date(a.date) as any) - (new Date(b.date) as any);
+      return d !== 0 ? d : Number(a.id || 0) - Number(b.id || 0);
+    });
+    const logSizes: any[] = [];
     const colors: any[] = [];
     byDateAsc.forEach(log => {
-      if (!sizes.includes(log.size)) sizes.push(log.size);
+      if (!logSizes.includes(log.size)) logSizes.push(log.size);
       if (!colors.includes(log.color)) colors.push(log.color);
     });
-    return { sizeOrder: sizes, colorOrder: colors };
-  }, [productHistory]);
+
+    // 마스터 순서를 먼저 깔고, 마스터에 없는 사이즈만 등장 순서대로 뒤에 붙인다.
+    // 마스터가 비어 있으면 자연히 기존 동작(등장 순서)으로 폴백된다.
+    const ordered = masterSizes.filter((s: string) => logSizes.includes(s));
+    const rest = logSizes.filter(s => !ordered.includes(s));
+
+    return { sizeOrder: [...ordered, ...rest], colorOrder: colors };
+  }, [productHistory, masterSizes]);
 
   const originalHistoryLogs = useMemo(() => {
     return [...productHistory].sort((a, b) => {

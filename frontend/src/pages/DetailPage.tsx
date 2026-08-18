@@ -45,14 +45,65 @@ const DetailPage = () => {
 
   const stockMap = useMemo(() => allStockMap[id] || [], [allStockMap, id]);
 
-  const { sizes, colors } = useMemo(() => {
-    const sList: string[] = [], cList: string[] = [];
-    stockMap.forEach((s: any) => {
-      if (s.size && !sList.includes(s.size)) sList.push(s.size);
-      if (s.color && !cList.includes(s.color)) cList.push(s.color);
+  // 재고 입력 순서 = inventory_history에 사이즈가 처음 등장한 순서.
+  // 한 번에 저장된 묶음은 date가 전부 같으므로 AUTOINCREMENT id로 실제 삽입 순서를 가른다.
+  // (등록 화면이 colors -> sizes 순으로 로그를 쌓으므로 id 순서 = 입력한 사이즈 순서)
+  const stockEntryOrder = useMemo(() => {
+    const logs = [...(allHistory || [])]
+      .filter((l: any) => String(l.code) === String(id))
+      .sort((a: any, b: any) => {
+        const d = (new Date(a.date) as any) - (new Date(b.date) as any);
+        return d !== 0 ? d : Number(a.id || 0) - Number(b.id || 0);
+      });
+    const out: string[] = [];
+    logs.forEach((l: any) => {
+      const s = String(l.size || '').trim();
+      if (s && !out.includes(s)) out.push(s);
     });
-    return { sizes: sList, colors: cList };
-  }, [stockMap]);
+    return out;
+  }, [allHistory, id]);
+
+  // 사이즈 열 순서는 마스터 등록 시 입력한 순서(products.sizes)를 따른다.
+  // stockMap은 백엔드가 GROUP BY 결과를 그대로 준 것이라 사이즈가 사전순으로
+  // 섞여 나오므로(M, M+5, S, S+5), 그걸 그대로 쓰면 입력 순서가 사라진다.
+  const { sizes, colors } = useMemo(() => {
+    // backfill_history.js가 이관 때 color/size가 빈 행을 '-'로 채워 넣은 탓에
+    // 수량이 전부 0인 '-' 행/열이 표에 유령처럼 남는다. 라벨이 비었거나 '-'이면서
+    // 수량 합이 0인 것만 숨긴다 — 수량이 있으면 재고를 감추게 되므로 그대로 둔다.
+    const isGhost = (key: 'size' | 'color', v: string) =>
+      (!v || v.trim() === '' || v.trim() === '-') &&
+      stockMap
+        .filter((x: any) => x[key] === v)
+        .reduce((a: number, b: any) => a + Number(b.qty || 0), 0) === 0;
+
+    const stockSizes: string[] = [], cList: string[] = [];
+    stockMap.forEach((s: any) => {
+      if (s.size && !stockSizes.includes(s.size) && !isGhost('size', s.size)) stockSizes.push(s.size);
+      if (s.color && !cList.includes(s.color) && !isGhost('color', s.color)) cList.push(s.color);
+    });
+
+    // 마스터 순서를 먼저 깔고, 마스터에 없는(나중에 추가된) 사이즈만 뒤에 붙인다.
+    // 마스터가 비었거나 재고 사이즈를 못 담고 있으면 자연히 기존 동작으로 폴백된다.
+    const masterSizes = (item?.sizes ? String(item.sizes).split(',') : [])
+      .map((s: string) => s.trim())
+      .filter(Boolean);
+    const ordered = masterSizes.filter((s: string) => stockSizes.includes(s));
+
+    // 마스터가 비었거나 깨져 있으면(=매칭되는 사이즈가 없으면) 전부 여기로 떨어진다.
+    // 그때는 백엔드 GROUP BY 사전순 대신 재고 입력 순서를 쓴다.
+    // 이력에도 없는 사이즈는 sort가 안정 정렬이라 기존 순서 그대로 뒤에 남는다.
+    const rest = stockSizes
+      .filter(s => !ordered.includes(s))
+      .sort((a, b) => {
+        const ia = stockEntryOrder.indexOf(a), ib = stockEntryOrder.indexOf(b);
+        if (ia === ib) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+
+    return { sizes: [...ordered, ...rest], colors: cList };
+  }, [stockMap, item, stockEntryOrder]);
 
   // ─── 컬러별 이미지 파싱 ──────────────────────────────────────
   const colorImages = useMemo(() => {
