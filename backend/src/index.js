@@ -568,9 +568,15 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
           case "update_history": {
              const statements = [];
              if (data && data.length > 0) {
-                 const updateHistoryStmt = env.DB.prepare("UPDATE inventory_history SET qty = ?, date = ?, note = ? WHERE id = ?");
+                 const updateHistoryStmt = env.DB.prepare("UPDATE inventory_history SET qty = ?, date = ?, note = ?, actor = ? WHERE id = ?");
                  data.forEach(item => {
-                     statements.push(updateHistoryStmt.bind(item.qty, item.date || "", item.note || "", item.id));
+                     statements.push(updateHistoryStmt.bind(
+                         item.qty,
+                         item.date || "",
+                         item.note || "",
+                         item.actor !== undefined ? item.actor : "",
+                         item.id
+                     ));
                  });
              }
              for (let i = 0; i < statements.length; i += 100) {

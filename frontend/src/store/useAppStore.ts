@@ -134,7 +134,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         updatedLogs.forEach((updatedLog: any) => {
           const idx = newHistory.findIndex(h => h.id === updatedLog.id);
           if (idx !== -1) {
-             newHistory[idx] = { ...newHistory[idx], qty: updatedLog.qty, date: updatedLog.date, note: updatedLog.note };
+             newHistory[idx] = {
+               ...newHistory[idx],
+               qty: updatedLog.qty,
+               date: updatedLog.date,
+               note: updatedLog.note,
+               actor: updatedLog.actor !== undefined ? updatedLog.actor : newHistory[idx].actor
+             };
           }
           
           // 2. Sync local stockMap with deltaQty
