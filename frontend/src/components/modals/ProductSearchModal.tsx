@@ -74,8 +74,42 @@ const ProductSearchModal = ({ isOpen, onClose, onSelect }: ProductSearchModalPro
                   alt={item.name} 
                   style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} 
                 />
+                {item.category === '반출' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.52)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 2
+                  }}>
+                    <span style={{
+                      backgroundColor: '#dc2626',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      padding: '4px 14px',
+                      borderRadius: '20px',
+                      letterSpacing: '1px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.35)'
+                    }}>
+                      반출
+                    </span>
+                  </div>
+                )}
               </div>
-              <div style={{ fontSize: '12px', color: '#666', fontWeight: 'bold' }}>{item.brand}</div>
+              <div style={{ fontSize: '12px', color: '#666', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{item.brand}</span>
+                {item.category === '반출' && (
+                  <span style={{ fontSize: '11px', color: '#dc2626', background: '#fee2e2', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    반출
+                  </span>
+                )}
+              </div>
               <div style={{ fontSize: '14px', margin: '4px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
               <div style={{ fontSize: '12px', color: '#999', marginTop: 'auto' }}>
                 {item.code}
