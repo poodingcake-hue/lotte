@@ -14,6 +14,7 @@ const RegisterPage = () => {
     category: '',
     colors: '',
     sizes: '',
+    extra_codes: '',
     image: ''
   });
 
@@ -140,6 +141,7 @@ const RegisterPage = () => {
       category: item.category || '',
       colors: colorVal,
       sizes: sizeVal,
+      extra_codes: item.extra_codes || '',
       image: item.image || ''
     });
 
@@ -162,6 +164,23 @@ const RegisterPage = () => {
     const newColors = [...extraColors];
     newColors[index] = value;
     setExtraColors(newColors);
+  };
+
+  const handleExtraCodesChange = (e: any) => {
+    const val = e.target.value;
+    const items = val.split(',');
+    if (items.length > 4) {
+      alert('멀티상품코드는 최대 4개까지만 등록 가능합니다.');
+      const limited = items.slice(0, 4).join(',');
+      setFormData(prev => ({ ...prev, extra_codes: limited }));
+      return;
+    }
+    setFormData(prev => ({ ...prev, extra_codes: val }));
+  };
+
+  const cleanExtraCodes = (raw: string) => {
+    if (!raw) return '';
+    return raw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 4).join(', ');
   };
 
   const colors = useMemo(() => formData.colors.split(',').map(s => s.trim()).filter(Boolean), [formData.colors]);
@@ -331,7 +350,7 @@ const RegisterPage = () => {
     };
   }, [activeImageBox, imageObj]); // Dependencies ensure we use current activeImageBox
 
-  // "상품 기본 정보" 저장 버튼 전용: 마스터 정보(코드/브랜드/상품명/카테고리/색상/사이즈)만 저장하고
+  // "상품 기본 정보" 저장 버튼 전용: 마스터 정보(코드/브랜드/상품명/카테고리/색상/사이즈/멀티코드)만 저장하고
   // 이미지는 손대지 않는다 (누끼/리사이즈는 "이미지 등록" 저장 버튼에서만 실행됨).
   const handleSaveBasicInfo = async () => {
     if (!formData.code) {
@@ -339,7 +358,13 @@ const RegisterPage = () => {
        return;
     }
     try {
-      await saveProductToBackend({ ...formData, isMaster: true });
+      const sanitized = {
+        ...formData,
+        extra_codes: cleanExtraCodes(formData.extra_codes),
+        isMaster: true
+      };
+      await saveProductToBackend(sanitized);
+      setFormData(prev => ({ ...prev, extra_codes: sanitized.extra_codes }));
       alert("상품 기본 정보가 저장되었습니다.");
     } catch (error) {
       alert("상품 기본 정보 저장에 실패했습니다. 다시 시도해주세요.");
@@ -442,10 +467,12 @@ const RegisterPage = () => {
         // --- 2. 상품 저장 ---
         const newProduct = {
            ...formData,
+           extra_codes: cleanExtraCodes(formData.extra_codes),
            image: JSON.stringify(processedImageObj),
            isMaster: true
         };
         await saveProductToBackend(newProduct);
+        setFormData(prev => ({ ...prev, extra_codes: newProduct.extra_codes }));
         alert("상품 정보(마스터/이미지)가 성공적으로 등록되었습니다! 누끼 작업 완료!");
     } catch (error) {
         alert("상품 정보 저장에 실패했습니다. 다시 시도해주세요.");
@@ -630,6 +657,18 @@ const RegisterPage = () => {
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>사이즈 (콤마)</span>
               <input type="text" name="sizes" className="modal-input" placeholder="" value={formData.sizes} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>멀티코드 (콤마)</span>
+              <input 
+                type="text" 
+                name="extra_codes" 
+                className="modal-input" 
+                placeholder="판매채널/편성표 연계코드 (최대 4개, 콤마 구분)" 
+                value={formData.extra_codes} 
+                onChange={handleExtraCodesChange} 
+                style={{ flex: 1, margin: 0 }} 
+              />
             </div>
           </div>
 

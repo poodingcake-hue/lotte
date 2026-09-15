@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS products (
   date TEXT,
   isMaster INTEGER DEFAULT 0,
   colors TEXT,
-  sizes TEXT
+  sizes TEXT,
+  extra_codes TEXT
 );
 
 CREATE TABLE IF NOT EXISTS tasks (

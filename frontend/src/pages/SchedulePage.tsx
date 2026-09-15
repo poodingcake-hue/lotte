@@ -35,6 +35,12 @@ const SchedulePage = () => {
   // 등록된(=보유 중인) 상품 코드. 편성표 본문은 이 코드에 해당하는 상품만 노출한다.
   const masterCodes = useMemo(() => {
     const codes = new Set(allItems.filter(i => i.isMaster).map(i => String(i.code)));
+    allItems.filter(i => i.isMaster && i.extra_codes).forEach(i => {
+      String(i.extra_codes).split(',').forEach(c => {
+        const trimmed = c.trim();
+        if (trimmed) codes.add(trimmed);
+      });
+    });
     if (allStockMap) {
       Object.keys(allStockMap).forEach(code => codes.add(String(code)));
     }
@@ -105,23 +111,28 @@ const SchedulePage = () => {
     return <div id="loading-overlay" style={{ display: 'flex' }}><div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div></div>;
   }
 
-  const handleCardClick = (item: any) => {
-    navigate(`/detail/${item.code}`);
-  };
-
   const getDisplayItem = (item: any) => {
     if (!item.isMaster) {
-      const master = allItems.find(m => m.isMaster && String(m.code) === String(item.code));
+      const master = allItems.find(m => m.isMaster && (
+        String(m.code) === String(item.code) ||
+        (m.extra_codes && String(m.extra_codes).split(',').map(s => s.trim()).includes(String(item.code)))
+      ));
       if (master) {
         return {
           ...item,
           brand: master.brand || item.brand,
           name: master.name || item.name,
-          image: master.image || item.image
+          image: master.image || item.image,
+          masterCode: master.code
         };
       }
     }
     return item;
+  };
+
+  const handleCardClick = (item: any) => {
+    const displayItem = getDisplayItem(item);
+    navigate(`/detail/${displayItem.masterCode || item.code}`);
   };
 
   // 보유 상품을 먼저, 펼친 경우 나머지 편성 상품을 뒤에 이어 붙인다
@@ -189,7 +200,8 @@ const SchedulePage = () => {
                   {getRenderItems(time).map((rawItem: any) => {
                     const isOwned = masterCodes.has(String(rawItem.code));
                     const displayItem = isOwned ? getDisplayItem(rawItem) : rawItem;
-                    const supplyObj = allSupplies?.find(s => String(s.code) === String(displayItem.code));
+                    const targetCode = displayItem.masterCode || displayItem.code;
+                    const supplyObj = allSupplies?.find(s => String(s.code) === String(targetCode));
                     const overlay = (supplyObj && supplyObj.text) ? <div className="supplies-overlay">{supplyObj.text}</div> : null;
 
                     return (

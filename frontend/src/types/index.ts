@@ -6,6 +6,8 @@ export interface Item {
     image: string;
     isMaster: boolean;
     sizes?: string;
+    colors?: string;
+    extra_codes?: string;
     price?: number;
     colorCode?: string;
     description?: string;

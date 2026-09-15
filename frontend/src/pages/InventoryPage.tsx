@@ -42,7 +42,8 @@ const InventoryPage = () => {
       items = items.filter(i =>
         (i.name && i.name.toLowerCase().includes(lower)) ||
         (i.code && String(i.code).toLowerCase().includes(lower)) ||
-        (i.brand && i.brand.toLowerCase().includes(lower))
+        (i.brand && i.brand.toLowerCase().includes(lower)) ||
+        (i.extra_codes && String(i.extra_codes).toLowerCase().includes(lower))
       );
     }
     // 상품코드가 높은 순서대로 정렬
@@ -127,6 +128,11 @@ const InventoryPage = () => {
               <div className="p-info">
                 <div className="p-brand">{item.brand || ''}</div>
                 <div className="p-name">{item.name || ''}</div>
+                {item.extra_codes && (
+                  <div style={{ fontSize: '10px', color: '#0284c7', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`연계코드: ${item.extra_codes}`}>
+                    연계: {item.extra_codes}
+                  </div>
+                )}
               </div>
             </div>
           );

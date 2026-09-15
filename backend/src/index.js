@@ -34,6 +34,17 @@ function authenticate(request, env) {
   return token === env.API_KEY;
 }
 
+let schemaMigrated = false;
+async function ensureSchema(db) {
+  if (schemaMigrated || !db) return;
+  try {
+    await db.prepare("ALTER TABLE products ADD COLUMN extra_codes TEXT").run();
+  } catch (e) {
+    // Column already exists or already migrated, safe to ignore
+  }
+  schemaMigrated = true;
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = getCorsHeaders(request);
@@ -120,6 +131,7 @@ export default {
 
       // 4. GET / - Fetch unified application state batch
       if (request.method === "GET" && url.pathname === "/") {
+        await ensureSchema(env.DB);
         const batchResults = await env.DB.batch([
             // Inventory is derived (SUM) from inventory_history, never stored/written directly.
             // inventory_history is the single source of truth for stock levels.
@@ -477,8 +489,9 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
           case "save_product": {
             const item = data;
             if (item && item.code) {
+              await ensureSchema(env.DB);
               await env.DB.prepare(
-                "INSERT OR REPLACE INTO products (code, brand, name, category, image, date, isMaster, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT OR REPLACE INTO products (code, brand, name, category, image, date, isMaster, colors, sizes, extra_codes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
               ).bind(
                 item.code,
                 item.brand || "",
@@ -488,7 +501,8 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
                 item.date || "",
                 item.isMaster ? 1 : 0,
                 item.colors || "",
-                item.sizes || ""
+                item.sizes || "",
+                item.extra_codes || ""
               ).run();
               return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
@@ -588,7 +602,8 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
           // DEPRECATED / FALLBACK: Entire table write fallbacks (Safe versions)
           case "save_products": {
             if (data && data.length > 0) {
-                const stmt = env.DB.prepare("INSERT OR REPLACE INTO products (code, brand, name, category, image, date, isMaster, colors, sizes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                await ensureSchema(env.DB);
+                const stmt = env.DB.prepare("INSERT OR REPLACE INTO products (code, brand, name, category, image, date, isMaster, colors, sizes, extra_codes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 const statements = data.map(item => stmt.bind(
                     item.code,
                     item.brand || "",
@@ -598,7 +613,8 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
                     item.date || "",
                     item.isMaster ? 1 : 0,
                     item.colors || "",
-                    item.sizes || ""
+                    item.sizes || "",
+                    item.extra_codes || ""
                 ));
                 for (let i = 0; i < statements.length; i += 100) {
                     await env.DB.batch(statements.slice(i, i + 100));

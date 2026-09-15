@@ -24,7 +24,8 @@ const ProductSearchModal = ({ isOpen, onClose, onSelect }: ProductSearchModalPro
       result = result.filter(i => 
         (i.name && i.name.toLowerCase().includes(lower)) ||
         (i.code && i.code.toLowerCase().includes(lower)) ||
-        (i.brand && i.brand.toLowerCase().includes(lower))
+        (i.brand && i.brand.toLowerCase().includes(lower)) ||
+        (i.extra_codes && i.extra_codes.toLowerCase().includes(lower))
       );
     }
     
@@ -76,7 +77,14 @@ const ProductSearchModal = ({ isOpen, onClose, onSelect }: ProductSearchModalPro
               </div>
               <div style={{ fontSize: '12px', color: '#666', fontWeight: 'bold' }}>{item.brand}</div>
               <div style={{ fontSize: '14px', margin: '4px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
-              <div style={{ fontSize: '12px', color: '#999', marginTop: 'auto' }}>{item.code}</div>
+              <div style={{ fontSize: '12px', color: '#999', marginTop: 'auto' }}>
+                {item.code}
+                {item.extra_codes && (
+                  <span style={{ marginLeft: '6px', fontSize: '11px', color: '#0284c7' }}>
+                    (연계: {item.extra_codes})
+                  </span>
+                )}
+              </div>
             </div>
           ))}
           {keyword.trim() && filteredItems.length === 0 && (

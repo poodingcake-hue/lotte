@@ -34,23 +34,34 @@ const DetailPage = () => {
 
   // ─── 상품 정보 ───────────────────────────────────────────────
   const item = useMemo(() => {
-    const found = allItems.find(i => String(i.code) === String(id));
+    let found = allItems.find(i => String(i.code) === String(id));
+    if (!found) {
+      found = allItems.find(i => 
+        i.isMaster && i.extra_codes && 
+        String(i.extra_codes).split(',').map(s => s.trim()).includes(String(id))
+      );
+    }
     if (!found) return null;
     if (!found.isMaster) {
-      const master = allItems.find(m => m.isMaster && String(m.code) === String(found.code));
-      if (master) return { ...found, brand: master.brand || found.brand, name: master.name || found.name, image: master.image || found.image };
+      const master = allItems.find(m => m.isMaster && (
+        String(m.code) === String(found.code) ||
+        (m.extra_codes && String(m.extra_codes).split(',').map(s => s.trim()).includes(String(found.code)))
+      ));
+      if (master) return { ...found, brand: master.brand || found.brand, name: master.name || found.name, image: master.image || found.image, extra_codes: master.extra_codes };
     }
     return found;
   }, [allItems, id]);
 
-  const stockMap = useMemo(() => allStockMap[id] || [], [allStockMap, id]);
+  const targetCode = item?.code || id;
+
+  const stockMap = useMemo(() => allStockMap[targetCode] || [], [allStockMap, targetCode]);
 
   // 재고 입력 순서 = inventory_history에 사이즈가 처음 등장한 순서.
   // 한 번에 저장된 묶음은 date가 전부 같으므로 AUTOINCREMENT id로 실제 삽입 순서를 가른다.
   // (등록 화면이 colors -> sizes 순으로 로그를 쌓으므로 id 순서 = 입력한 사이즈 순서)
   const stockEntryOrder = useMemo(() => {
     const logs = [...(allHistory || [])]
-      .filter((l: any) => String(l.code) === String(id))
+      .filter((l: any) => String(l.code) === String(targetCode))
       .sort((a: any, b: any) => {
         const d = (new Date(a.date) as any) - (new Date(b.date) as any);
         return d !== 0 ? d : Number(a.id || 0) - Number(b.id || 0);
@@ -61,7 +72,7 @@ const DetailPage = () => {
       if (s && !out.includes(s)) out.push(s);
     });
     return out;
-  }, [allHistory, id]);
+  }, [allHistory, targetCode]);
 
   // 사이즈 열 순서는 마스터 등록 시 입력한 순서(products.sizes)를 따른다.
   // stockMap은 백엔드가 GROUP BY 결과를 그대로 준 것이라 사이즈가 사전순으로
@@ -116,14 +127,14 @@ const DetailPage = () => {
   };
 
   // ─── 관련 데이터 ─────────────────────────────────────────────
-  const supplyObj  = useMemo(() => allSupplies?.find(s => String(s.code) === String(id)), [allSupplies, id]);
-  const noteObj    = useMemo(() => allNotes?.find(n => String(n.code) === String(id)),    [allNotes,    id]);
-  const itemOutfits = useMemo(() => allOutfits?.filter(o => String(o.code) === String(id)) || [], [allOutfits, id]);
+  const supplyObj  = useMemo(() => allSupplies?.find(s => String(s.code) === String(targetCode)), [allSupplies, targetCode]);
+  const noteObj    = useMemo(() => allNotes?.find(n => String(n.code) === String(targetCode)),    [allNotes,    targetCode]);
+  const itemOutfits = useMemo(() => allOutfits?.filter(o => String(o.code) === String(targetCode)) || [], [allOutfits, targetCode]);
 
   // "미반납 대여" 목록 = RENT 로그 중, 자신을 ref_id로 가리키는 RETURN 로그가 아직 없는 것들.
   // 별도 rentals 테이블 없이 inventory_history만으로 파생 (재고 합계와 절대 어긋날 수 없음).
   const itemRentals = useMemo(() => {
-    const logs = (allHistory || []).filter(h => String(h.code) === String(id) && (h.type === 'RENT' || h.type === 'RETURN'));
+    const logs = (allHistory || []).filter(h => String(h.code) === String(targetCode) && (h.type === 'RENT' || h.type === 'RETURN'));
     const closedRentIds = new Set(
       logs.filter(h => h.type === 'RETURN' && h.ref_id !== undefined && h.ref_id !== null).map(h => String(h.ref_id))
     );
@@ -131,7 +142,7 @@ const DetailPage = () => {
       .filter(h => h.type === 'RENT' && !closedRentIds.has(String(h.id)))
       .map(h => ({ id: h.id, code: h.code, renter: h.actor, color: h.color, size: h.size, qty: Math.abs(Number(h.qty)), date: h.date }))
       .sort((a, b) => (new Date(a.date) as any) - (new Date(b.date) as any));
-  }, [allHistory, id]);
+  }, [allHistory, targetCode]);
 
   // ─── Local state ─────────────────────────────────────────────
   const [supplyText, setSupplyText] = useState('');
@@ -265,21 +276,21 @@ const DetailPage = () => {
   // ─── 저장 함수들 ─────────────────────────────────────────────
   const handleSaveNote = async () => {
     const newNotes = [...(allNotes || [])];
-    const idx = newNotes.findIndex(n => String(n.code) === String(id));
+    const idx = newNotes.findIndex(n => String(n.code) === String(targetCode));
     if (idx > -1) { if (noteText) newNotes[idx] = { ...newNotes[idx], text: noteText }; else newNotes.splice(idx, 1); }
-    else if (noteText) newNotes.push({ code: String(id), text: noteText });
+    else if (noteText) newNotes.push({ code: String(targetCode), text: noteText });
     setAllNotes(newNotes);
-    await saveToBackend('notes.json', newNotes, id);
+    await saveToBackend('notes.json', newNotes, targetCode);
     alert('특이사항이 저장되었습니다.');
   };
 
   const handleSaveSupply = async () => {
     const newSup = [...(allSupplies || [])];
-    const idx = newSup.findIndex(s => String(s.code) === String(id));
+    const idx = newSup.findIndex(s => String(s.code) === String(targetCode));
     if (idx > -1) { if (supplyText) newSup[idx] = { ...newSup[idx], text: supplyText }; else newSup.splice(idx, 1); }
-    else if (supplyText) newSup.push({ code: String(id), text: supplyText });
+    else if (supplyText) newSup.push({ code: String(targetCode), text: supplyText });
     setAllSupplies(newSup);
-    await saveToBackend('supplies.json', newSup, id);
+    await saveToBackend('supplies.json', newSup, targetCode);
     alert('준비물이 저장되었습니다.');
   };
 
@@ -288,9 +299,9 @@ const DetailPage = () => {
       isOpen: true,
       message: `${host} 님의 착장 정보를 삭제하시겠습니까?`,
       onConfirm: async () => {
-        const next = (allOutfits || []).filter(o => !(String(o.code) === String(id) && o.host === host));
+        const next = (allOutfits || []).filter(o => !(String(o.code) === String(targetCode) && o.host === host));
         setAllOutfits(next);
-        await saveToBackend('outfits.json', next, id);
+        await saveToBackend('outfits.json', next, targetCode);
       }
     });
   };
@@ -350,7 +361,7 @@ const DetailPage = () => {
     try {
       const timestamp = new Date().toISOString();
       const newLogs = cart.map((c: any) => ({
-        code: String(id), color: c.color, size: c.size,
+        code: String(targetCode), color: c.color, size: c.size,
         type: 'RENT', qty: -Number(c.qty || 1), date: timestamp,
         actor: renter.trim(), note: '방송 대여(반출)'
       }));
@@ -367,8 +378,8 @@ const DetailPage = () => {
 
   const handleAddOutfits = async (entries: any[]) => {
     const next = [...(allOutfits || [])];
-    entries.forEach(({ host, size }) => { if (host && size) next.push({ code: String(id), host, size }); });
-    setAllOutfits(next); await saveToBackend('outfits.json', next, id);
+    entries.forEach(({ host, size }) => { if (host && size) next.push({ code: String(targetCode), host, size }); });
+    setAllOutfits(next); await saveToBackend('outfits.json', next, targetCode);
   };
 
 
@@ -387,7 +398,7 @@ const DetailPage = () => {
 
       matrix.forEach(m => {
         newLogs.push({
-          code: String(id), color: m.color, size: m.size,
+          code: String(targetCode), color: m.color, size: m.size,
           type: 'ADJUST', qty: Number(m.qty), date: timestamp,
           actor: '관리자', note: '재고 추가/조정 (수기입력)'
         });
@@ -414,12 +425,12 @@ const DetailPage = () => {
     // stockMap 수량(s.qty)은 이미 inventory_history SUM으로 대여(RENT) 반출분이 반영된 값이므로
     // 여기서 itemRentals를 또 빼면 대여 수량만큼 이중차감된다.
     const data = stockMap.filter(s => s.color && s.size).map(s => {
-      return { '상품코드': id, '상품명': item ? `${item.brand} ${item.name}` : id, '색상': s.color, '사이즈': s.size, '현재재고': Number(s.qty) };
+      return { '상품코드': targetCode, '상품명': item ? `${item.brand} ${item.name}` : targetCode, '색상': s.color, '사이즈': s.size, '현재재고': Number(s.qty) };
     }).sort((a, b) => colorOrder.indexOf(a['색상']) - colorOrder.indexOf(b['색상']));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, '재고현황');
-    XLSX.writeFile(wb, `[${item?.brand}] ${item?.name}(${id}).xlsx`);
+    XLSX.writeFile(wb, `[${item?.brand}] ${item?.name}(${targetCode}).xlsx`);
   };
 
   // ─── 메인 이미지 URL ─────────────────────────────────────────
@@ -463,8 +474,13 @@ const DetailPage = () => {
             {/* 상품명 + 코드 + 버튼 */}
             <div className="img-header-overlay">
               <h1 className="det-product-name" id="det-name">{item.brand} {item.name}</h1>
-              <div className="det-sub-info">
+              <div className="det-sub-info" style={{ flexWrap: 'wrap', gap: '6px' }}>
                 <span id="det-code" className="badge-item badge-code">{item.code}</span>
+                {item.extra_codes && String(item.extra_codes).split(',').map((s: string) => s.trim()).filter(Boolean).map((c: string) => (
+                  <span key={c} className="badge-item" style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd' }}>
+                    연계: {c}
+                  </span>
+                ))}
                 <span id="det-loc" className="badge-item badge-loc">{item.location || '-'}</span>
                 <button className="btn-excel" onClick={handleDownloadExcel}>
                   <span className="material-icons-round" style={{ fontSize: '14px' }}>description</span>
