@@ -360,6 +360,11 @@ const RegisterPage = () => {
        alert("상품코드를 먼저 입력해주세요!");
        return;
     }
+    // 삭제여부란에 '바로삭제'가 입력된 경우 저장 버튼 클릭 시 삭제 실행
+    if (deleteConfirmText.trim() === '바로삭제') {
+       await handleDeleteProduct();
+       return;
+    }
     try {
       const sanitized = {
         ...formData,
@@ -415,6 +420,12 @@ const RegisterPage = () => {
   const handleSaveProduct = async () => {
     if (!formData.code) {
        alert("상품코드를 먼저 입력해주세요!");
+       return;
+    }
+
+    // 삭제여부란에 '바로삭제'가 입력된 경우 저장 버튼 클릭 시 삭제 실행
+    if (deleteConfirmText.trim() === '바로삭제') {
+       await handleDeleteProduct();
        return;
     }
 
@@ -671,7 +682,21 @@ const RegisterPage = () => {
           <div className="dash-card">
             <div className="dash-title-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="dash-title">상품 기본 정보</span>
-              <button className="m-btn m-btn-confirm" onClick={handleSaveBasicInfo} style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', width: 'auto', flex: 'none' }}>저장</button>
+              <button 
+                className="m-btn m-btn-confirm" 
+                onClick={handleSaveBasicInfo} 
+                style={{ 
+                  padding: '4px 12px', 
+                  fontSize: '12px', 
+                  borderRadius: '4px', 
+                  fontWeight: 'bold', 
+                  width: 'auto', 
+                  flex: 'none',
+                  background: deleteConfirmText.trim() === '바로삭제' ? '#dc2626' : undefined
+                }}
+              >
+                {deleteConfirmText.trim() === '바로삭제' ? '삭제 실행' : '저장'}
+              </button>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', marginTop: '15px', marginBottom: '10px' }}>
@@ -715,15 +740,15 @@ const RegisterPage = () => {
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#dc2626' }}>삭제여부</span>
               <input 
                 type="text" 
-                placeholder="'바로삭제' 입력 시 영구 삭제 버튼 활성화" 
+                placeholder="'바로삭제' 입력 후 저장 클릭 시 완전 삭제" 
                 value={deleteConfirmText} 
                 onChange={(e) => setDeleteConfirmText(e.target.value)} 
                 style={{ 
                   flex: 1, 
                   margin: 0,
-                  borderColor: deleteConfirmText === '바로삭제' ? '#dc2626' : undefined,
-                  color: deleteConfirmText === '바로삭제' ? '#dc2626' : undefined,
-                  fontWeight: deleteConfirmText === '바로삭제' ? 'bold' : 'normal'
+                  borderColor: deleteConfirmText.trim() === '바로삭제' ? '#dc2626' : undefined,
+                  color: deleteConfirmText.trim() === '바로삭제' ? '#dc2626' : undefined,
+                  fontWeight: deleteConfirmText.trim() === '바로삭제' ? 'bold' : 'normal'
                 }} 
                 className="modal-input" 
               />
@@ -745,7 +770,7 @@ const RegisterPage = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                영구삭제
+                바로삭제
               </button>
             </div>
           </div>
