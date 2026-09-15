@@ -6,7 +6,7 @@ import { removeBackground } from '../api/falClient';
 import { cropTransparentMargins } from '../utils/imageCrop';
 
 const RegisterPage = () => {
-  const { allStockMap, allHistory, apiClient, saveProductToBackend } = useAppStore();
+  const { allStockMap, allHistory, apiClient, saveProductToBackend, deleteProductFromBackend } = useAppStore();
   const [formData, setFormData] = useState({
     code: '',
     brand: '',
@@ -18,6 +18,7 @@ const RegisterPage = () => {
     image: ''
   });
 
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [matrixData, setMatrixData] = useState<Record<string, string>>({});
   const [extraSizes, setExtraSizes] = useState(['', '']); 
   const [extraColors, setExtraColors] = useState(['']); 
@@ -144,6 +145,8 @@ const RegisterPage = () => {
       extra_codes: item.extra_codes || '',
       image: item.image || ''
     });
+
+    setDeleteConfirmText('');
 
     // Matrix is always "how many to add now" — never prefilled with existing stock,
     // so it never doubles as an editable "current total" field.
@@ -368,6 +371,44 @@ const RegisterPage = () => {
       alert("상품 기본 정보가 저장되었습니다.");
     } catch (error) {
       alert("상품 기본 정보 저장에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!formData.code) {
+      alert('삭제할 상품을 먼저 선택하거나 상품코드를 입력해주세요!');
+      return;
+    }
+    if (deleteConfirmText.trim() !== '바로삭제') {
+      alert("삭제를 진행하려면 삭제여부란에 '바로삭제'를 정확히 입력해주세요.");
+      return;
+    }
+    const pCode = String(formData.code);
+    const confirmMsg = `[상품코드: ${pCode}] ${formData.brand || ''} ${formData.name || ''}\n\n정말로 이 상품과 관련된 모든 데이터(마스터 정보, 실시간 재고, 입출고 이력, 대여, 착장, 특이사항, 준비물)를 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`;
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      await deleteProductFromBackend(pCode);
+      setFormData({
+        code: '',
+        brand: '',
+        name: '',
+        category: '',
+        colors: '',
+        sizes: '',
+        extra_codes: '',
+        image: ''
+      });
+      setDeleteConfirmText('');
+      setMatrixData({});
+      alert(`[상품코드: ${pCode}] 상품 및 모든 데이터가 성공적으로 삭제되었습니다.`);
+    } catch (e: any) {
+      alert('상품 삭제 중 오류가 발생했습니다: ' + (e.message || e));
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -669,6 +710,43 @@ const RegisterPage = () => {
                 onChange={handleExtraCodesChange} 
                 style={{ flex: 1, margin: 0 }} 
               />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#dc2626' }}>삭제여부</span>
+              <input 
+                type="text" 
+                placeholder="'바로삭제' 입력 시 영구 삭제 버튼 활성화" 
+                value={deleteConfirmText} 
+                onChange={(e) => setDeleteConfirmText(e.target.value)} 
+                style={{ 
+                  flex: 1, 
+                  margin: 0,
+                  borderColor: deleteConfirmText === '바로삭제' ? '#dc2626' : undefined,
+                  color: deleteConfirmText === '바로삭제' ? '#dc2626' : undefined,
+                  fontWeight: deleteConfirmText === '바로삭제' ? 'bold' : 'normal'
+                }} 
+                className="modal-input" 
+              />
+              <button
+                type="button"
+                disabled={deleteConfirmText.trim() !== '바로삭제' || !formData.code}
+                onClick={handleDeleteProduct}
+                style={{
+                  marginLeft: '8px',
+                  padding: '0 12px',
+                  height: '38px',
+                  background: deleteConfirmText.trim() === '바로삭제' && formData.code ? '#dc2626' : '#e2e8f0',
+                  color: deleteConfirmText.trim() === '바로삭제' && formData.code ? '#fff' : '#94a3b8',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: deleteConfirmText.trim() === '바로삭제' && formData.code ? 'pointer' : 'not-allowed',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                영구삭제
+              </button>
             </div>
           </div>
 

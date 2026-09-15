@@ -128,6 +128,7 @@ export interface AppState {
     // so callers can immediately reference a row (e.g. a RETURN log's ref_id).
     saveHistoryToBackend: (logs: any) => Promise<any[]>;
     saveProductToBackend: (productData: any) => Promise<void>;
+    deleteProductFromBackend: (productCode: string) => Promise<void>;
 }
 
 export interface VtonState {

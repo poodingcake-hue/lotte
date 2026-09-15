@@ -510,6 +510,22 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
           }
 
           // Concurrency-safe outfits updates scoped by product code
+          case "delete_product": {
+            const { code } = data || {};
+            if (code) {
+              const sCode = String(code);
+              await env.DB.batch([
+                env.DB.prepare("DELETE FROM products WHERE code = ?").bind(sCode),
+                env.DB.prepare("DELETE FROM inventory_history WHERE code = ?").bind(sCode),
+                env.DB.prepare("DELETE FROM outfits WHERE code = ?").bind(sCode),
+                env.DB.prepare("DELETE FROM notes WHERE code = ?").bind(sCode),
+                env.DB.prepare("DELETE FROM supplies WHERE code = ?").bind(sCode)
+              ]);
+              return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+            return new Response(JSON.stringify({ success: false, message: "Missing product code" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
           case "save_product_outfits": {
             const { code, outfits } = data;
             if (code) {

@@ -87,6 +87,27 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  // Delete product and all related data (inventory, outfits, notes, supplies, history) from backend and local state
+  deleteProductFromBackend: async (productCode: string) => {
+    try {
+      await apiClient.post('', { type: 'delete_product', data: { code: productCode } });
+      const sCode = String(productCode);
+      set(state => {
+        const allItems = state.allItems.filter(p => String(p.code) !== sCode);
+        const allStockMap = { ...state.allStockMap };
+        delete allStockMap[sCode];
+        const allHistory = state.allHistory.filter(h => String(h.code) !== sCode);
+        const allOutfits = state.allOutfits.filter(o => String(o.code) !== sCode);
+        const allNotes = state.allNotes.filter(n => String(n.code) !== sCode);
+        const allSupplies = state.allSupplies.filter(s => String(s.code) !== sCode);
+        return { allItems, allStockMap, allHistory, allOutfits, allNotes, allSupplies };
+      });
+    } catch (e) {
+      console.error('Error deleting product:', e);
+      throw e;
+    }
+  },
+
   // Returns the saved logs with their real backend-assigned ids attached (same order as
   // input) so callers can immediately reference a row — e.g. a RETURN log's ref_id
   // pointing at the RENT log it closes out — without waiting for a full reload.
