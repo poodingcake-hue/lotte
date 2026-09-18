@@ -68,7 +68,15 @@ const RegisterPage = () => {
   };
 
   const handleChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleBlur = (e: any) => {
+    const { name, value } = e.target;
+    if (name) {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleProductSelect = (item: any) => {
@@ -755,28 +763,28 @@ const RegisterPage = () => {
             
             <div style={{ display: 'flex', alignItems: 'center', marginTop: '15px', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>상품코드</span>
-              <input type="text" name="code" className="modal-input" value={formData.code} onChange={handleChange} style={{ flex: 1, margin: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0 }} />
+              <input type="text" name="code" className="modal-input" value={formData.code} onChange={handleChange} onBlur={handleBlur} style={{ flex: 1, margin: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0 }} />
               <button onClick={() => setIsSearchOpen(true)} style={{ padding: '0 10px', height: '38px', background: '#e9ecef', border: '1px solid #ced4da', borderLeft: 'none', borderTopRightRadius: '4px', borderBottomRightRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', color: '#495057', width: 'auto' }}>불러오기</button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>브랜드</span>
-              <input type="text" name="brand" className="modal-input" value={formData.brand} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="brand" className="modal-input" value={formData.brand} onChange={handleChange} onBlur={handleBlur} style={{ flex: 1, margin: 0 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>상품명</span>
-              <input type="text" name="name" className="modal-input" value={formData.name} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="name" className="modal-input" value={formData.name} onChange={handleChange} onBlur={handleBlur} style={{ flex: 1, margin: 0 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>카테고리</span>
-              <input type="text" name="category" className="modal-input" placeholder="상의/하의/아우터/잡화" value={formData.category} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="category" className="modal-input" placeholder="상의/하의/아우터/잡화" value={formData.category} onChange={handleChange} onBlur={handleBlur} style={{ flex: 1, margin: 0 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>색상 (콤마)</span>
-              <input type="text" name="colors" className="modal-input" placeholder="" value={formData.colors} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="colors" className="modal-input" placeholder="" value={formData.colors} onChange={handleChange} onBlur={handleBlur} style={{ flex: 1, margin: 0 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>사이즈 (콤마)</span>
-              <input type="text" name="sizes" className="modal-input" placeholder="" value={formData.sizes} onChange={handleChange} style={{ flex: 1, margin: 0 }} />
+              <input type="text" name="sizes" className="modal-input" placeholder="" value={formData.sizes} onChange={handleChange} onBlur={handleBlur} style={{ flex: 1, margin: 0 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ width: '100px', fontWeight: 'bold', fontSize: '13px', color: '#333' }}>멀티코드 (콤마)</span>
@@ -787,6 +795,7 @@ const RegisterPage = () => {
                 placeholder="판매채널/편성표 연계코드 (최대 4개, 콤마 구분)" 
                 value={formData.extra_codes} 
                 onChange={handleExtraCodesChange} 
+                onBlur={handleBlur}
                 style={{ flex: 1, margin: 0 }} 
               />
             </div>
@@ -797,6 +806,7 @@ const RegisterPage = () => {
                 placeholder="'바로삭제' 입력 후 저장 클릭 시 완전 삭제" 
                 value={deleteConfirmText} 
                 onChange={(e) => setDeleteConfirmText(e.target.value)} 
+                onBlur={(e) => setDeleteConfirmText(e.target.value)}
                 style={{ 
                   flex: 1, 
                   margin: 0,
