@@ -526,6 +526,48 @@ Do not include any markdown formatting, code blocks, or extra text. Just the raw
             return new Response(JSON.stringify({ success: false, message: "Missing product code" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
+          case "change_product_code": {
+            const { oldCode, newCode } = data || {};
+            if (!oldCode || !newCode) {
+              return new Response(JSON.stringify({ success: false, message: "기존 상품코드와 신규 상품코드가 필요합니다." }), {
+                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+              });
+            }
+            const sOld = String(oldCode).trim();
+            const sNew = String(newCode).trim();
+            if (!sOld || !sNew) {
+              return new Response(JSON.stringify({ success: false, message: "유효한 상품코드를 입력해주세요." }), {
+                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+              });
+            }
+            if (sOld === sNew) {
+              return new Response(JSON.stringify({ success: false, message: "신규 상품코드가 기존 상품코드와 동일합니다." }), {
+                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+              });
+            }
+
+            // Check if newCode already exists in products table
+            const existing = await env.DB.prepare("SELECT code FROM products WHERE code = ?").bind(sNew).first();
+            if (existing) {
+              return new Response(JSON.stringify({ success: false, message: `이미 존재하는 상품코드입니다: ${sNew}` }), {
+                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+              });
+            }
+
+            // Atomic batch update across all related tables
+            await env.DB.batch([
+              env.DB.prepare("UPDATE products SET code = ? WHERE code = ?").bind(sNew, sOld),
+              env.DB.prepare("UPDATE inventory_history SET code = ? WHERE code = ?").bind(sNew, sOld),
+              env.DB.prepare("UPDATE outfits SET code = ? WHERE code = ?").bind(sNew, sOld),
+              env.DB.prepare("UPDATE notes SET code = ? WHERE code = ?").bind(sNew, sOld),
+              env.DB.prepare("UPDATE supplies SET code = ? WHERE code = ?").bind(sNew, sOld)
+            ]);
+
+            return new Response(JSON.stringify({ success: true }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
+          }
+
           case "save_product_outfits": {
             const { code, outfits } = data;
             if (code) {

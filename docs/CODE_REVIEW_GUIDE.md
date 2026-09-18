@@ -79,6 +79,22 @@ GROUP BY code, color, size
 - **리뷰 체크포인트**:
   - `ProductSearchModal.tsx`: `item.category === '반출'`일 때 이미지 위에 반투명 음영 오버레이(`rgba(0,0,0,0.52)`)와 중앙 `반출` 뱃지가 올바르게 렌더링되는지 확인.
 
+### D. 상품코드 일괄 변경 (Primary Key 이전)
+- **설계 의도**: 기존 등록된 상품코드를 다른 신규 상품코드로 변경 시, 상품 마스터뿐만 아니라 관련된 모든 데이터(재고 이력, 착장, 메모, 준비물)의 식별자를 안전하게 일괄 이전.
+- **리뷰 체크포인트**:
+  - **중복 검증**: 신규 코드가 이미 `products` 테이블에 존재하는지 사전 SELECT 확인하여 Primary Key 중복 충돌 방지.
+  - **원자적 배치 UPDATE**: 다음 5개 테이블이 하나의 배치(`env.DB.batch`)로 동시 UPDATE되는지 확인:
+    ```sql
+    UPDATE products SET code = ? WHERE code = ?;
+    UPDATE inventory_history SET code = ? WHERE code = ?;
+    UPDATE outfits SET code = ? WHERE code = ?;
+    UPDATE notes SET code = ? WHERE code = ?;
+    UPDATE supplies SET code = ? WHERE code = ?;
+    ```
+  - **대여/반납 무결성**: 반납(`RETURN`)의 `ref_id`는 auto-increment `id`를 참조하므로 코드 변경 후에도 대여-반납 관계가 깨지지 않음을 인지.
+  - **로컬 상태 동기화**: `useAppStore.changeProductCodeInBackend`에서 `allItems`, `allStockMap` (키 이동 및 구 키 삭제), `allHistory`, `allOutfits`, `allNotes`, `allSupplies`를 즉각 갱신하는지 확인.
+  - **폼 상태 정리**: 본인의 `extra_codes`에 신규 코드가 포함되어 있었다면 마스터 코드로 승격되었으므로 `extra_codes`에서 자동 제외 처리 확인.
+
 ---
 
 ## 4. 영역별 상세 코드리뷰 체크리스트

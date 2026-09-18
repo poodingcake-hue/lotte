@@ -6,7 +6,7 @@ import { removeBackground } from '../api/falClient';
 import { cropTransparentMargins } from '../utils/imageCrop';
 
 const RegisterPage = () => {
-  const { allStockMap, allHistory, apiClient, saveProductToBackend, deleteProductFromBackend } = useAppStore();
+  const { allItems, allStockMap, allHistory, apiClient, saveProductToBackend, deleteProductFromBackend, changeProductCodeInBackend } = useAppStore();
   const [formData, setFormData] = useState({
     code: '',
     brand: '',
@@ -26,6 +26,9 @@ const RegisterPage = () => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+  const [newProductCode, setNewProductCode] = useState('');
+  const [isChangingCode, setIsChangingCode] = useState(false);
   
   
   // Active box for pasting images ('main' or color name)
@@ -417,6 +420,57 @@ const RegisterPage = () => {
     }
   };
 
+  const handleChangeProductCodeSubmit = async () => {
+    const oldCode = String(formData.code).trim();
+    const newCode = String(newProductCode).trim();
+
+    if (!oldCode) {
+      alert('상품을 먼저 불러와주세요.');
+      return;
+    }
+    if (!newCode) {
+      alert('신규 상품코드를 입력해주세요.');
+      return;
+    }
+    if (oldCode === newCode) {
+      alert('기존 상품코드와 동일합니다. 다른 코드를 입력해주세요.');
+      return;
+    }
+
+    // Check if newCode already exists in allItems (master items)
+    const exists = allItems.some(i => i.isMaster && String(i.code) === newCode);
+    if (exists) {
+      alert(`신규 상품코드 [${newCode}]는 이미 시스템에 등록되어 있는 상품코드입니다.\n중복되지 않는 다른 코드를 입력해주세요.`);
+      return;
+    }
+
+    const confirmMsg = `[상품코드 변경 확인]\n\n현재 코드: ${oldCode}\n변경할 코드: ${newCode}\n\n이 상품의 모든 데이터(마스터 정보, 실시간 재고, 입출고/대여/반납 이력, 착장, 메모, 준비물)가 새 코드로 일괄 변경됩니다.\n계속 진행하시겠습니까?`;
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    try {
+      setIsChangingCode(true);
+      await changeProductCodeInBackend(oldCode, newCode);
+      setFormData(prev => {
+        let extra = prev.extra_codes || '';
+        if (extra) {
+          const list = extra.split(',').map(s => s.trim()).filter(c => c && c !== newCode);
+          extra = list.join(', ');
+        }
+        return { ...prev, code: newCode, extra_codes: extra };
+      });
+      setIsCodeModalOpen(false);
+      setNewProductCode('');
+      alert(`[성공] 상품코드가 [${oldCode}]에서 [${newCode}]로 성공적으로 변경되었습니다.`);
+    } catch (e: any) {
+      console.error(e);
+      alert('상품코드 변경 중 오류가 발생했습니다: ' + (e.message || e));
+    } finally {
+      setIsChangingCode(false);
+    }
+  };
+
   const handleSaveProduct = async () => {
     if (!formData.code) {
        alert("상품코드를 먼저 입력해주세요!");
@@ -773,6 +827,33 @@ const RegisterPage = () => {
                 바로삭제
               </button>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '10px' }}>
+              <button
+                type="button"
+                disabled={!formData.code}
+                onClick={() => {
+                  setNewProductCode('');
+                  setIsCodeModalOpen(true);
+                }}
+                style={{
+                  padding: '6px 14px',
+                  background: formData.code ? '#4f46e5' : '#e2e8f0',
+                  color: formData.code ? '#fff' : '#94a3b8',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: formData.code ? 'pointer' : 'not-allowed',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  whiteSpace: 'nowrap'
+                }}
+                title={formData.code ? "상품코드를 신규 코드로 일괄 변경합니다" : "상품을 먼저 선택하거나 불러와주세요"}
+              >
+                <span style={{ fontSize: '13px' }}>🔄</span> 상품코드 변경
+              </button>
+            </div>
           </div>
 
           {sizeAnalysisFields.length > 0 && (
@@ -934,6 +1015,103 @@ const RegisterPage = () => {
         </div>
 
       </div>
+
+      {/* 상품코드 변경 모달 팝업 */}
+      {isCodeModalOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}
+          onClick={() => { if (!isChangingCode) setIsCodeModalOpen(false); }}
+        >
+          <div 
+            style={{
+              background: '#fff',
+              borderRadius: '8px',
+              padding: '24px',
+              width: '420px',
+              maxWidth: '90%',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
+              🔄 상품코드 변경
+            </h3>
+
+            <div style={{ marginBottom: '14px', background: '#f8fafc', padding: '12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #e2e8f0' }}>
+              <div style={{ marginBottom: '4px' }}>
+                <span style={{ color: '#64748b', fontWeight: 'bold' }}>현재 상품코드: </span>
+                <span style={{ fontWeight: 'bold', color: '#0f172a' }}>{formData.code}</span>
+              </div>
+              <div>
+                <span style={{ color: '#64748b', fontWeight: 'bold' }}>상품명: </span>
+                <span style={{ color: '#334155' }}>{formData.brand ? `[${formData.brand}] ` : ''}{formData.name || '미입력'}</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px', color: '#334155' }}>
+                신규 상품코드 입력
+              </label>
+              <input
+                type="text"
+                className="modal-input"
+                placeholder="새로운 상품코드 입력"
+                value={newProductCode}
+                onChange={(e) => setNewProductCode(e.target.value)}
+                style={{ width: '100%', margin: 0, boxSizing: 'border-box' }}
+                disabled={isChangingCode}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleChangeProductCodeSubmit();
+                  }
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '18px', background: '#eff6ff', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#1e40af', lineHeight: 1.5, border: '1px solid #bfdbfe' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠️ 확인 및 안내 사항:</div>
+              <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                <li>상품 마스터, 실시간 재고, 입출고/대여/반납 이력, 착장, 특이사항, 준비물 데이터의 코드가 신규 코드로 일괄 변경됩니다.</li>
+                <li>기존 코드가 방송 편성표나 판매채널에서 계속 사용된다면 변경 후 [멀티상품코드]란에 기존 코드를 등록해주세요.</li>
+              </ul>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                className="m-btn"
+                style={{ background: '#e2e8f0', color: '#475569', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', width: 'auto' }}
+                onClick={() => setIsCodeModalOpen(false)}
+                disabled={isChangingCode}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="m-btn"
+                style={{ background: '#4f46e5', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: isChangingCode ? 'not-allowed' : 'pointer', fontWeight: 'bold', width: 'auto' }}
+                onClick={handleChangeProductCodeSubmit}
+                disabled={isChangingCode}
+              >
+                {isChangingCode ? '변경 중...' : '저장 및 변경'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ProductSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onSelect={handleProductSelect} />
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} productCode={formData.code} />

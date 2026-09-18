@@ -129,6 +129,7 @@ export interface AppState {
     saveHistoryToBackend: (logs: any) => Promise<any[]>;
     saveProductToBackend: (productData: any) => Promise<void>;
     deleteProductFromBackend: (productCode: string) => Promise<void>;
+    changeProductCodeInBackend: (oldCode: string, newCode: string) => Promise<void>;
 }
 
 export interface VtonState {

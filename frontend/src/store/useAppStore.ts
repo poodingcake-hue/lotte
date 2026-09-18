@@ -108,6 +108,75 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  // Change product code across backend and local state (products, inventory_history, outfits, notes, supplies)
+  changeProductCodeInBackend: async (oldCode: string, newCode: string) => {
+    try {
+      const sOld = String(oldCode).trim();
+      const sNew = String(newCode).trim();
+      const res = await apiClient.post('', {
+        type: 'change_product_code',
+        data: { oldCode: sOld, newCode: sNew }
+      });
+      if (!res.data || !res.data.success) {
+        throw new Error(res.data?.message || '상품코드 변경에 실패했습니다.');
+      }
+
+      set(state => {
+        // 1. Update allItems
+        const allItems = state.allItems.map(item => {
+          if (String(item.code) === sOld) {
+            return { ...item, code: sNew };
+          }
+          return item;
+        });
+
+        // 2. Update allStockMap
+        const allStockMap = { ...state.allStockMap };
+        if (allStockMap[sOld]) {
+          allStockMap[sNew] = allStockMap[sOld];
+          delete allStockMap[sOld];
+        }
+
+        // 3. Update allHistory
+        const allHistory = state.allHistory.map(h => {
+          if (String(h.code) === sOld) {
+            return { ...h, code: sNew };
+          }
+          return h;
+        });
+
+        // 4. Update allOutfits
+        const allOutfits = state.allOutfits.map(o => {
+          if (String(o.code) === sOld) {
+            return { ...o, code: sNew };
+          }
+          return o;
+        });
+
+        // 5. Update allNotes
+        const allNotes = state.allNotes.map(n => {
+          if (String(n.code) === sOld) {
+            return { ...n, code: sNew };
+          }
+          return n;
+        });
+
+        // 6. Update allSupplies
+        const allSupplies = state.allSupplies.map(s => {
+          if (String(s.code) === sOld) {
+            return { ...s, code: sNew };
+          }
+          return s;
+        });
+
+        return { allItems, allStockMap, allHistory, allOutfits, allNotes, allSupplies };
+      });
+    } catch (e) {
+      console.error('Error changing product code:', e);
+      throw e;
+    }
+  },
+
   // Returns the saved logs with their real backend-assigned ids attached (same order as
   // input) so callers can immediately reference a row — e.g. a RETURN log's ref_id
   // pointing at the RENT log it closes out — without waiting for a full reload.
