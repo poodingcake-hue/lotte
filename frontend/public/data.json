@@ -4423,6 +4423,32 @@
       "isMaster": false
     },
     {
+      "code": "12925823",
+      "image": "",
+      "brand": "",
+      "name": "[롯데 단독] 담이연 롤 화장지 30롤 x 1세트 + 키친타올 9팩 x 1세트 + 미용티슈 3개 x 2세트 + 방송에서만 물티슈 3개",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-04 05:30",
+      "dateKey": "2026-10-04",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12926952",
+      "image": "",
+      "brand": "",
+      "name": "[담이연] 롤 화장지 30개 x 3세트(90개)",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-04 05:30",
+      "dateKey": "2026-10-04",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12925688",
       "image": "",
       "brand": "",
@@ -4527,6 +4553,45 @@
       "isMaster": false
     },
     {
+      "code": "12927138",
+      "image": "",
+      "brand": "",
+      "name": "[펠리체골드] 18K GOLD 라보엠 퀸 반지 + 멀티펄 3종세트 + 실버 이터니티 파베 반지",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-04 10:00",
+      "dateKey": "2026-10-04",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12927140",
+      "image": "",
+      "brand": "",
+      "name": "[펠리체골드] 18K GOLD 라보엠 퀸 팔찌 + 멀티펄 3종세트 + 실버 클립 팔찌",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-04 10:00",
+      "dateKey": "2026-10-04",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12927150",
+      "image": "",
+      "brand": "",
+      "name": "[펠리체골드] 18K GOLD 천연다이아몬드 코메타 목걸이 + 멀티펄 3종세트",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-04 10:00",
+      "dateKey": "2026-10-04",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12926284",
       "image": "",
       "brand": "",
@@ -4569,7 +4634,7 @@
       "code": "12905268",
       "image": "",
       "brand": "",
-      "name": "[톤28] 톤28 해남404 펩타시카 무농약 해남 병풀 세럼 최현우패키지 (60ml * 8병 + 무료체험분 2ml * 3매)",
+      "name": "[톤28] ★이조건 마지막★ 톤28 해남404 펩타시카 무농약 해남 병풀 세럼 최현우패키지 (60ml * 8병 + 무료체험분 2ml * 3매 + (리뷰시) 새벽 크림 1통)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -4621,7 +4686,7 @@
       "code": "12917132",
       "image": "",
       "brand": "",
-      "name": "[아로마티카] ★최초단독★특대용량패키지 (에센스100ml*5병 +300ml*1병+ 에센스전용 펌프*5개)",
+      "name": "[아로마티카] ★단독★기본패키지 (에센스100ml*5병 +300ml*1병+ 에센스전용 펌프*5개)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -4634,7 +4699,7 @@
       "code": "12920971",
       "image": "",
       "brand": "",
-      "name": "[아로마티카] ★최초단독★재구매패키지 (에센스100ml*10병+에센스전용 펌프*10개+ 에센스 300ml*2)",
+      "name": "[아로마티카] ★역대최저가찬스★더블패키지 (에센스100ml*10병+에센스전용 펌프*10개+ 에센스 300ml*2)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -4813,6 +4878,19 @@
       "isMaster": false
     },
     {
+      "code": "12921213",
+      "image": "",
+      "brand": "",
+      "name": "[조르쥬 레쉬] 26FW 쿼터 집업 풀오버 4종",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-04 20:30",
+      "dateKey": "2026-10-04",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12918065",
       "image": "",
       "brand": "",
@@ -4930,6 +5008,19 @@
       "isMaster": false
     },
     {
+      "code": "12926259",
+      "image": "",
+      "brand": "",
+      "name": "[포니] ■ 포니 26FW 여성 AIR 키높이 스니커즈",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-05 05:15",
+      "dateKey": "2026-10-05",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12926058",
       "image": "",
       "brand": "",
@@ -4977,6 +5068,19 @@
       "colors": "",
       "sizes": "",
       "date": "2026-10-05 09:25",
+      "dateKey": "2026-10-05",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12922031",
+      "image": "",
+      "brand": "",
+      "name": "[네메르] (상시가 399,000원)26FW 이태리 슈렁큰 레더 자켓",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-05 10:25",
       "dateKey": "2026-10-05",
       "location": "-",
       "isMaster": false
@@ -5583,7 +5687,7 @@
       "code": "12910346",
       "image": "",
       "brand": "",
-      "name": "[루블리스] ★홈쇼핑유일판매처★[롯데단독패키지]루블리스 익스트림 어드밴스드 에센셜 헤어팩 대용량 5개 + 중용량 1개 + 리뷰 전고객 중용량 1통 더!",
+      "name": "[루블리스] ★홈쇼핑유일판매처★[역대최대혜택패키지]루블리스 익스트림 어드밴스드 에센셜 헤어팩 대용량 5개 + 중용량 1개 + 리뷰 전고객 중용량 1통 더!",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -5723,10 +5827,10 @@
       "isMaster": false
     },
     {
-      "code": "12921374",
+      "code": "12926506",
       "image": "",
       "brand": "",
-      "name": "[퀸+퀸] 구들장 웰빙오보석 카본 온열 매트 2장",
+      "name": "[퀸+퀸] 웰빙오보석 카본 온열 매트 2장(방송에서만 반값세일)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -5736,10 +5840,10 @@
       "isMaster": false
     },
     {
-      "code": "12921380",
+      "code": "12927080",
       "image": "",
       "brand": "",
-      "name": "[퀸+슈퍼싱글] 구들장 웰빙오보석 카본 온열 매트 2장",
+      "name": "[퀸+슈퍼싱글] 웰빙오보석 카본 온열 매트 2장(방송에서만 반값세일)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -5749,10 +5853,10 @@
       "isMaster": false
     },
     {
-      "code": "12921377",
+      "code": "12927078",
       "image": "",
       "brand": "",
-      "name": "[슈퍼싱글+슈퍼싱글] 구들장 웰빙오보석 카본 온열 매트 2장",
+      "name": "[슈퍼싱글+슈퍼싱글] 웰빙오보석 카본 온열 매트 2장(방송에서만 반값세일)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -5762,10 +5866,10 @@
       "isMaster": false
     },
     {
-      "code": "12921161",
+      "code": "12926441",
       "image": "",
       "brand": "",
-      "name": "[퀸] 웰빙오보석 카본 온열 매트",
+      "name": "[퀸] 웰빙오보석 카본 온열 매트(방송에서만 반값세일)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -5775,14 +5879,53 @@
       "isMaster": false
     },
     {
-      "code": "12921158",
+      "code": "12926427",
       "image": "",
       "brand": "",
-      "name": "[슈퍼싱글] 웰빙오보석 카본 온열 매트",
+      "name": "[슈퍼싱글] 웰빙오보석 카본 온열 매트(방송에서만 반값세일)",
       "category": "",
       "colors": "",
       "sizes": "",
       "date": "2026-10-06 07:15",
+      "dateKey": "2026-10-06",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12927317",
+      "image": "",
+      "brand": "",
+      "name": "[세인트프랑] ★링클크림 최대용량★[미자엄마 패키지] 링클 케어 트리트먼트 크림 150ml*2통 + 250ml*1통 + 브러쉬 1개 + 방송에서만 전고객 링클크림 150ml*2통 더!",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-06 08:15",
+      "dateKey": "2026-10-06",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12927318",
+      "image": "",
+      "brand": "",
+      "name": "[세인트프랑] ★694,000원 절감효과★ [전성애 패키지] 링클 케어 트리트먼트 크림 150ml*7통 + 브러쉬 2개 + 전고객 링클크림 150ml*1통 더!",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-06 08:15",
+      "dateKey": "2026-10-06",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12927319",
+      "image": "",
+      "brand": "",
+      "name": "[세인트프랑] ★롯데 단독 최초공개!★ [비밀 패키지] 링클 케어 트리트먼트 크림 150ml*12통 + 브러쉬 4개 + 방송에서만 전고객 링클크림 150ml*4통 더!",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-06 08:15",
       "dateKey": "2026-10-06",
       "location": "-",
       "isMaster": false
@@ -5792,6 +5935,19 @@
       "image": "",
       "brand": "",
       "name": "[단품] 링클 케어 트리트먼트 크림 150ml*1통",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-06 08:15",
+      "dateKey": "2026-10-06",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12927313",
+      "image": "",
+      "brand": "",
+      "name": "[단품] 링클 케어 트리트먼트 크림 50ml*1통",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -6000,6 +6156,19 @@
       "image": "",
       "brand": "",
       "name": "[에어룸] ★방송에서만 1+1★[Q]호주산 프리미엄 양모100 이불 1+1세트",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-06 12:35",
+      "dateKey": "2026-10-06",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12926875",
+      "image": "",
+      "brand": "",
+      "name": "[에어룸] ★방송에서만 1+1★[SS]호주산 프리미엄 양모100 이불 1+1세트",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -6464,6 +6633,19 @@
       "isMaster": false
     },
     {
+      "code": "12908218",
+      "image": "",
+      "brand": "",
+      "name": "[쿠쿠] 쿠쿠정수기 렌탈",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-10-07 12:35",
+      "dateKey": "2026-10-07",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12923018",
       "image": "",
       "brand": "",
@@ -6581,10 +6763,10 @@
       "isMaster": false
     },
     {
-      "code": "12919539",
+      "code": "12918415",
       "image": "",
       "brand": "",
-      "name": "[바이브리짓X슈퍼띵스] 26FW 자카드 플레어 스커트",
+      "name": "[바이브리짓] 26FW 셔츠 레이어드 니트 4종",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -6594,10 +6776,10 @@
       "isMaster": false
     },
     {
-      "code": "12918415",
+      "code": "12919539",
       "image": "",
       "brand": "",
-      "name": "[바이브리짓] 26FW 셔츠 레이어드 니트 4종",
+      "name": "[바이브리짓X슈퍼띵스] 26FW 자카드 플레어 스커트",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -6659,10 +6841,10 @@
       "isMaster": false
     },
     {
-      "code": "12916874",
+      "code": "12913416",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 퓨어캐시미어 숄카라 니트코트",
+      "name": "[LBL] 26FW NEW 시그니처 투턱 팬츠+벨트 SET",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -6672,10 +6854,10 @@
       "isMaster": false
     },
     {
-      "code": "12913416",
+      "code": "12916874",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW NEW 시그니처 투턱 팬츠+벨트 SET",
+      "name": "[LBL] 26FW 퓨어캐시미어 숄카라 니트코트",
       "category": "",
       "colors": "",
       "sizes": "",
