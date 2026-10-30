@@ -19,6 +19,9 @@ const isSameRental = (a: any, b: any) => {
          String(a.date || '') === String(b.date || '');
 };
 
+// 박스 라벨 A4 가로 페이지 좌우 여백 (템플릿과 글자 맞춤 계산이 같이 쓴다)
+const BOX_PAD_X = 64;
+
 const DetailPage = () => {
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -258,6 +261,7 @@ const DetailPage = () => {
   // 화면 밖 A4 템플릿을 PNG로 만들어 클립보드에 복사 (실패하면 파일로 다운로드). 반출 표지·박스 라벨 공용.
   const captureA4ToClipboard = async (
     el: HTMLDivElement | null, label: string, fileName: string, setBusy: (v: boolean) => void,
+    prepare?: (el: HTMLDivElement) => void,
   ) => {
     try {
       setBusy(true);
@@ -265,6 +269,7 @@ const DetailPage = () => {
       if (document.fonts?.ready) await document.fonts.ready;
       await new Promise(r => setTimeout(r, 100));
       if (!el) throw new Error(`${label} 영역(DOM)을 찾을 수 없습니다.`);
+      prepare?.(el);
 
       const canvas = await html2canvas(el, {
         useCORS: true,
@@ -297,7 +302,41 @@ const DetailPage = () => {
   };
 
   const handleCaptureCover = () => captureA4ToClipboard(coverRef.current, '표지', `lotte_cover_${id}.png`, setIsCoverCapturing);
-  const handleCaptureBox   = () => captureA4ToClipboard(boxRef.current,   '박스 라벨', `lotte_box_${id}.png`, setIsBoxCapturing);
+  // 박스 라벨 글자 크기는 실제 폰트로 재서 정한다 (글자 폭 추정보다 정확하고, 넘치지 않는다).
+  const fitBoxLabel = (root: HTMLDivElement) => {
+    const q = (k: string) => root.querySelector<HTMLElement>(`[data-fit="${k}"]`);
+    const code = q('code'), name = q('name'), qty = q('qty');
+    if (!code || !name || !qty) return;
+    const cw = root.clientWidth - BOX_PAD_X * 2;
+
+    // 한 줄에 꼭 맞는 크기: 100px로 잰 폭의 비율로 정한다
+    const fitOneLine = (el: HTMLElement, max: number) => {
+      el.style.fontSize = '100px';
+      const size = Math.floor(Math.min(max, (100 * cw) / el.scrollWidth));
+      el.style.fontSize = `${size}px`;
+    };
+    fitOneLine(code, 150);
+    fitOneLine(qty, 120);
+
+    // 상품명: 한 줄로 64px 이상이면 한 줄, 아니면 두 줄까지 허용해서 키운다 (최대 96px)
+    name.style.whiteSpace = 'nowrap';
+    name.style.width = 'max-content';
+    name.style.fontSize = '100px';
+    const one = Math.floor((100 * cw) / name.scrollWidth);
+    if (one >= 64) {
+      name.style.fontSize = `${Math.min(96, one)}px`;
+      return;
+    }
+    name.style.whiteSpace = 'normal';
+    name.style.width = 'auto';
+    let size = Math.min(96, one * 2);
+    for (; size > 24; size--) {
+      name.style.fontSize = `${size}px`;
+      if (name.scrollHeight <= size * 1.18 * 2 + 2) break;
+    }
+  };
+  const handleCaptureBox = () =>
+    captureA4ToClipboard(boxRef.current, '박스 라벨', `lotte_box_${id}.png`, setIsBoxCapturing, fitBoxLabel);
 
   // 대여 바구니
   const [cart,    setCart]    = useState<any[]>([]);
@@ -1027,45 +1066,33 @@ const DetailPage = () => {
           </div>
         );
       })()}
-      {/* 반출 박스 라벨 A4 가로 템플릿 — 상품명 + 총수량만, 검정 + Pretendard */}
-      {isReleaseItem && (() => {
-        const PAGE_W = 1123, PAGE_H = 794, PAD_X = 64, PAD_Y = 56;
-        const contentW = PAGE_W - PAD_X * 2;
-        const textW = (t: string) => Array.from(String(t)).reduce((w, ch) =>
-          w + (/[\u3131-\uD79D]/.test(ch) ? 1 : /\s/.test(ch) ? 0.3 : /[0-9]/.test(ch) ? 0.62 : /[+]/.test(ch) ? 0.8 : 0.66), 0) || 1;
-        const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.floor(v)));
-
-        const nameText = `${item.brand || ''} ${item.name || ''}`.trim();
-        // 상품명: 최대 2줄 안에서 가장 크게
-        const nameSize = clamp((contentW * 2) / (textW(nameText) * 1.05), 44, 88);
-        // 총수량: 남는 공간을 꽉 채우는 큰 숫자 (자릿수가 많으면 폭에 맞춰 줄인다)
-        const qtyText = String(totalQty);
-        const qtySize = clamp(Math.min(360, (contentW * 0.8) / (textW(qtyText) + 1.1)), 120, 360);
-
-        return (
-          <div
-            ref={boxRef}
-            style={{
-              position: 'absolute', left: '-9999px', top: '-9999px',
-              width: `${PAGE_W}px`, height: `${PAGE_H}px`, boxSizing: 'border-box',
-              padding: `${PAD_Y}px ${PAD_X}px`, background: '#fff', color: '#000',
-              display: 'flex', flexDirection: 'column',
-              fontFamily: "'Pretendard', sans-serif",
-            }}
-          >
-            <div style={{ fontSize: `${nameSize}px`, fontWeight: 800, lineHeight: 1.22, letterSpacing: '-0.02em', wordBreak: 'keep-all', borderBottom: '5px solid #000', paddingBottom: '24px' }}>
-              {nameText}
-            </div>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {/* 숫자와 EA를 글자 기준선에 맞춘다 */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: `${Math.round(qtySize * 0.08)}px` }}>
-                <span style={{ fontSize: `${qtySize}px`, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.03em' }}>{qtyText}</span>
-                <span style={{ fontSize: `${Math.round(qtySize * 0.3)}px`, fontWeight: 700, lineHeight: 1 }}>EA</span>
-              </div>
-            </div>
+      {/* 반출 박스 라벨 A4 가로 템플릿 — 상품코드 / 상품명 / 총수량을 한 줄씩, 검정 + Pretendard.
+          글자 크기는 캡처 직전에 fitBoxLabel이 실제 폭을 재서 정한다. */}
+      {isReleaseItem && (
+        <div
+          ref={boxRef}
+          style={{
+            position: 'absolute', left: '-9999px', top: '-9999px',
+            width: '1123px', height: '794px', boxSizing: 'border-box',
+            padding: `56px ${BOX_PAD_X}px`, background: '#fff', color: '#000',
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            fontFamily: "'Pretendard', sans-serif",
+          }}
+        >
+          <div data-fit="code" style={{ fontSize: '150px', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em', whiteSpace: 'nowrap', width: 'max-content' }}>
+            {item.code}
           </div>
-        );
-      })()}
+          <div style={{ borderTop: '5px solid #000', margin: '26px 0' }} />
+          <div data-fit="name" style={{ fontSize: '96px', fontWeight: 800, lineHeight: 1.18, letterSpacing: '-0.03em', wordBreak: 'keep-all' }}>
+            {`${item.brand || ''} ${item.name || ''}`.trim()}
+          </div>
+          <div style={{ borderTop: '5px solid #000', margin: '26px 0' }} />
+          <div data-fit="qty" style={{ fontSize: '120px', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em', whiteSpace: 'nowrap', width: 'max-content' }}>
+            {totalQty}
+            <span style={{ fontSize: '0.4em', fontWeight: 700, marginLeft: '0.15em' }}>EA</span>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
