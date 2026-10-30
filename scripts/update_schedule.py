@@ -19,6 +19,9 @@ except ImportError:
         USE_NEW_STEALTH = None
 
 
+COLLECT_DAYS = 10  # 오늘부터 수집할 일수
+
+
 # 한국 시간(KST) 기준 오늘 날짜 구하기
 def get_kst_today():
     kst = timezone(timedelta(hours=9))
@@ -41,7 +44,7 @@ def clean_product_code(code_str):
 async def scrape_lotte_schedule():
     all_results = []
     today_str = get_kst_today()
-    print(f"시스템 알림: 오늘 날짜({today_str}) 기준 7일치 수집 시작 (02:00~05:59 제외)")
+    print(f"시스템 알림: 오늘 날짜({today_str}) 기준 {COLLECT_DAYS}일치 수집 시작 (02:00~05:59 제외)")
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -75,7 +78,7 @@ async def scrape_lotte_schedule():
                 start_idx = idx
                 break
 
-        for d_offset in range(7):
+        for d_offset in range(COLLECT_DAYS):
             target_idx = start_idx + d_offset
             if target_idx >= len(all_tabs): break
             
@@ -83,7 +86,7 @@ async def scrape_lotte_schedule():
             tab = current_tabs[target_idx]
             date_val = await tab.get_attribute("data-date")
             
-            print(f"[{d_offset+1}/7] {date_val} 수집 중...")
+            print(f"[{d_offset+1}/{COLLECT_DAYS}] {date_val} 수집 중...")
             
             try:
                 await tab.evaluate("el => el.click()") 
