@@ -161,6 +161,9 @@ const DetailPage = () => {
   // 반출 상품 표지 (A4, 박스 동봉용)
   const [isCoverCapturing, setIsCoverCapturing] = useState(false);
   const coverRef = useRef<HTMLDivElement>(null);
+  // 반출 박스 라벨 (A4 가로, 상품명 + 총수량만)
+  const [isBoxCapturing, setIsBoxCapturing] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
   // 카테고리는 마스터 상품에만 들어 있으므로(편성표 항목은 빈 값) 마스터에서 찾는다.
   const isReleaseItem = useMemo(() => {
     const master = allItems.find(m => m.isMaster && String(m.code) === String(targetCode));
@@ -252,16 +255,18 @@ const DetailPage = () => {
     }
   };
 
-  // 반출 표지를 A4 PNG로 만들어 클립보드에 복사 (실패하면 파일로 다운로드)
-  const handleCaptureCover = async () => {
+  // 화면 밖 A4 템플릿을 PNG로 만들어 클립보드에 복사 (실패하면 파일로 다운로드). 반출 표지·박스 라벨 공용.
+  const captureA4ToClipboard = async (
+    el: HTMLDivElement | null, label: string, fileName: string, setBusy: (v: boolean) => void,
+  ) => {
     try {
-      setIsCoverCapturing(true);
+      setBusy(true);
       // Pretendard가 다 로드된 뒤에 그려야 폰트가 기본체로 바뀌지 않는다.
       if (document.fonts?.ready) await document.fonts.ready;
       await new Promise(r => setTimeout(r, 100));
-      if (!coverRef.current) throw new Error('표지 영역(DOM)을 찾을 수 없습니다.');
+      if (!el) throw new Error(`${label} 영역(DOM)을 찾을 수 없습니다.`);
 
-      const canvas = await html2canvas(coverRef.current, {
+      const canvas = await html2canvas(el, {
         useCORS: true,
         allowTaint: false,
         logging: false,
@@ -274,22 +279,25 @@ const DetailPage = () => {
 
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        alert('표지 이미지가 클립보드에 복사되었습니다! 붙여넣기(Ctrl+V) 해서 인쇄하세요.');
+        alert(`${label} 이미지가 클립보드에 복사되었습니다! 붙여넣기(Ctrl+V) 해서 인쇄하세요.`);
       } catch (clipErr) {
         console.warn('클립보드 복사 실패, 파일 다운로드로 대체합니다:', clipErr);
         const link = document.createElement('a');
-        link.download = `lotte_cover_${id}.png`;
+        link.download = fileName;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        alert('클립보드 복사 권한이 없거나 지원되지 않아 표지가 파일로 자동 다운로드되었습니다.');
+        alert(`클립보드 복사 권한이 없거나 지원되지 않아 ${label}가 파일로 자동 다운로드되었습니다.`);
       }
     } catch (err: any) {
-      console.error('Cover capture failed:', err);
-      alert('표지 생성 중 오류가 발생했습니다: ' + (err.message || err));
+      console.error(`${label} capture failed:`, err);
+      alert(`${label} 생성 중 오류가 발생했습니다: ` + (err.message || err));
     } finally {
-      setIsCoverCapturing(false);
+      setBusy(false);
     }
   };
+
+  const handleCaptureCover = () => captureA4ToClipboard(coverRef.current, '표지', `lotte_cover_${id}.png`, setIsCoverCapturing);
+  const handleCaptureBox   = () => captureA4ToClipboard(boxRef.current,   '박스 라벨', `lotte_box_${id}.png`, setIsBoxCapturing);
 
   // 대여 바구니
   const [cart,    setCart]    = useState<any[]>([]);
@@ -547,6 +555,12 @@ const DetailPage = () => {
                   <button className="btn-capture" onClick={handleCaptureCover} disabled={isCoverCapturing}>
                     <span className="material-icons-round" style={{ fontSize: '14px' }}>article</span>
                     {isCoverCapturing ? '생성 중...' : '표지'}
+                  </button>
+                )}
+                {isReleaseItem && (
+                  <button className="btn-capture" onClick={handleCaptureBox} disabled={isBoxCapturing}>
+                    <span className="material-icons-round" style={{ fontSize: '14px' }}>inventory_2</span>
+                    {isBoxCapturing ? '생성 중...' : '박스'}
                   </button>
                 )}
               </div>
@@ -1010,6 +1024,45 @@ const DetailPage = () => {
                 </tbody>
               </table>
             )}
+          </div>
+        );
+      })()}
+      {/* 반출 박스 라벨 A4 가로 템플릿 — 상품명 + 총수량만, 검정 + Pretendard */}
+      {isReleaseItem && (() => {
+        const PAGE_W = 1123, PAGE_H = 794, PAD_X = 64, PAD_Y = 56;
+        const contentW = PAGE_W - PAD_X * 2;
+        const textW = (t: string) => Array.from(String(t)).reduce((w, ch) =>
+          w + (/[\u3131-\uD79D]/.test(ch) ? 1 : /\s/.test(ch) ? 0.3 : /[0-9]/.test(ch) ? 0.62 : /[+]/.test(ch) ? 0.8 : 0.66), 0) || 1;
+        const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.floor(v)));
+
+        const nameText = `${item.brand || ''} ${item.name || ''}`.trim();
+        // 상품명: 최대 2줄 안에서 가장 크게
+        const nameSize = clamp((contentW * 2) / (textW(nameText) * 1.05), 44, 88);
+        // 총수량: 남는 공간을 꽉 채우는 큰 숫자 (자릿수가 많으면 폭에 맞춰 줄인다)
+        const qtyText = String(totalQty);
+        const qtySize = clamp(Math.min(360, (contentW * 0.8) / (textW(qtyText) + 1.1)), 120, 360);
+
+        return (
+          <div
+            ref={boxRef}
+            style={{
+              position: 'absolute', left: '-9999px', top: '-9999px',
+              width: `${PAGE_W}px`, height: `${PAGE_H}px`, boxSizing: 'border-box',
+              padding: `${PAD_Y}px ${PAD_X}px`, background: '#fff', color: '#000',
+              display: 'flex', flexDirection: 'column',
+              fontFamily: "'Pretendard', sans-serif",
+            }}
+          >
+            <div style={{ fontSize: `${nameSize}px`, fontWeight: 800, lineHeight: 1.22, letterSpacing: '-0.02em', wordBreak: 'keep-all', borderBottom: '5px solid #000', paddingBottom: '24px' }}>
+              {nameText}
+            </div>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* 숫자와 EA를 글자 기준선에 맞춘다 */}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: `${Math.round(qtySize * 0.08)}px` }}>
+                <span style={{ fontSize: `${qtySize}px`, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.03em' }}>{qtyText}</span>
+                <span style={{ fontSize: `${Math.round(qtySize * 0.3)}px`, fontWeight: 700, lineHeight: 1 }}>EA</span>
+              </div>
+            </div>
           </div>
         );
       })()}
