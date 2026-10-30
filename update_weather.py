@@ -19,23 +19,30 @@ def get_mid_tmfc(now):
     return (now - timedelta(days=1)).strftime('%Y%m%d') + "1800"
 
 
+MID_LAST_ERROR = None
+
+
 def fetch_mid(service_key, endpoint, reg_id, tmfc):
-    """중기예보 API 한 건 호출. 성공하면 item(dict), 실패하면 None."""
+    """중기예보 API 한 건 호출. 성공하면 item(dict), 실패하면 None (사유는 MID_LAST_ERROR)."""
+    global MID_LAST_ERROR
     url = (f"{MID_BASE_URL}/{endpoint}?serviceKey={service_key}"
            f"&pageNo=1&numOfRows=10&dataType=JSON&regId={reg_id}&tmFc={tmfc}")
     try:
         response = requests.get(url, timeout=15)
         if '<' in response.text[:100]:
-            print(f"⚠️ 중기예보({endpoint}) 서버 응답 오류: {response.text[:120]}")
+            MID_LAST_ERROR = f"{endpoint}: HTTP {response.status_code} {response.text[:120]}"
+            print(f"⚠️ 중기예보 {MID_LAST_ERROR}")
             return None
         res = response.json()
         header = res.get('response', {}).get('header', {})
         if header.get('resultCode') != '00':
-            print(f"⚠️ 중기예보({endpoint}) API 오류: {header.get('resultMsg', 'Unknown Error')}")
+            MID_LAST_ERROR = f"{endpoint}: {header.get('resultCode')} {header.get('resultMsg', 'Unknown Error')}"
+            print(f"⚠️ 중기예보 {MID_LAST_ERROR}")
             return None
         return res['response']['body']['items']['item'][0]
     except Exception as e:
-        print(f"⚠️ 중기예보({endpoint}) 수집 실패:", e)
+        MID_LAST_ERROR = f"{endpoint}: {type(e).__name__} {str(e)[:120]}"
+        print(f"⚠️ 중기예보 수집 실패 {MID_LAST_ERROR}")
         return None
 
 
@@ -206,6 +213,8 @@ def get_kma_weather():
             print("ℹ️ 중기예보를 갱신하지 못해 기존 값을 유지합니다." if daily else "ℹ️ 중기예보 없음 (단기예보만 저장)")
         if daily:
             final_data['daily'] = daily
+        elif MID_LAST_ERROR:
+            final_data['daily_error'] = MID_LAST_ERROR  # 조용한 실패를 막기 위해 사유를 남긴다 (화면은 무시)
 
         with open(weather_path, 'w', encoding='utf-8') as f:
             json.dump(final_data, f, ensure_ascii=False, indent=2)
