@@ -5,6 +5,7 @@ import { getProductImage } from '../utils/helpers';
 import OutfitModal from '../components/modals/OutfitModal';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
+import { BOX_ICONS, BOX_ICON_MIN, BOX_ICON_MAX } from '../utils/boxIcons';
 
 
 const isSameRental = (a: any, b: any) => {
@@ -18,6 +19,13 @@ const isSameRental = (a: any, b: any) => {
          String(a.size || '') === String(b.size || '') &&
          String(a.date || '') === String(b.date || '');
 };
+
+// 박스 라벨 아이콘을 독립 SVG 문서(data URL)로 만든다
+const boxIconSrc = (idx: number, size: number) =>
+  'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100">` +
+    `<g fill="none" stroke="#000" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">${BOX_ICONS[idx][1]}</g></svg>`,
+  );
 
 // 박스 라벨 A4 가로 페이지 좌우 여백 (템플릿과 글자 맞춤 계산이 같이 쓴다)
 const BOX_PAD_X = 64;
@@ -167,6 +175,8 @@ const DetailPage = () => {
   // 반출 박스 라벨 (A4 가로, 상품명 + 총수량만)
   const [isBoxCapturing, setIsBoxCapturing] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  // 오른쪽 위 아이콘: 누를 때마다 종류와 크기를 랜덤으로 다시 뽑는다
+  const [boxIcon, setBoxIcon] = useState({ idx: 0, size: 130 });
   // 카테고리는 마스터 상품에만 들어 있으므로(편성표 항목은 빈 값) 마스터에서 찾는다.
   const isReleaseItem = useMemo(() => {
     const master = allItems.find(m => m.isMaster && String(m.code) === String(targetCode));
@@ -269,6 +279,8 @@ const DetailPage = () => {
       if (document.fonts?.ready) await document.fonts.ready;
       await new Promise(r => setTimeout(r, 100));
       if (!el) throw new Error(`${label} 영역(DOM)을 찾을 수 없습니다.`);
+      // 템플릿 안 이미지(박스 아이콘 등)가 다 그려진 뒤에 캡처한다
+      await Promise.all(Array.from(el.querySelectorAll('img')).map(img => img.decode().catch(() => undefined)));
       prepare?.(el);
 
       const canvas = await html2canvas(el, {
@@ -308,15 +320,18 @@ const DetailPage = () => {
     const code = q('code'), name = q('name'), qty = q('qty');
     if (!code || !name || !qty) return;
     const cw = root.clientWidth - BOX_PAD_X * 2;
+    // 상품코드 줄은 오른쪽 위 아이콘과 겹치지 않게 아이콘 폭만큼 비워 둔다
+    const iconSize = Number(root.querySelector<HTMLElement>('[data-box-icon]')?.dataset.boxIcon || 0);
+    const codeW = cw - (iconSize ? iconSize + 24 : 0);
 
     // 한 줄에 꼭 맞는 크기: 100px로 잰 폭의 비율로 정한다
-    const fitOneLine = (el: HTMLElement, max: number) => {
+    const fitOneLine = (el: HTMLElement, max: number, width: number) => {
       el.style.fontSize = '100px';
-      const size = Math.floor(Math.min(max, (100 * cw) / el.scrollWidth));
+      const size = Math.floor(Math.min(max, (100 * width) / el.scrollWidth));
       el.style.fontSize = `${size}px`;
     };
-    fitOneLine(code, 150);
-    fitOneLine(qty, 120);
+    fitOneLine(code, 150, codeW);
+    fitOneLine(qty, 120, cw);
 
     // 상품명: 한 줄로 64px 이상이면 한 줄, 아니면 두 줄까지 허용해서 키운다 (최대 96px)
     name.style.whiteSpace = 'nowrap';
@@ -335,8 +350,14 @@ const DetailPage = () => {
       if (name.scrollHeight <= size * 1.18 * 2 + 2) break;
     }
   };
-  const handleCaptureBox = () =>
-    captureA4ToClipboard(boxRef.current, '박스 라벨', `lotte_box_${id}.png`, setIsBoxCapturing, fitBoxLabel);
+  const handleCaptureBox = () => {
+    setBoxIcon({
+      idx: Math.floor(Math.random() * BOX_ICONS.length),
+      size: BOX_ICON_MIN + Math.floor(Math.random() * (BOX_ICON_MAX - BOX_ICON_MIN + 1)),
+    });
+    // 바뀐 아이콘이 그려진 뒤(캡처 함수가 폰트 로딩 + 100ms를 기다린다)에 캡처된다
+    return captureA4ToClipboard(boxRef.current, '박스 라벨', `lotte_box_${id}.png`, setIsBoxCapturing, fitBoxLabel);
+  };
 
   // 대여 바구니
   const [cart,    setCart]    = useState<any[]>([]);
@@ -1079,6 +1100,13 @@ const DetailPage = () => {
             fontFamily: "'Pretendard', sans-serif",
           }}
         >
+          {/* html2canvas가 인라인 SVG를 빠뜨리므로 SVG를 data URL 이미지로 넣는다 */}
+          <img
+            data-box-icon={boxIcon.size}
+            src={boxIconSrc(boxIcon.idx, boxIcon.size)}
+            width={boxIcon.size} height={boxIcon.size} alt=""
+            style={{ position: 'absolute', top: '44px', right: '56px' }}
+          />
           <div data-fit="code" style={{ fontSize: '150px', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em', whiteSpace: 'nowrap', width: 'max-content' }}>
             {item.code}
           </div>
