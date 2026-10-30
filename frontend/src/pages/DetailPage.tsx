@@ -155,6 +155,15 @@ const DetailPage = () => {
   const [captureImgUrl, setCaptureImgUrl] = useState('');
   const captureRef = useRef<HTMLDivElement>(null);
 
+  // 반출 상품 표지 (A4, 박스 동봉용)
+  const [isCoverCapturing, setIsCoverCapturing] = useState(false);
+  const coverRef = useRef<HTMLDivElement>(null);
+  // 카테고리는 마스터 상품에만 들어 있으므로(편성표 항목은 빈 값) 마스터에서 찾는다.
+  const isReleaseItem = useMemo(() => {
+    const master = allItems.find(m => m.isMaster && String(m.code) === String(targetCode));
+    return (master?.category || item?.category) === '반출';
+  }, [allItems, targetCode, item]);
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -237,6 +246,43 @@ const DetailPage = () => {
     } finally {
       setCaptureImgUrl('');
       setIsCapturing(false);
+    }
+  };
+
+  // 반출 표지를 A4 PNG로 만들어 클립보드에 복사 (실패하면 파일로 다운로드)
+  const handleCaptureCover = async () => {
+    try {
+      setIsCoverCapturing(true);
+      await new Promise(r => setTimeout(r, 100));
+      if (!coverRef.current) throw new Error('표지 영역(DOM)을 찾을 수 없습니다.');
+
+      const canvas = await html2canvas(coverRef.current, {
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: '#ffffff',
+        scale: 3, // 794x1123 → 약 2382x3369px, 인쇄해도 선명하게
+      });
+
+      const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('Canvas 블롭 변환 실패');
+
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        alert('표지 이미지가 클립보드에 복사되었습니다! 붙여넣기(Ctrl+V) 해서 인쇄하세요.');
+      } catch (clipErr) {
+        console.warn('클립보드 복사 실패, 파일 다운로드로 대체합니다:', clipErr);
+        const link = document.createElement('a');
+        link.download = `lotte_cover_${id}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        alert('클립보드 복사 권한이 없거나 지원되지 않아 표지가 파일로 자동 다운로드되었습니다.');
+      }
+    } catch (err: any) {
+      console.error('Cover capture failed:', err);
+      alert('표지 생성 중 오류가 발생했습니다: ' + (err.message || err));
+    } finally {
+      setIsCoverCapturing(false);
     }
   };
 
@@ -490,6 +536,12 @@ const DetailPage = () => {
                   <button className="btn-capture" onClick={handleCapturePage} disabled={isCapturing}>
                     <span className="material-icons-round" style={{ fontSize: '14px' }}>photo_camera</span>
                     {isCapturing ? '캡쳐 중...' : '캡쳐'}
+                  </button>
+                )}
+                {isReleaseItem && (
+                  <button className="btn-capture" onClick={handleCaptureCover} disabled={isCoverCapturing}>
+                    <span className="material-icons-round" style={{ fontSize: '14px' }}>article</span>
+                    {isCoverCapturing ? '생성 중...' : '표지'}
                   </button>
                 )}
               </div>
@@ -862,6 +914,64 @@ const DetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* 반출 표지 A4 템플릿 (화면 밖, 클릭 시에만 PNG로 변환) — 794x1123px = A4 @96dpi */}
+      {isReleaseItem && (() => {
+        const nameText = `${item.brand || ''} ${item.name || ''}`.trim();
+        const titleSize = nameText.length <= 16 ? 72 : nameText.length <= 28 ? 60 : nameText.length <= 44 ? 50 : 42;
+        const rowCount = colors.length + 1;                       // 헤더 포함
+        const rowH = Math.min(140, Math.floor(760 / Math.max(rowCount, 1)));
+        const colW = Math.floor(698 / (sizes.length + 1.6));
+        const cellFont = Math.max(16, Math.min(56, Math.floor(rowH * 0.45), Math.floor(colW * 0.4)));
+        const labelFont = Math.max(16, Math.min(34, cellFont));
+        const cell = {
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1,
+          borderRight: '2px solid #111', borderBottom: '2px solid #111', boxSizing: 'border-box' as const,
+          textAlign: 'center' as const, wordBreak: 'keep-all' as const, padding: '0 4px',
+        };
+        return (
+          <div
+            ref={coverRef}
+            style={{
+              position: 'absolute', left: '-9999px', top: '-9999px',
+              width: '794px', height: '1123px', boxSizing: 'border-box',
+              padding: '56px 48px 48px', background: '#ffffff', color: '#111',
+              display: 'flex', flexDirection: 'column', gap: '32px',
+              fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", sans-serif',
+            }}
+          >
+            <div style={{ fontSize: `${titleSize}px`, fontWeight: 900, lineHeight: 1.25, wordBreak: 'keep-all', borderBottom: '6px solid #111', paddingBottom: '24px' }}>
+              {nameText}
+            </div>
+
+            {colors.length === 0 ? (
+              <div style={{ fontSize: '28px', color: '#94a3b8', textAlign: 'center', padding: '40px 0' }}>등록된 재고가 없습니다.</div>
+            ) : (
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', borderTop: '2px solid #111', borderLeft: '2px solid #111' }}>
+                <div style={{ display: 'flex', height: `${rowH}px`, flex: 'none', background: '#f1f5f9' }}>
+                  <div style={{ ...cell, flex: 1.6, fontSize: `${labelFont}px`, fontWeight: 900 }}>색상</div>
+                  {sizes.map(s => (
+                    <div key={s} style={{ ...cell, fontSize: `${cellFont}px`, fontWeight: 900 }}>{s}</div>
+                  ))}
+                </div>
+                {colors.map(c => (
+                  <div key={c} style={{ display: 'flex', height: `${rowH}px`, flex: 'none' }}>
+                    <div style={{ ...cell, flex: 1.6, fontSize: `${labelFont}px`, fontWeight: 900, background: '#f8fafc' }}>{c}</div>
+                    {sizes.map(s => {
+                      const qty = stockMap.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
+                      return (
+                        <div key={s} style={{ ...cell, fontSize: `${cellFont}px`, fontWeight: qty > 0 ? 900 : 400, color: qty > 0 ? '#111' : '#cbd5e1' }}>
+                          {qty}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </section>
   );
 };
