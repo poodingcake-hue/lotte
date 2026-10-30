@@ -4,6 +4,105 @@ import os
 from datetime import datetime, timedelta
 import pytz
 
+# ─── 중기예보 (3~10일 뒤, 하루 단위) ────────────────────────────────
+MID_BASE_URL = "http://apis.data.go.kr/1360000/MidFcstInfoService"
+MID_LAND_REG_ID = "11B00000"  # 육상예보 구역: 서울·인천·경기
+MID_TEMP_REG_ID = "11B10101"  # 기온 예보 구역: 서울 (선유도역 = 영등포구)
+
+
+def get_mid_tmfc(now):
+    """중기예보 발표시각(06시/18시) 중 가장 최근 것을 YYYYMMDDHH00 형식으로 반환."""
+    if now.hour >= 19:
+        return now.strftime('%Y%m%d') + "1800"
+    if now.hour >= 7:
+        return now.strftime('%Y%m%d') + "0600"
+    return (now - timedelta(days=1)).strftime('%Y%m%d') + "1800"
+
+
+def fetch_mid(service_key, endpoint, reg_id, tmfc):
+    """중기예보 API 한 건 호출. 성공하면 item(dict), 실패하면 None."""
+    url = (f"{MID_BASE_URL}/{endpoint}?serviceKey={service_key}"
+           f"&pageNo=1&numOfRows=10&dataType=JSON&regId={reg_id}&tmFc={tmfc}")
+    try:
+        response = requests.get(url, timeout=15)
+        if '<' in response.text[:100]:
+            print(f"⚠️ 중기예보({endpoint}) 서버 응답 오류: {response.text[:120]}")
+            return None
+        res = response.json()
+        header = res.get('response', {}).get('header', {})
+        if header.get('resultCode') != '00':
+            print(f"⚠️ 중기예보({endpoint}) API 오류: {header.get('resultMsg', 'Unknown Error')}")
+            return None
+        return res['response']['body']['items']['item'][0]
+    except Exception as e:
+        print(f"⚠️ 중기예보({endpoint}) 수집 실패:", e)
+        return None
+
+
+def wf_to_codes(wf):
+    """중기예보 날씨 문구 → 단기예보와 같은 (sky, pty) 코드. (sky 1:맑음 3:구름많음 4:흐림 / pty 0:없음 1:비 2:비·눈 3:눈 4:소나기)"""
+    wf = wf or ''
+    if '비/눈' in wf:
+        pty = 2
+    elif '소나기' in wf:
+        pty = 4
+    elif '비' in wf:
+        pty = 1
+    elif '눈' in wf:
+        pty = 3
+    else:
+        pty = 0
+    if '맑' in wf:
+        sky = 1
+    elif '구름' in wf:
+        sky = 3
+    else:
+        sky = 4
+    return sky, pty
+
+
+def build_daily(land, temp, tmfc):
+    """육상예보 + 기온예보를 날짜별 한 줄로 합친다. (오늘+3일 ~ +10일)"""
+    base = datetime.strptime(tmfc[:8], '%Y%m%d')
+    daily = {"date": [], "tmin": [], "tmax": [], "pop": [], "sky": [], "pty": [], "wf": []}
+    for n in range(3, 11):
+        tmin, tmax = temp.get(f'taMin{n}'), temp.get(f'taMax{n}')
+        if tmin is None or tmax is None:
+            continue
+        # 3~7일 뒤는 오전/오후, 8~10일 뒤는 하루 한 값
+        if n <= 7:
+            cands = [(land.get(f'rnSt{n}Am'), land.get(f'wf{n}Am')),
+                     (land.get(f'rnSt{n}Pm'), land.get(f'wf{n}Pm'))]
+        else:
+            cands = [(land.get(f'rnSt{n}'), land.get(f'wf{n}'))]
+        cands = [(int(p or 0), w) for p, w in cands if w]
+        if not cands:
+            continue
+        # 강수확률이 높은 쪽을 대표로 쓴다 (같으면 오후)
+        pop, wf = max(cands, key=lambda c: c[0])
+        if len(cands) == 2 and cands[0][0] == cands[1][0]:
+            pop, wf = cands[1]
+        sky, pty = wf_to_codes(wf)
+        daily["date"].append((base + timedelta(days=n)).strftime('%Y-%m-%d'))
+        daily["tmin"].append(int(tmin))
+        daily["tmax"].append(int(tmax))
+        daily["pop"].append(pop)
+        daily["sky"].append(sky)
+        daily["pty"].append(pty)
+        daily["wf"].append(wf)
+    return daily
+
+
+def get_mid_daily(service_key, now):
+    tmfc = get_mid_tmfc(now)
+    land = fetch_mid(service_key, 'getMidLandFcst', MID_LAND_REG_ID, tmfc)
+    temp = fetch_mid(service_key, 'getMidTa', MID_TEMP_REG_ID, tmfc)
+    if not land or not temp:
+        return None
+    daily = build_daily(land, temp, tmfc)
+    return daily if daily["date"] else None
+
+
 def get_kma_weather():
     # 기상청 API 설정 (선유도역 nx: 58, ny: 126)
     BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
@@ -95,6 +194,19 @@ def get_kma_weather():
                 final_data['hourly']['pty'].append(data['pty'])
 
         weather_path = os.path.join(os.path.dirname(__file__), 'frontend', 'public', 'weather.json')
+
+        # 중기예보(3~10일 뒤). 이번에 못 가져오면 직전 weather.json의 값을 그대로 유지한다.
+        daily = get_mid_daily(SERVICE_KEY, now)
+        if daily is None:
+            try:
+                with open(weather_path, 'r', encoding='utf-8') as f:
+                    daily = json.load(f).get('daily')
+            except Exception:
+                daily = None
+            print("ℹ️ 중기예보를 갱신하지 못해 기존 값을 유지합니다." if daily else "ℹ️ 중기예보 없음 (단기예보만 저장)")
+        if daily:
+            final_data['daily'] = daily
+
         with open(weather_path, 'w', encoding='utf-8') as f:
             json.dump(final_data, f, ensure_ascii=False, indent=2)
             print("Successfully updated weather.json")

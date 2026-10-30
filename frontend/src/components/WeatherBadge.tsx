@@ -69,29 +69,52 @@ const getWeatherIcon = (sky: number, pty: number) => {
 
 /**
  * 편성표 시간 옆에 붙는 날씨 뱃지.
- * 날씨 데이터가 없거나 해당 시간대 예보가 없으면 아무것도 렌더링하지 않는다.
+ * - 단기예보(시간별, 약 72시간)에 해당 시간이 있으면 방송 2시간 전 시각의 기온/강수확률을 보여 준다.
+ * - 없으면 중기예보(일 단위, 3~10일 뒤)에서 그 날짜의 최저/최고 기온과 강수확률을 보여 준다.
+ * 둘 다 없으면 아무것도 렌더링하지 않는다.
  */
 const WeatherBadge = ({ weather, date, time }: WeatherBadgeProps) => {
-  const hourly = weather?.hourly;
-  if (!hourly?.time || !date) return null;
+  if (!date) return null;
 
   const match = time.match(/(\d{1,2}):(\d{1,2})/);
   if (!match) return null;
 
-  // 방송 2시간 전 예보를 보여 준다 (기존 동작 유지)
-  const hour = Math.max(0, parseInt(match[1], 10) - 2);
-  const idx = hourly.time.indexOf(`${date}T${String(hour).padStart(2, '0')}:00`);
-  if (idx === -1) return null;
+  // 1) 단기예보 (시간별) — 방송 2시간 전 예보를 보여 준다 (기존 동작 유지)
+  const hourly = weather?.hourly;
+  if (hourly?.time) {
+    const hour = Math.max(0, parseInt(match[1], 10) - 2);
+    const idx = hourly.time.indexOf(`${date}T${String(hour).padStart(2, '0')}:00`);
+    if (idx !== -1) {
+      const sky = hourly.sky?.[idx] !== undefined ? hourly.sky[idx] : 1;
+      const pty = hourly.pty?.[idx] !== undefined ? hourly.pty[idx] : 0;
+      const pop = hourly.pop?.[idx] !== undefined ? hourly.pop[idx] : 0;
+      const temp = hourly.temp?.[idx] !== undefined ? hourly.temp[idx] : null;
 
-  const sky = hourly.sky?.[idx] !== undefined ? hourly.sky[idx] : 1;
-  const pty = hourly.pty?.[idx] !== undefined ? hourly.pty[idx] : 0;
-  const pop = hourly.pop?.[idx] !== undefined ? hourly.pop[idx] : 0;
-  const temp = hourly.temp?.[idx] !== undefined ? hourly.temp[idx] : null;
+      return (
+        <div className="weather-badge">
+          <span className="weather-icon">{getWeatherIcon(sky, pty)}</span>
+          <span>{temp === null ? '-' : `${temp}°`}</span>
+          <span className="weather-pop">{pop}%</span>
+        </div>
+      );
+    }
+  }
+
+  // 2) 중기예보 (일 단위) — 시간별 예보가 끝난 뒤 날짜
+  const daily = weather?.daily;
+  const didx = daily?.date ? daily.date.indexOf(date) : -1;
+  if (didx === -1) return null;
+
+  const sky = daily.sky?.[didx] ?? 1;
+  const pty = daily.pty?.[didx] ?? 0;
+  const pop = daily.pop?.[didx] ?? 0;
+  const tmin = daily.tmin?.[didx];
+  const tmax = daily.tmax?.[didx];
 
   return (
-    <div className="weather-badge">
+    <div className="weather-badge" title={`중기예보${daily.wf?.[didx] ? ` · ${daily.wf[didx]}` : ''}`}>
       <span className="weather-icon">{getWeatherIcon(sky, pty)}</span>
-      <span>{temp === null ? '-' : `${temp}°`}</span>
+      <span>{tmin === undefined || tmax === undefined ? '-' : `${tmin}/${tmax}°`}</span>
       <span className="weather-pop">{pop}%</span>
     </div>
   );
