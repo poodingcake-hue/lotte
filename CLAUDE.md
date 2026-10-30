@@ -72,7 +72,7 @@ npx wrangler d1 time-travel info lotte-db
 
 | 워크플로 | 주기 | 비고 |
 |---|---|---|
-| `update_schedule.yml` | 2시간마다 (09~21 KST) | 편성표 크롤링 |
+| `update_schedule.yml` | 매시간 (09~21 KST) | 편성표 크롤링 |
 | `update_weather.yml` | 매시간 | 기상청 예보 |
 | `deploy.yml` | push + 위 두 워크플로 완료 시 | GitHub Pages |
 | `auto_backup.yml` | 매일 03:00 KST | **현재 계속 실패 중** |
