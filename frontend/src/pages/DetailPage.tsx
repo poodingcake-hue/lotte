@@ -116,6 +116,9 @@ const DetailPage = () => {
     return { sizes: [...ordered, ...rest], colors: cList };
   }, [stockMap, item, stockEntryOrder]);
 
+  // 매트릭스 왼쪽 상단에 표시할 현재 재고 총수량
+  const totalQty = useMemo(() => stockMap.reduce((a: number, b: any) => a + Number(b.qty || 0), 0), [stockMap]);
+
   // ─── 컬러별 이미지 파싱 ──────────────────────────────────────
   const colorImages = useMemo(() => {
     if (!item?.image) return {};
@@ -606,7 +609,7 @@ const DetailPage = () => {
                     <table className="st-table">
                       <thead>
                         <tr>
-                          <th>색상</th>
+                          <th style={{ color: '#dc2626', fontWeight: 900 }} title="현재 재고 총수량">{totalQty}</th>
                           {sizes.map(s => <th key={s}>{s}</th>)}
                         </tr>
                       </thead>
@@ -887,7 +890,7 @@ const DetailPage = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  <th style={{ padding: '6px', border: '1px solid #e2e8f0', fontWeight: 'bold', color: '#475569' }}>색상</th>
+                  <th style={{ padding: '6px', border: '1px solid #e2e8f0', fontWeight: 900, color: '#dc2626' }}>{totalQty}</th>
                   {sizes.map(s => (
                     <th key={s} style={{ padding: '6px', border: '1px solid #e2e8f0', fontWeight: 'bold', color: '#475569' }}>{s}</th>
                   ))}
@@ -949,7 +952,7 @@ const DetailPage = () => {
             ) : (
               <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', borderTop: '2px solid #111', borderLeft: '2px solid #111' }}>
                 <div style={{ display: 'flex', height: `${rowH}px`, flex: 'none', background: '#f1f5f9' }}>
-                  <div style={{ ...cell, flex: 1.6, fontSize: `${labelFont}px`, fontWeight: 900 }}>색상</div>
+                  <div style={{ ...cell, flex: 1.6, fontSize: `${labelFont}px`, fontWeight: 900, color: '#dc2626' }}>{totalQty}</div>
                   {sizes.map(s => (
                     <div key={s} style={{ ...cell, fontSize: `${cellFont}px`, fontWeight: 900 }}>{s}</div>
                   ))}
