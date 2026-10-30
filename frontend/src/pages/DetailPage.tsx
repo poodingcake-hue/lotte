@@ -256,6 +256,8 @@ const DetailPage = () => {
   const handleCaptureCover = async () => {
     try {
       setIsCoverCapturing(true);
+      // Pretendard가 다 로드된 뒤에 그려야 폰트가 기본체로 바뀌지 않는다.
+      if (document.fonts?.ready) await document.fonts.ready;
       await new Promise(r => setTimeout(r, 100));
       if (!coverRef.current) throw new Error('표지 영역(DOM)을 찾을 수 없습니다.');
 
@@ -264,7 +266,7 @@ const DetailPage = () => {
         allowTaint: false,
         logging: false,
         backgroundColor: '#ffffff',
-        scale: 3, // 794x1123 → 약 2382x3369px, 인쇄해도 선명하게
+        scale: 3, // 1123x794 → 약 3369x2382px (A4 가로), 인쇄해도 선명하게
       });
 
       const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -918,59 +920,95 @@ const DetailPage = () => {
         </div>
       </div>
 
-      {/* 반출 표지 A4 템플릿 (화면 밖, 클릭 시에만 PNG로 변환) — 794x1123px = A4 @96dpi */}
+      {/* 반출 표지 A4 가로 템플릿 (화면 밖, 클릭 시에만 PNG로 변환) — 1123x794px = A4 가로 @96dpi
+          박스 동봉용 인쇄물이라 색 없이 검정 + Pretendard만 쓴다. */}
       {isReleaseItem && (() => {
+        const PAGE_W = 1123, PAGE_H = 794, PAD_X = 56, PAD_Y = 48, GAP = 28;
+        const contentW = PAGE_W - PAD_X * 2;
+
+        // 글자 폭 추정(em, 넉넉하게): 한글 1, 숫자 0.62, '+' 0.8, 그 외 0.66, 공백 0.3 — 칸 안에 넘치지 않게 글자 크기를 고르는 데 쓴다.
+        const textW = (t: string) => Array.from(String(t)).reduce((w, ch) =>
+          w + (/[\u3131-\uD79D]/.test(ch) ? 1 : /\s/.test(ch) ? 0.3 : /[0-9]/.test(ch) ? 0.62 : /[+]/.test(ch) ? 0.8 : 0.66), 0) || 1;
+        const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.floor(v)));
+
         const nameText = `${item.brand || ''} ${item.name || ''}`.trim();
-        const titleSize = nameText.length <= 16 ? 72 : nameText.length <= 28 ? 60 : nameText.length <= 44 ? 50 : 42;
-        const rowCount = colors.length + 1;                       // 헤더 포함
-        const rowH = Math.min(140, Math.floor(760 / Math.max(rowCount, 1)));
-        const colW = Math.floor(698 / (sizes.length + 1.6));
-        const cellFont = Math.max(16, Math.min(56, Math.floor(rowH * 0.45), Math.floor(colW * 0.4)));
-        const labelFont = Math.max(16, Math.min(34, cellFont));
-        const cell = {
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1,
-          borderRight: '2px solid #111', borderBottom: '2px solid #111', boxSizing: 'border-box' as const,
-          textAlign: 'center' as const, wordBreak: 'keep-all' as const, padding: '0 4px',
+        const nameW = textW(nameText);
+        // 상품명은 크게: 최대 2줄 안에 들어가는 가장 큰 크기 (실제 폭은 추정치의 약 0.9배)
+        const titleSize = clamp((contentW * 2) / (nameW * 1.05), 40, 72);
+        const titleLines = Math.max(1, Math.ceil((nameW * 0.9 * titleSize) / contentW));
+        const titleBlockH = titleLines * titleSize * 1.25 + 20 + 4;
+
+        const rowCount = colors.length + 1; // 헤더 포함
+        const availH = PAGE_H - PAD_Y * 2 - titleBlockH - GAP;
+        const rowH = clamp(availH / rowCount, 40, 150);
+
+        const qtyOf = (c: string, sz: string) =>
+          stockMap.filter(x => x.color === c && x.size === sz).reduce((acc, x) => acc + Number(x.qty), 0);
+
+        // 왼쪽 열: 가장 긴 색상명(또는 총수량)이 한 줄에 들어가게 폭을 잡는다.
+        const labelTexts = [...colors, String(totalQty)];
+        const maxLabelW = Math.max(...labelTexts.map(textW));
+        const labelTarget = clamp(rowH * 0.36, 16, 40);
+        const labelColW = clamp(maxLabelW * labelTarget + 32, 150, 300);
+        const labelFont = clamp(Math.min(labelTarget, (labelColW - 28) / maxLabelW), 14, 40);
+
+        const colW = (contentW - labelColW) / Math.max(sizes.length, 1);
+        const maxSizeW = Math.max(...sizes.map(textW), 1);
+        const maxQtyW = Math.max(...colors.flatMap(c => sizes.map(sz => textW(String(qtyOf(c, sz))))), 1);
+        const headFont = clamp(Math.min(rowH * 0.34, (colW - 24) / maxSizeW), 14, 44);
+        const numFont = clamp(Math.min(rowH * 0.48, (colW - 24) / maxQtyW), 14, 64);
+
+        const bd = '2px solid #000';
+        const td = {
+          border: bd, height: `${rowH}px`, padding: '0 6px', textAlign: 'center' as const,
+          verticalAlign: 'middle' as const, whiteSpace: 'nowrap' as const, overflow: 'hidden', color: '#000',
         };
+
         return (
           <div
             ref={coverRef}
             style={{
               position: 'absolute', left: '-9999px', top: '-9999px',
-              width: '794px', height: '1123px', boxSizing: 'border-box',
-              padding: '56px 48px 48px', background: '#ffffff', color: '#111',
-              display: 'flex', flexDirection: 'column', gap: '32px',
-              fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", sans-serif',
+              width: `${PAGE_W}px`, height: `${PAGE_H}px`, boxSizing: 'border-box',
+              padding: `${PAD_Y}px ${PAD_X}px`, background: '#fff', color: '#000',
+              display: 'flex', flexDirection: 'column', gap: `${GAP}px`,
+              fontFamily: "'Pretendard', sans-serif",
             }}
           >
-            <div style={{ fontSize: `${titleSize}px`, fontWeight: 900, lineHeight: 1.25, wordBreak: 'keep-all', borderBottom: '6px solid #111', paddingBottom: '24px' }}>
+            <div style={{ fontSize: `${titleSize}px`, fontWeight: 800, lineHeight: 1.25, letterSpacing: '-0.02em', wordBreak: 'keep-all', borderBottom: '4px solid #000', paddingBottom: '20px' }}>
               {nameText}
             </div>
 
             {colors.length === 0 ? (
-              <div style={{ fontSize: '28px', color: '#94a3b8', textAlign: 'center', padding: '40px 0' }}>등록된 재고가 없습니다.</div>
+              <div style={{ fontSize: '28px', textAlign: 'center', padding: '40px 0' }}>등록된 재고가 없습니다.</div>
             ) : (
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', borderTop: '2px solid #111', borderLeft: '2px solid #111' }}>
-                <div style={{ display: 'flex', height: `${rowH}px`, flex: 'none', background: '#f1f5f9' }}>
-                  <div style={{ ...cell, flex: 1.6, fontSize: `${labelFont}px`, fontWeight: 900, color: '#dc2626' }}>{totalQty}</div>
-                  {sizes.map(s => (
-                    <div key={s} style={{ ...cell, fontSize: `${cellFont}px`, fontWeight: 900 }}>{s}</div>
+              <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: bd }}>
+                <colgroup>
+                  <col style={{ width: `${labelColW}px` }} />
+                  {sizes.map(sz => <col key={sz} />)}
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style={{ ...td, fontSize: `${labelFont}px`, fontWeight: 800, borderBottom: '4px solid #000' }}>{totalQty}</th>
+                    {sizes.map(sz => (
+                      <th key={sz} style={{ ...td, fontSize: `${headFont}px`, fontWeight: 800, borderBottom: '4px solid #000' }}>{sz}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {colors.map(c => (
+                    <tr key={c}>
+                      <td style={{ ...td, fontSize: `${labelFont}px`, fontWeight: 800 }}>{c}</td>
+                      {sizes.map(sz => {
+                        const qty = qtyOf(c, sz);
+                        return (
+                          <td key={sz} style={{ ...td, fontSize: `${numFont}px`, fontWeight: qty > 0 ? 700 : 300 }}>{qty}</td>
+                        );
+                      })}
+                    </tr>
                   ))}
-                </div>
-                {colors.map(c => (
-                  <div key={c} style={{ display: 'flex', height: `${rowH}px`, flex: 'none' }}>
-                    <div style={{ ...cell, flex: 1.6, fontSize: `${labelFont}px`, fontWeight: 900, background: '#f8fafc' }}>{c}</div>
-                    {sizes.map(s => {
-                      const qty = stockMap.filter(x => x.color === c && x.size === s).reduce((a, b) => a + Number(b.qty), 0);
-                      return (
-                        <div key={s} style={{ ...cell, fontSize: `${cellFont}px`, fontWeight: qty > 0 ? 900 : 400, color: qty > 0 ? '#111' : '#cbd5e1' }}>
-                          {qty}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
+                </tbody>
+              </table>
             )}
           </div>
         );
