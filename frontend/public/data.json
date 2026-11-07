@@ -3188,19 +3188,6 @@
       "isMaster": false
     },
     {
-      "code": "12884903",
-      "image": "",
-      "brand": "",
-      "name": "[LBL] (런칭가 159,000원) FAUX 스웨이드 구스 다운",
-      "category": "",
-      "colors": "",
-      "sizes": "",
-      "date": "2026-11-07 22:30",
-      "dateKey": "2026-11-07",
-      "location": "-",
-      "isMaster": false
-    },
-    {
       "code": "12925028",
       "image": "",
       "brand": "",
@@ -3227,10 +3214,10 @@
       "isMaster": false
     },
     {
-      "code": "12927175",
+      "code": "12884903",
       "image": "",
       "brand": "",
-      "name": "[조르쥬 레쉬] 26FW 라인브러싱 니팅 기모본딩 팬츠 2종 (G6LNW)",
+      "name": "[LBL] (런칭가 159,000원) FAUX 스웨이드 구스 다운",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -3244,6 +3231,19 @@
       "image": "",
       "brand": "",
       "name": "[LBL] 소모울100 클래식 자카드 니트",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-11-07 22:30",
+      "dateKey": "2026-11-07",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12927175",
+      "image": "",
+      "brand": "",
+      "name": "[조르쥬 레쉬] 26FW 라인브러싱 니팅 기모본딩 팬츠 2종 (G6LNW)",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -4033,10 +4033,10 @@
       "isMaster": false
     },
     {
-      "code": "12929294",
+      "code": "12912888",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 알파카울 블렌디드 하프코트",
+      "name": "[LBL] (런칭가 299,000원)26FW 여성 이태리 램스킨 헝가리 구스다운 자켓",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -4059,10 +4059,10 @@
       "isMaster": false
     },
     {
-      "code": "12912888",
+      "code": "12929294",
       "image": "",
       "brand": "",
-      "name": "[LBL] (런칭가 299,000원)26FW 여성 이태리 램스킨 헝가리 구스다운 자켓",
+      "name": "[LBL] 26FW 알파카울 블렌디드 하프코트",
       "category": "",
       "colors": "",
       "sizes": "",
