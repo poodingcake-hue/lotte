@@ -3370,10 +3370,10 @@
       "isMaster": false
     },
     {
-      "code": "12928369",
+      "code": "12928213",
       "image": "",
       "brand": "",
-      "name": "[상시가 699,000원]26FW 퓨어카멜100 핸드메이드 코트",
+      "name": "[LBL] 26FW 퓨어캐시미어100 터틀넥 니트",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -3383,10 +3383,10 @@
       "isMaster": false
     },
     {
-      "code": "12928213",
+      "code": "12928369",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 퓨어캐시미어100 터틀넥 니트",
+      "name": "[상시가 699,000원]26FW 퓨어카멜100 핸드메이드 코트",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -5375,7 +5375,7 @@
       "code": "5001800185",
       "image": "",
       "brand": "",
-      "name": "[LBL] 26FW 호주산 메리노울 블렌디드 레이스 니트",
+      "name": "[LBL] (런칭가 69,900원)26FW 호주산 메리노울 블렌디드 레이스 니트",
       "category": "",
       "colors": "",
       "sizes": "",
@@ -6802,6 +6802,19 @@
       "isMaster": false
     },
     {
+      "code": "12925183",
+      "image": "",
+      "brand": "",
+      "name": "[LBL] (런칭가 159,000원)26FW 호주산 시어링 양모100 FAUX무스탕",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-11-25 05:15",
+      "dateKey": "2026-11-25",
+      "location": "-",
+      "isMaster": false
+    },
+    {
       "code": "12906067",
       "image": "",
       "brand": "",
@@ -7161,6 +7174,58 @@
       "colors": "",
       "sizes": "",
       "date": "2026-11-25 22:55",
+      "dateKey": "2026-11-25",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12926628",
+      "image": "",
+      "brand": "",
+      "name": "[LBL] 26FW 캐시미어울 블렌드 소프트웜 자켓",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-11-25 23:55",
+      "dateKey": "2026-11-25",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12920908",
+      "image": "",
+      "brand": "",
+      "name": "[LBL] 26FW 퓨어라쿤100 주얼버튼 가디건",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-11-25 23:55",
+      "dateKey": "2026-11-25",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12932109",
+      "image": "",
+      "brand": "",
+      "name": "[LBL] 26FW 컴포트텐션 웜기모 폰테팬츠",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-11-25 23:55",
+      "dateKey": "2026-11-25",
+      "location": "-",
+      "isMaster": false
+    },
+    {
+      "code": "12928181",
+      "image": "",
+      "brand": "",
+      "name": "[LBL] 슈렁큰 레더 볼링백",
+      "category": "",
+      "colors": "",
+      "sizes": "",
+      "date": "2026-11-25 23:55",
       "dateKey": "2026-11-25",
       "location": "-",
       "isMaster": false
